@@ -1,9 +1,0 @@
-{
-  "version": "1",
-  "name": "Api-football.com",
-  "type": "collection",
-  "ignore": [
-    "node_modules",
-    ".git"
-  ]
-}
