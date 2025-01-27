@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "CoinGecko",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

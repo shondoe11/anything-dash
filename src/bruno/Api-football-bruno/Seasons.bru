@@ -1,0 +1,17 @@
+meta {
+  name: Seasons
+  type: http
+  seq: 2
+}
+
+get {
+  url: https://v3.football.api-sports.io/leagues/seasons
+  body: json
+  auth: apikey
+}
+
+auth:apikey {
+  key: x-apisports-key
+  value: API_FOOTBALL_KEY
+  placement: header
+}

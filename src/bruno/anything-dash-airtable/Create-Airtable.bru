@@ -1,0 +1,28 @@
+meta {
+  name: Create-Airtable
+  type: http
+  seq: 3
+}
+
+post {
+  url: https://api.airtable.com/v0/appQllAqbsbgCXMO9/Table 1
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer patUrJXYQoabYB5IB.25962f1300ba42be304bfbead8e8393e4747168b5850e71fa3eb1a0d7db57eec
+}
+
+body:json {
+  {
+    "records": [
+      {
+        "fields": {
+          "Name": "post-test",
+          "Notes": "post-test"
+        }
+      }
+    ]
+  }
+}
