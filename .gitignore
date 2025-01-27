@@ -32,3 +32,8 @@ dist-ssr
 .env.*.local
 secrets.env
 config.env
+
+# Ignore Bruno
+*.bru
+*.bru.json
+/bruno/
