@@ -1,35 +1,40 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useEffect, useState } from 'react';
+import { fetchAirtableData, fetchWeatherData, fetchNEAWeatherData, fetchCoinGeckoData, fetchFootballData, fetchAnimeData } from './services/service';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [airtableData, setAirtableData] = useState([]);
+  const [weatherData, setWeatherData] = useState(null);
+  const [neaWeatherData, setNEAweatherData] = useState(null);
+  const [coinData, setCoinData] = useState([]);
+  const [footballData, setFootballData] = useState([]);
+  const [animeData, setAnimeData] = useState([]);
+
+  useEffect(() => {
+    fetchAirtableData().then((data) => setAirtableData(data));
+    fetchWeatherData('Singapore').then((data) => setWeatherData(data));
+    fetchNEAWeatherData().then((data) => setNEAweatherData(data));
+    fetchCoinGeckoData().then((data) => setCoinData(data));
+    fetchFootballData().then((data) => setFootballData(data));
+    fetchAnimeData().then((data) => setAnimeData(data));
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      <h1>APIs</h1>
+      <h2>Airtable</h2>
+      <pre>{JSON.stringify(airtableData, null, 2)}</pre>
+      <h2>Weather</h2>
+      <pre>{JSON.stringify(weatherData, null, 2)}</pre>
+      <h2>NEA Weather</h2>
+      <pre>{JSON.stringify(neaWeatherData, null, 2)}</pre>
+      <h2>CoinGecko</h2>
+      <pre>{JSON.stringify(coinData, null, 2)}</pre>
+      <h2>Football</h2>
+      <pre>{JSON.stringify(footballData, null, 2)}</pre>
+      <h2>Anime</h2>
+      <pre>{JSON.stringify(animeData, null, 2)}</pre>
+    </div>
+  );
 }
 
-export default App
+export default App;
