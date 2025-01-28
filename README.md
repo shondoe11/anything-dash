@@ -9,130 +9,283 @@ Anything-Dash
 * 2 React router routes
 * 1 lifting state
 
+## Timeline
+1 Week
+
+## Tech & Tools Utilized
+- HTML
+- CSS
+- JavaScript
+- React JSX + Vite
+- Bruno (testing APIs)
+- Airtable (data collection)
+- Git + GitHub
+
 ## Project Planning
 
 ### Idea 
-- Dashboard of things, modular widget concept goal, mobile first layout
+- Dashboard of things, modular widget concept goal, mobile first layout (to expand to desktop layout, then after if possible: tablet layout)
 
-### Stories
-- As user, I want to be greeted with my to-do list (by default) on the homepage (3 sections): 
-    a. New Tasks (Buttons: Create, Edit, Delete) 
-    b. Overdue Tasks (Buttons: Edit, Done) * hide if none
-    c. Ongoing Tasks (Buttons: Edit, Done)
-* Layout: Center of page
-- As user, I want to see a Weather section above my to-do list:
-    a. Current Weather by country,  (max display 2 countries via user preference. data pulled from WeatherAPI.com. user preference -> stored in my airtable)
-    b. Current Weather by Singapore region (west,east,central,north,south) (max displat 2 regions vis user preference. data pulled from NEAweather API. user preference -> stored airtable)
-    c. Current Weather by 
+### Stories (State)
+#### To-Do List
+- **As a user, I want to be greeted with my to-do list on the homepage (4 sections):**
+  - **New Tasks:**  
+    Buttons: `Create`, `Edit`, `Delete`
+  - **Overdue Tasks:**  
+    Buttons: `Edit`, `Done` (*hide this section if no overdue tasks*)
+  - **Ongoing Tasks:**
+    Buttons: `Edit`, `Done`
+  - **Completed Tasks:**
+    Buttons: `Edit`, `Undo Completion`
+  - To-do data must be saved in Airtable and retrieved on loading of the page.
+  - Ability to hide the widget and re-enable it via a Navbar dropdown.
+  - Ability to minimize each section
+  - **Layout:** Center of the page.
+
+---
+
+#### Weather Section
+- **As a user, I want to see a Weather section above my to-do list:**
+  - **Current Weather by Country:**  
+    - Filter search option to change the country.  
+    - Max display: 1–2 countries (based on user preferences, stored in Airtable).  
+    - Data pulled from `WeatherAPI.com`.
+  - **4-Day Weather Forecast by Singapore Region:**  
+    - Regions: West, East, Central, North, South.  
+    - No search needed (limited to 4 regions).  
+    - Max display: 1–2 regions (user preference stored in Airtable).  
+    - Data pulled from `NEAweather API`.
+  - **Current Weather by Singapore Town:**  
+    - Filter search for towns like Ang Mo Kio, Bedok, etc.  
+    - Max display: 1–2 towns (user preference stored in Airtable).  
+    - Data pulled from `NEAweather API`.
+  - Ability to hide the widget and re-enable it via a Navbar dropdown.
+  - **Layout:** Top of the page, arranged left-to-right:  
+    - Current Weather by Country  
+    - 4-Day Weather Forecast by Singapore Region  
+    - Current Weather by Singapore Town.
+
+---
+
+#### Cryptocurrency Section
+- **As a user, I want to see the latest Cryptocurrency data:**
+  - Default display: Top 10 performing coins per page.  
+    - Navigation: Flip pages using `<`, `>` keys or arrow clicks.
+  - Ability to switch currencies via a filter search dropdown.
+  - Ability to search for any coin type and return a single result.
+  - Ability to hide the widget and re-enable it via a Navbar dropdown.
+  - Data pulled from `CoinGecko API`.
+  - All preferences saved to Airtable.
+  - **Layout:** Left side of the page (next to the to-do list).
+
+---
+
+#### Football Fixtures
+- **As a user, I want to see the latest football fixtures of the current season:**
+  - Limited to the top 20 positions on the leaderboard (API restriction).
+  - Ability to switch between all competitions available via filter options (e.g., Premier League, Bundesliga, etc.).
+  - Ability to hide the widget and re-enable it via a Navbar dropdown.
+  - Data pulled from `Football-Data API`.
+  - Preferences saved to Airtable.
+  - **Layout:** Right side of the page (next to the to-do list).
+
+---
+
+#### Anime Recommendations
+- **As a user, I want to see the latest anime recommendations from MyAnimeList:**
+  - Display: Top 10 recommended animes.
+  - Navigation: Click left/right arrows to navigate to previous/next sets of 10.
+  - Ability to hide the widget and re-enable it via a Navbar dropdown.
+  - Ability to add an anime to the Todolist
+  - Data pulled from `Jikan Anime API`.
+  - **Layout:** Bottom of the page in a horizontal carousel format (below the to-do list).
+
+---
+
+#### Lyrics Search (Bonus)
+- **As a user, I want to see a fieldset containing 2 search fields:**
+  - **Search Field 1:** Artist name.
+  - **Search Field 2:** Song name.
+  - **Search Button:**  
+    - Ties both search fields to pull data from the API.  
+    - User should also be able to hit `Enter` to execute the search.
+  - **Search Results:**  
+    - Displayed in a pop-up, including the song's lyrics.
+  - **Layout:** Bottom of the page, between the to-do list and anime recommendations.
+
+---
+
+#### Feedback Form
+- **As a user, I want to see a feedback option in the Navbar:**
+  - Opens a controlled form in a popup with the following fields:
+    - **Name** (required): Input field.
+    - **Email** (required): Input field.
+    - **Date of Birth** (optional): Input field.
+    - **Rating Scale** (required): 1–5 stars.
+    - **What could be improved?** (required): Input field.
+    - **Bug Report** (optional): Input field.
+    - **Additional Feedback** (optional): Input field.
+
+---
+
+#### Drag & Drop (Bonus)
+- **As a user, I want the ability to drag & drop widgets anywhere on the page:**
+  - Widgets should also retain their show/hide options via the Navbar.
 
 
-Coin Display
-(user able to select currencies, cointype ) -> saved preference stored in airtable
+### Wireframe -> Components
+```
+src/
+├── components/
+│   ├── App.jsx
+│   ├── Navbar.jsx
+│   ├── Dashboard.jsx
+│   └── Widgets/
+│       └── TodoWidget.jsx
+```
+#### 1. App
+**Purpose:** Highest-level component raps the entire application.  
+**Key responsibilities:**
+- Provide global context or providers (React Router, theme context, user preferences context, etc.).
+- Render the Navbar/Header, MainContent (using `<Routes />`), and an optional Footer.
 
-Jikan Anime
-- User add to todolist -> data stored in airtable
+---
 
+#### 2. Layout Components
 
-3. APIs confirmed by Bruno:
-- WeatherAPI [exp 4 Feb, calls/month = 5M]
-- CoinGecko [no exp, calls/month =  1/10K(replenish 1st of month), req/min = 30]
-- API-sports: API-football.com [exp 23 Jan 2026, typeof sport/req/day = 100]
-- NEA Weather
-- Jikan Anime
-- Lyrics.ovh
+##### **Navbar**
+- **Show/Hide toggles:** Contains controls (toggles, buttons) to show or hide each widget (Todo, Weather, Crypto, Football, Anime, Lyrics).
+- **Feedback:** Links to `/anything/feedback` route or opens a modal.
 
+##### **MainContent**
+- Contains the main routed components (Dashboard, Weather, Crypto, etc.).
+- Responsible for applying layout or styling that is consistent across all pages.
 
-4. wireframe -> Components
-   1. Page (/src/pages) -> Component (/src/components)
-   2. inside page -> nested components
-   3. RESTful url -> page
+##### **Footer (optional)**
+- Any global footer information (e.g., copyright, disclaimers, etc.).
+
+---
+
+#### 3. Dashboard Page ( `/anything` )
+**Purpose:** The drag & drop board showing each widget in modular cards.
+
+##### **Drag & Drop:**
+- A `WidgetContainer` or `Board` component that manages the positions of each widget.
+- Use library (e.g., `react-beautiful-dnd`, `react-grid-layout`, or `react-dnd`) to allow users to rearrange widgets.
+- Saves layout preferences (widget order, positions) in Airtable so the arrangement persists on reload.
+
+##### **Widgets**  
+**(Shown or hidden based on user’s stored preferences in Airtable):**
+- **WeatherWidget:**  
+  Internally break out into `<CurrentWeatherByCountry />`, `<FourDayForecast />`, `<TownWeather />`, etc.
+- **ToDoWidget:**  
+  Shows New, Overdue, Ongoing, Completed tasks.
+- **CryptoWidget:**  
+  Shows top 10 coins, currency filter, search for specific coin.
+- **FootballWidget:**  
+  Shows competition standings, user can switch competitions.
+- **AnimeWidget:**  
+  Top 10 recommended animes, next/previous pagination.
+- **LyricsWidget (Bonus):**  
+  Search fields for artist + song, displays pop-up with lyrics.
+
+---
+
+##### 4. Dedicated Widget Pages
+Each widget is displayed on the Dashboard, but dedicated routes show each widget’s info in more depth:
+
+##### **WeatherPage** (`/anything/weather`)
+- Extended weather details, additional search filters, or advanced data.
+- Could display multiple countries or more in-depth forecast data.
+
+##### **TodoPage** (`/anything/todo`)
+- Dedicated page for viewing and managing tasks.
+- **TodoEditPage** (`/anything/todo/:todoId/edit`) for editing a single todo.
+
+##### **CryptoPage** (`/anything/crypto`)
+- More detailed crypto stats, historical data charts, or advanced filters.
+
+##### **FootballPage** (`/anything/football`)
+- Extended standings, match fixtures, stats, or multiple leagues.
+
+##### **AnimePage** (`/anything/anime`)
+- Advanced search, filtering by genre, or more detailed anime info.
+
+##### **LyricsPage** (`/anything/lyrics`)
+- Advanced music search, highlight lyrics, or display multiple possible matches.
+
+---
+
+#### 5. FeedbackForm
+**Accessed via:**
+- Navbar button that opens a modal.
+- Dedicated route: `/anything/feedback`.
+
+##### **Form Fields:**
+- Name, Email, Date of Birth, Rating scale, improvement ideas, bug reports, additional feedback.
+
+**Submission:** Store the feedback in Airtable.
+
+---
+
+#### 6. Additional Components / Utilities
+- **DragDropContext** or equivalent from your chosen DnD library.
+- **Widget Base Component:** Each widget extends this to reuse styling or logic for drag & drop, show/hide toggles, etc.
+- **ErrorBoundary** or **NotFound Page:** Handles unexpected errors or unknown routes.
+
+---
 
 ### URLs
 
-<!-- - /pets -> AllPetsPage (PetList -> GET all pets)
-- /pets/:petId -> OnePetPage (Pet -> Get 1 pet)
-- /pets/new -> NewPetPage (Form -> POST pet)
-- /pets/:petId/edit -> EditPetPage -->
+#### **Dashboard (Main Drag & Drop):**
+`/anything`
+- Displays the main board with all widgets in a draggable layout.
 
-Do this using react-router / setup debug
+#### **To-Do:**
+`/anything/todo`
+- Dedicated page for viewing and managing tasks.
+`/anything/todo/:todoId/edit`
+- A dedicated route for editing a single todo item.
 
-## Server Back-end
+#### **Weather:**
+`/anything/weather`
+- Extended weather view: advanced forecast, multiple countries, or additional data.
 
-Use JSON Server -> Mock API will be used if i am hosting any json data (that doesn't need to be updated)
+#### **Crypto:**
+`/anything/crypto`
+- Dedicated page for more detailed crypto charts, advanced filtering, historical data.
 
-touch `db.json`
+#### **Football:**
+`/anything/football`
+- Focused view on leagues, standings, fixtures, etc.
 
+#### **Anime:**
+`/anything/anime`
+- More detailed anime browsing, search, or recommendations.
 
+#### **Lyrics:**
+`/anything/lyrics`
+- Focused search for song lyrics, advanced queries, or multiple result displays.
 
+#### **Feedback:**
+`/anything/feedback`
+- Displays the feedback form page or triggers a popup.
 
+#### **404 / NotFound:**
+- Catch-all for routes not defined above.
 
+---
 
+### Drag & Drop Considerations
 
+#### **Local vs. Airtable Storage:**
+- The user’s widget arrangement (and show/hide preferences) can be saved in Airtable, ensuring that the layout persists across sessions.
 
+#### **Implementation:**
+- Use a library like `react-beautiful-dnd`, `react-dnd`, or `react-grid-layout` to enable drag & drop.
+- A top-level `<DragDropContext>` in the `DashboardPage` manages widget ordering and positions.
 
-
-### Components
-
-Components = Data -> JSX
-
-State / props?
-
-Fetch Data? when?
-
-- onload
-- click button
-
-
-
-## All Pets
-
-All pets needs to fetch data (background) to show list the of pets
-
-fetch -> state -> array of pets
-
-### JSX
-
-mock the state using useState([])
-
-use the state to create the JSX
-
-### Doing the fetch
-
-Search "using fetch in mdn" -> boilerplate code -> copy and modify the URL
-
-### Do fetch click button
-
-call the fetch function -> setState()
-
-### Do fetch in background
-
-useEffect() -> create the fetch function call it in side -> [] -> do it once
-
-### Org and cleanup
-
-fetch -> service
-
-## Create Pet
-
-### Already Done
-
-- wireframe -> form is visible
-- routing is done -> /pets/new
-
-### Happy Story
-
-- User goes pets/new by clicking the "New Pet" button
-- User fill in the form
-- User click the Add
-- User will go back to list -> see the new pet there
-
-### Sad Story
-
-when errors, stay on the same page
-
-### Intent
-
-reproduce what bruno did but using JS
-
-JS -> `http://localhost:3000/pets` + POST + Body payload
+#### **Widget Switching:**
+- Users can drag widgets around or hide them via the Navbar toggles.
+- Dedicated page routes for each widget offer deeper detail without losing the user’s board arrangement on the main dashboard.
 
