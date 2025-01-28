@@ -3,8 +3,8 @@
 export const fetchAirtableData = async () => {
     const airtableApiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const airtableBaseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
-    const airtableTableName = import.meta.env.VITE_AIRTABLE_TABLE_NAME;
-    const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableName}`;
+    const airtableTableTodo = import.meta.env.VITE_AIRTABLE_TABLE_TODO;
+    const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableTodo}`;
     const response = await fetch(url, {
         headers: {
             Authorization: `Bearer ${airtableApiKey}`,
@@ -17,8 +17,8 @@ export const fetchAirtableData = async () => {
 export const postDataToAirtable = async (newRecord) => {
     const airtableApiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const airtableBaseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
-    const airtableTableName = import.meta.env.VITE_AIRTABLE_TABLE_NAME;
-    const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableName}`;
+    const airtableTableTodo = import.meta.env.VITE_AIRTABLE_TABLE_TODO;
+    const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableTodo}`;
     const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -36,8 +36,8 @@ export const postDataToAirtable = async (newRecord) => {
 export const editDataInAirtable = async (recordId, updatedFields) => {
     const airtableApiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const airtableBaseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
-    const airtableTableName = import.meta.env.VITE_AIRTABLE_TABLE_NAME;
-    const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableName}/${recordId}`;
+    const airtableTableTodo = import.meta.env.VITE_AIRTABLE_TABLE_TODO;
+    const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableTodo}/${recordId}`;
     const response = await fetch(url, {
         method: 'PATCH',
         headers: {
@@ -55,8 +55,8 @@ export const editDataInAirtable = async (recordId, updatedFields) => {
 export const deleteDataFromAirtable = async (recordId) => {
     const airtableApiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const airtableBaseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
-    const airtableTableName = import.meta.env.VITE_AIRTABLE_TABLE_NAME;
-    const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableName}/${recordId}`;
+    const airtableTableTodo = import.meta.env.VITE_AIRTABLE_TABLE_TODO;
+    const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableTodo}/${recordId}`;
     const response = await fetch(url, {
         method: 'DELETE',
         headers: {
