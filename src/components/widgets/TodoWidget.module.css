@@ -1,0 +1,34 @@
+/* CSS modules styling: https: //create-react-app.dev/docs/adding-a-css-modules-stylesheet/ */
+
+.todo-widget {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #F9F9F9;
+}
+
+.task-list {
+    margin-top: 1rem;
+}
+
+.task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+}
+
+.task-item button {
+    background-color: #FF4D4D;
+    color: white;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.task-item button:hover {
+    background-color: #FF1A1A;
+}
