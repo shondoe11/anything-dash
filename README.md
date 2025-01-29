@@ -16,7 +16,7 @@ Anything-Dash
 - HTML
 - CSS
 - JavaScript
-- React JSX + Vite
+- React + Vite
 - Bruno (testing APIs)
 - Airtable (data collection)
 - Git + GitHub
@@ -30,13 +30,20 @@ Anything-Dash
 #### To-Do List
 - **As a user, I want to be greeted with my to-do list on the homepage (4 sections):**
   - **New Tasks:**  
-    Buttons: `Create`, `Edit`, `Delete`
+    Input Field: New Task
+    Input Field: Due Date (if any)
+    Button: `Create`
   - **Overdue Tasks:**  
-    Buttons: `Edit`, `Done` (*hide this section if no overdue tasks*)
+    Buttons: `Edit`, `Done`, `Delete` (*hide this section if no overdue tasks*)
   - **Ongoing Tasks:**
     Buttons: `Edit`, `Done`
   - **Completed Tasks:**
-    Buttons: `Edit`, `Undo Completion`
+    Buttons: `Edit`, `Delete`
+  **`Done` means tasks get pushed to the Completed Tasks section**
+  **All `Edit` buttons will render 2 Input Fields:**
+    Input Field: Edit Task
+    Input Field: Due Date (if any)
+    Button: `Save`
   - To-do data must be saved in Airtable and retrieved on loading of the page.
   - Ability to hide the widget and re-enable it via a Navbar dropdown.
   - Ability to minimize each section
@@ -137,14 +144,20 @@ Anything-Dash
 ```
 src/
 ├── components/
-│   ├── App.jsx
 │   ├── Navbar.jsx
 │   ├── Dashboard.jsx
 │   └── Widgets/
-│       └── TodoWidget.jsx
+│       ├── TodoWidget.jsx
+│       └── TodoWidget.module.css
+├── services/
+│   └── service.js
+├── App.jsx
+├── App.css
+├── main.jsx
+├── index.css
 ```
 #### 1. App
-**Purpose:** Highest-level component raps the entire application.  
+**Purpose:** Highest-level component wraps the entire application.  
 **Key responsibilities:**
 - Provide global context or providers (React Router, theme context, user preferences context, etc.).
 - Render the Navbar/Header, MainContent (using `<Routes />`), and an optional Footer.
@@ -288,4 +301,3 @@ Each widget is displayed on the Dashboard, but dedicated routes show each widget
 #### **Widget Switching:**
 - Users can drag widgets around or hide them via the Navbar toggles.
 - Dedicated page routes for each widget offer deeper detail without losing the user’s board arrangement on the main dashboard.
-
