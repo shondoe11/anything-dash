@@ -42,7 +42,7 @@ export const editDataInAirtable = async (recordId, updatedFields) => {
         method: 'PATCH',
         headers: {
             Authorization: `Bearer ${airtableApiKey}`,
-            'Content-Type': application/json,
+            'Content-Type': 'application/json',
         },
         body: JSON.stringify({
             fields: updatedFields,
