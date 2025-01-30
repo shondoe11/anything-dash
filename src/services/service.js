@@ -75,6 +75,13 @@ export const fetchWeatherData = async (city) => {
     return data;
 };
 
+export const fetchFourDayWeatherDataSG = async () => {
+    const url=`https://api-open.data.gov.sg/v2/real-time/api/four-day-outlook`
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+}
+
 export const fetchNEAWeatherData = async () => {
     const url = `https://api.data.gov.sg/v1/environment/2-hour-weather-forecast`;
     const response = await fetch(url);
