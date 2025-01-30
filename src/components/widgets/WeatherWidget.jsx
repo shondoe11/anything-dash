@@ -8,6 +8,20 @@ export default function WeatherWidget() {
     const [countrySearch, setCountrySearch] = useState(null);
     const [townSearch, setTownSearch] = useState('');
     const [townWeather, setTownWeather] = useState('');
+    const [towns, setTowns] = useState([]);
+
+    useEffect(() => {
+        const fetchTowns = async () => {
+            try {
+                const neaData = await fetchNEAWeatherData();
+                const townList = neaData.items[0].forecasts.map((forecast) => forecast.area);
+                setTowns(townList);
+            } catch (error) {
+                console.error('fetch list of towns FAILED: ', error);
+            }
+        };
+        fetchTowns();
+    }, []);
 
     const processForecastData = (data) => {
         if (!data || !data.data || !data.data.records || data.data.records.length === 0) {
@@ -47,19 +61,21 @@ export default function WeatherWidget() {
         }
     };
 
-    const handleTownSearch = async (e) => {
-        e.preventDefault();
+    useEffect(() => {
         if (!townSearch) return;
-        try {
-            const neaData = await fetchNEAWeatherData();
-            const townForecast = neaData.items[0].forecasts.find(
-                f => f.area.toLowerCase() === townSearch.toLowerCase()
-            );
-            setTownWeather(townForecast);
-        } catch (error) {
-            console.error('fetch town weather FAIL: ', error);
-        }
-    };
+        const fetchTownWeather = async () => {
+            try {
+                const neaData = await fetchNEAWeatherData();
+                const townForecast = neaData.items[0].forecasts.find(
+                    f => f.area.toLowerCase() === townSearch.toLowerCase()
+                );
+                setTownWeather(townForecast || null);
+            } catch (error) {
+                console.error('fetch town weather FAIL: ', error);
+            }
+        };
+        fetchTownWeather();
+    }, [townSearch]);
 
     return (
         <div>
@@ -105,16 +121,18 @@ export default function WeatherWidget() {
             </div>
             <div>
                 <h3>Singapore Town Weather</h3>
-                <form onSubmit={handleTownSearch}>
+                <form>
                     <div>
                         <label>Search Town:</label>
-                        <input 
-                        type="text" 
+                        <select 
                         value={townSearch} 
-                        onChange={(e) => setTownSearch(e.target.value)} 
-                        placeholder="Enter Singapore town" />
+                        onChange={(e) => setTownSearch(e.target.value)}>
+                            <option value=''>Select a town</option>
+                            {towns.map((town, index) => (
+                                <option key={index} value={town}>{town}</option>
+                            ))}
+                        </select>
                     </div>
-                    <button type="submit">Search</button>
                 </form>
                 {townWeather && (
                     <div>
