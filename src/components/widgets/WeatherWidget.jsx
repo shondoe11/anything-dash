@@ -1,31 +1,35 @@
 import { useEffect, useState } from "react";
-import { fetchWeatherData, fetchNEAWeatherData } from "../../services/service";
+import { fetchWeatherData, fetchNEAWeatherData, fetchFourDayWeatherDataSG } from "../../services/service";
 
 
 export default function WeatherWidget() {
-    const [forecastData, setForecastData] = useState();
-    const [currentWeather, setCurrentWeather] = useState();
-    const [countrySearch, setCountrySearch] = useState();
-    const [townSearch, setTownSearch] = useState();
-    const [townWeather, setTownWeather] = useState();
+    const [forecastData, setForecastData] = useState(null);
+    const [currentWeather, setCurrentWeather] = useState(null);
+    const [countrySearch, setCountrySearch] = useState(null);
+    const [townSearch, setTownSearch] = useState('');
+    const [townWeather, setTownWeather] = useState('');
+
+    const processForecastData = (data) => {
+        if (!data || !data.data || !data.data.records || data.data.records.length === 0) {
+            console.error('Forecast format WRONG: ', data);
+            return;
+        }
+        const forecasts = data.data.records[0].forecasts;
+        setForecastData(forecasts);
+    };
 
     // fetch initial NEA forecast data
     useEffect(() => {
         const loadInitialData = async () => {
             try {
-                const neaData = await fetchNEAWeatherData();
-                processForecastData(neaData);
+                const neaFourDayData = await fetchFourDayWeatherDataSG();
+                processForecastData(neaFourDayData);
             } catch (error) {
-                console.error('initial weather data load FAIL: ', error);
+                console.error('initial SG 4D weather data load FAIL: ', error);
             }
         };
         loadInitialData();
     }, []);
-
-    const processForecastData = (data) => {
-        const forecasts = data.items[0].forecasts;
-        setForecastData(forecasts);
-    };
 
     const handleCountrySearch = async (e) => {
         e.preventDefault();
@@ -40,6 +44,20 @@ export default function WeatherWidget() {
             });
         } catch (error) {
             console.error('fetch weather FAIL : ', error);
+        }
+    };
+
+    const handleTownSearch = async (e) => {
+        e.preventDefault();
+        if (!townSearch) return;
+        try {
+            const neaData = await fetchNEAWeatherData();
+            const townForecast = neaData.items[0].forecasts.find(
+                f => f.area.toLowerCase() === townSearch.toLowerCase()
+            );
+            setTownWeather(townForecast);
+        } catch (error) {
+            console.error('fetch town weather FAIL: ', error);
         }
     };
 
@@ -64,7 +82,7 @@ export default function WeatherWidget() {
                         <div>
                             <img src={currentWeather.icon} alt="weather-condition.jpg" />
                             <div>
-                                <p>{currentWeather.temp} °C</p>
+                                <p>{currentWeather.temp}°C</p>
                                 <p>{currentWeather.condition}</p>
                             </div>
                         </div>
@@ -77,9 +95,10 @@ export default function WeatherWidget() {
                 <div>
                     {forecastData?.map((day, index) => (
                         <div key={index}>
-                            <h4>{day.date}</h4>
-                            <p>Region: {day.area}</p>
-                            <p>Forecase: {day.forecast}</p>
+                            <h4>{day.day} ({day.timestamp.split("T")[0]})</h4>
+                            <p>Forecast: {day.forecast.text} ({day.forecast.summary})</p>
+                            <p>Temperature: {day.temperature.low}°C - {day.temperature.high}°C</p>
+                            <p>Humidity: {day.relativeHumidity.low}% - {day.relativeHumidity.high}%</p>
                         </div>
                     ))}
                 </div>
@@ -100,7 +119,6 @@ export default function WeatherWidget() {
                 {townWeather && (
                     <div>
                         <h4>{townWeather.area}</h4>
-                        <p>Temperature: {townWeather.temperature} °C</p>
                         <p>Forecast: {townWeather.forecast}</p>
                     </div>
                 )}
