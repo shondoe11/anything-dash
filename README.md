@@ -53,21 +53,21 @@ Anything-Dash
 
 #### Weather Section
 - **As a user, I want to see a Weather section above my to-do list:**
-  - **Current Weather by Country:**  
+  - **Current Weather by Country:**
     - Filter search option to change the country.  
-    - Max display: 1–2 countries (based on user preferences, stored in Airtable).  
+    - Max display: 1–2 countries (based on user preferences, stored in Airtable).
     - Data pulled from `WeatherAPI.com`.
-  - **4-Day Weather Forecast by Singapore Region:**  
-    - Regions: West, East, Central, North, South.  
-    - No search needed (limited to 4 regions).  
-    - Max display: 1–2 regions (user preference stored in Airtable).  
+  - **4-Day Weather Forecast by Singapore Region:**
+    - Regions: West, East, Central, North, South.
+    - No search needed (limited to 4 regions).
+    - Max display: 1–2 regions (user preference stored in Airtable).
     - Data pulled from `NEAweather API`.
-  - **Current Weather by Singapore Town:**  
-    - Filter search for towns like Ang Mo Kio, Bedok, etc.  
+  - **Current Weather by Singapore Town:**
+    - Select dropdown for towns like Ang Mo Kio, Bedok, etc.  
     - Max display: 1–2 towns (user preference stored in Airtable).  
     - Data pulled from `NEAweather API`.
   - Ability to hide the widget and re-enable it via a Navbar dropdown.
-  - **Layout:** Top of the page, arranged left-to-right:  
+  - **Layout:** Top of the page, arranged left-to-right (everything in 1 row):  
     - Current Weather by Country  
     - 4-Day Weather Forecast by Singapore Region  
     - Current Weather by Singapore Town.
