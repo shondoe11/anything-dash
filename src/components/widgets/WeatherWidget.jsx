@@ -6,6 +6,8 @@ export default function WeatherWidget() {
     const [forecastData, setForecastData] = useState();
     const [currentWeather, setCurrentWeather] = useState();
     const [countrySearch, setCountrySearch] = useState();
+    const [townSearch, setTownSearch] = useState();
+    const [townWeather, setTownWeather] = useState();
 
     // fetch initial NEA forecast data
     useEffect(() => {
@@ -62,15 +64,47 @@ export default function WeatherWidget() {
                         <div>
                             <img src={currentWeather.icon} alt="weather-condition.jpg" />
                             <div>
-                                <p>{currentWeather.temp}</p>
+                                <p>{currentWeather.temp} °C</p>
                                 <p>{currentWeather.condition}</p>
                             </div>
                         </div>
                     </div>
                 )}
             </div>
-
             
+            <div>
+                <h3>4-Day Singapore Forecast</h3>
+                <div>
+                    {forecastData?.map((day, index) => (
+                        <div key={index}>
+                            <h4>{day.date}</h4>
+                            <p>Region: {day.area}</p>
+                            <p>Forecase: {day.forecast}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+            <div>
+                <h3>Singapore Town Weather</h3>
+                <form onSubmit={handleTownSearch}>
+                    <div>
+                        <label>Search Town:</label>
+                        <input 
+                        type="text" 
+                        value={townSearch} 
+                        onChange={(e) => setTownSearch(e.target.value)} 
+                        placeholder="Enter Singapore town" />
+                    </div>
+                    <button type="submit">Search</button>
+                </form>
+                {townWeather && (
+                    <div>
+                        <h4>{townWeather.area}</h4>
+                        <p>Temperature: {townWeather.temperature} °C</p>
+                        <p>Forecast: {townWeather.forecast}</p>
+                    </div>
+                )}
+            </div>
         </div>
-    )
+    );
 }
