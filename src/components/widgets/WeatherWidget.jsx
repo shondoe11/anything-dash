@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchWeatherData, fetchNEAWeatherData, fetchFourDayWeatherDataSG } from "../../services/service";
+import styles from './WeatherWidget.module.css'
 
 
 export default function WeatherWidget() {
@@ -78,11 +79,11 @@ export default function WeatherWidget() {
     }, [townSearch]);
 
     return (
-        <div>
-            <div>
+        <div className={styles.weatherWidget}>
+            <div className={styles.section}>
                 <h3>Current Weather by Country</h3>
-                <form onSubmit={handleCountrySearch}>
-                    <div>
+                <form onSubmit={handleCountrySearch} className={styles.searchForm}>
+                    <div className={styles.inputGroup}>
                         <label>Search Location:</label>
                         <input 
                         type="text" 
@@ -90,12 +91,12 @@ export default function WeatherWidget() {
                         onChange={(e) => setCountrySearch(e.target.value)} 
                         placeholder="Enter country/city" />
                     </div>
-                    <button type="submit">Search</button>
+                    <button type="submit" className={styles.searchButton}>Search</button>
                 </form>
                 {currentWeather && (
-                    <div>
+                    <div className={styles.weatherCard}>
                         <h4>{currentWeather.location}</h4>
-                        <div>
+                        <div className={styles.weatherInfo}>
                             <img src={currentWeather.icon} alt="weather-condition.jpg" />
                             <div>
                                 <p>{currentWeather.temp}°C</p>
@@ -106,11 +107,11 @@ export default function WeatherWidget() {
                 )}
             </div>
             
-            <div>
+            <div className={styles.section}>
                 <h3>4-Day Singapore Forecast</h3>
-                <div>
+                <div className={styles.forecastGrid}>
                     {forecastData?.map((day, index) => (
-                        <div key={index}>
+                        <div key={index} className={styles.forecastItem}>
                             <h4>{day.day} ({day.timestamp.split("T")[0]})</h4>
                             <p>Forecast: {day.forecast.text} ({day.forecast.summary})</p>
                             <p>Temperature: {day.temperature.low}°C - {day.temperature.high}°C</p>
@@ -119,10 +120,10 @@ export default function WeatherWidget() {
                     ))}
                 </div>
             </div>
-            <div>
+            <div className={styles.section}>
                 <h3>Singapore Town Weather</h3>
-                <form>
-                    <div>
+                <form className={styles.searchForm}>
+                    <div className={styles.inputGroup}>
                         <label>Search Town:</label>
                         <select 
                         value={townSearch} 
@@ -135,7 +136,7 @@ export default function WeatherWidget() {
                     </div>
                 </form>
                 {townWeather && (
-                    <div>
+                    <div className={styles.weatherCard}>
                         <h4>{townWeather.area}</h4>
                         <p>Forecast: {townWeather.forecast}</p>
                     </div>
