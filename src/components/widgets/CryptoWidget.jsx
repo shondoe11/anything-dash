@@ -64,6 +64,15 @@ export default function CryptoWidget() {
         setCurrentPage((prevPage) => prevPage + 1);
     };
 
+   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
+    const formatPrice = (price) => {
+        const formatter = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currency.toUpperCase(),
+        });
+        return formatter.format(price);
+    };
+
     return (
         <div>
             <h2>Cryptocurrency Data</h2>
@@ -108,7 +117,7 @@ export default function CryptoWidget() {
                                     <td>{coin.market_cap_rank}</td>
                                     <td>{coin.name}</td>
                                     <td>{coin.symbol.toUpperCase()}</td>
-                                    <td>{coin.current_price}</td>
+                                    <td>{formatPrice(coin.current_price)}</td>
                                     <td>{coin.market_cap}</td>
                                     <td style={{color: coin.price_change_percentage_24h >= 0 ? 'green' : 'red',}}>{coin.price_change_percentage_24h}%</td>
                                 </tr>
