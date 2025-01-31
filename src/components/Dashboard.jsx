@@ -5,8 +5,8 @@ export default function Dashboard() {
     return (
         <main>
             <h1>My Dashboard</h1>
-            <WeatherWidget />
-            <TodoWidget />
+                <WeatherWidget />
+                <TodoWidget />
         </main>
     );
 }
