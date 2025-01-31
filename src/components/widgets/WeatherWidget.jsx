@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { fetchWeatherData, fetchNEAWeatherData, fetchFourDayWeatherDataSG } from "../../services/service";
 import styles from './WeatherWidget.module.css'
 
-
 export default function WeatherWidget() {
     const [forecastData, setForecastData] = useState(null);
     const [currentWeather, setCurrentWeather] = useState(null);
@@ -80,67 +79,72 @@ export default function WeatherWidget() {
 
     return (
         <div className={styles.weatherWidget}>
-            <div className={styles.section}>
-                <h3>Current Weather by Country</h3>
-                <form onSubmit={handleCountrySearch} className={styles.searchForm}>
-                    <div className={styles.inputGroup}>
-                        <label>Search Location:</label>
-                        <input 
-                        type="text" 
-                        value={countrySearch} 
-                        onChange={(e) => setCountrySearch(e.target.value)} 
-                        placeholder="Enter country/city" />
-                    </div>
-                    <button type="submit" className={styles.searchButton}>Search</button>
-                </form>
-                {currentWeather && (
-                    <div className={styles.weatherCard}>
-                        <h4>{currentWeather.location}</h4>
-                        <div className={styles.weatherInfo}>
-                            <img src={currentWeather.icon} alt="weather-condition.jpg" />
-                            <div>
-                                <p>{currentWeather.temp}°C</p>
-                                <p>{currentWeather.condition}</p>
+            <div className={styles.topRow}>
+                
+                <div className={`${styles.section} ${styles.currentWeather}`}>
+                    <h3>Current Weather by Country</h3>
+                    <form onSubmit={handleCountrySearch} className={styles.searchForm}>
+                        <div className={styles.inputGroup}>
+                            <label>Search Location:</label>
+                            <input 
+                            type="text" 
+                            value={countrySearch} 
+                            onChange={(e) => setCountrySearch(e.target.value)} 
+                            placeholder="Enter country/city" />
+                        </div>
+                        <button type="submit" className={styles.searchButton}><span>Search</span></button>
+                    </form>
+                    {currentWeather && (
+                        <div className={styles.weatherCard}>
+                            <h4>{currentWeather.location}:</h4>
+                            <div className={styles.weatherInfo}>
+                                <img src={currentWeather.icon} alt="weather-condition.jpg" />
+                                <div>
+                                    <p>{currentWeather.temp}°C</p>
+                                    <p>{currentWeather.condition}</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
-            </div>
-            
-            <div className={styles.section}>
-                <h3>4-Day Singapore Forecast</h3>
-                <div className={styles.forecastGrid}>
-                    {forecastData?.map((day, index) => (
-                        <div key={index} className={styles.forecastItem}>
-                            <h4>{day.day} ({day.timestamp.split("T")[0]})</h4>
-                            <p>Forecast: {day.forecast.text} ({day.forecast.summary})</p>
-                            <p>Temperature: {day.temperature.low}°C - {day.temperature.high}°C</p>
-                            <p>Humidity: {day.relativeHumidity.low}% - {day.relativeHumidity.high}%</p>
-                        </div>
-                    ))}
+                    )}
                 </div>
-            </div>
-            <div className={styles.section}>
-                <h3>Singapore Town Weather</h3>
-                <form className={styles.searchForm}>
-                    <div className={styles.inputGroup}>
-                        <label>Search Town:</label>
-                        <select 
-                        value={townSearch} 
-                        onChange={(e) => setTownSearch(e.target.value)}>
-                            <option value=''>Select a town</option>
-                            {towns.map((town, index) => (
-                                <option key={index} value={town}>{town}</option>
-                            ))}
-                        </select>
+
+                <div className={`${styles.section} ${styles.forecastSection}`}>
+                    <h3>4-Day Singapore Forecast</h3>
+                    <div className={styles.forecastGrid}>
+                        {forecastData?.map((day, index) => (
+                            <div key={index} className={styles.forecastItem}>
+                                <h4>{day.day} ({day.timestamp.split("T")[0]})</h4>
+                                <p className={styles.smallText}>🔮 {day.forecast.text} ({day.forecast.summary})</p>
+                                <p className={styles.smallText}>🌡️ {day.temperature.low}°C - {day.temperature.high}°C</p>
+                                <p className={styles.smallText}>💧 {day.relativeHumidity.low}% - {day.relativeHumidity.high}%</p>
+                            </div>
+                        ))}
                     </div>
-                </form>
-                {townWeather && (
-                    <div className={styles.weatherCard}>
-                        <h4>{townWeather.area}</h4>
-                        <p>Forecast: {townWeather.forecast}</p>
-                    </div>
-                )}
+                </div>
+
+                <div className={`${styles.section} ${styles.townWeather}`}>
+                    <h3>Singapore Town Weather</h3>
+                    <form className={styles.searchForm}>
+                        <div className={styles.inputGroup}>
+                            <label>Search Town:</label>
+                            <select 
+                            value={townSearch} 
+                            onChange={(e) => setTownSearch(e.target.value)}>
+                                <option value=''>Select a town</option>
+                                {towns.map((town, index) => (
+                                    <option key={index} value={town}>{town}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </form>
+                    {townWeather && (
+                        <div className={styles.weatherCard}>
+                            <h4>{townWeather.area}:</h4>
+                            <p>{townWeather.forecast}</p>
+                        </div>
+                    )}
+                </div>
+
             </div>
         </div>
     );
