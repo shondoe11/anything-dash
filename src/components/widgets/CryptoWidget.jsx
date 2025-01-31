@@ -79,9 +79,11 @@ export default function CryptoWidget() {
             </div>
 
             <div>
-                <label>Search Coin:</label>
-                <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Enter coin name/symbol" disabled={isLoading} />
-                <button onClick={handleSearch} disable={isLoading}>{isLoading ? 'Searching...' : 'Search'}</button>
+                <form onSubmit={(e) => {e.preventDefault(); handleSearch();}}>
+                    <label>Search Coin:</label>
+                    <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Enter coin name/symbol" disabled={isLoading} />
+                    <button type="submit" disabled={isLoading}>{isLoading ? 'Searching...' : 'Search'}</button>
+                </form>
             </div>
 
             {isLoading ? (
@@ -115,11 +117,11 @@ export default function CryptoWidget() {
                     </table>
                 </div>
             )}
-            
+
             <div>
-                <button onClick={handlePrevPage} disabled={currentPage === 1 || isLoading}><i class="fa-duotone fa-solid fa-angles-left"></i></button>
+                <button onClick={handlePrevPage} disabled={currentPage === 1 || isLoading}><i className="fa-duotone fa-solid fa-angles-left"></i></button>
                 <span>Page {currentPage}</span>
-                <button onClick={handleNextPage} disabled={isLoading}><i class="fa-duotone fa-solid fa-angles-right"></i></button>
+                <button onClick={handleNextPage} disabled={isLoading}><i className="fa-duotone fa-solid fa-angles-right"></i></button>
             </div>
 
         </div>
