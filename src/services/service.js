@@ -91,12 +91,30 @@ export const fetchNEAWeatherData = async () => {
     return data;
 };
 
-export const fetchCoinGeckoData = async () => {
+export const fetchCoinGeckoData = async (currency = 'sgd', page = 1, searchQuery = '') => {
     const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
-    const url = `${coinGeckoUrl}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false`;
-    const response = await fetch(url);
-    const data = await response.json();
-    return data;
+    const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
+    const url = `${coinGeckoUrl}/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=10&page=${page}&sparkline=false`;
+    try {
+        const response = await fetch(url, {
+            headers: {
+                "x-cg-demo-api-key": coinGeckoKey,
+            },
+        });
+        if (!response.ok) {
+            throw new Error(`error! status: ${response.status}`)
+        }
+        const data = await response.json();
+        if (searchQuery) {
+            return data.filter(
+                (coin) => coin.name.toLowerCase().includes(searchQuery.toLowerCase()) || coin.symbol.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+        return data;
+    } catch (error) {
+        console.error('CoinGecko data fetch FAIL: ', error);
+        return []; // return empty, prevent crashs
+    }
 };
 
 export const fetchFootballData = async () => {
