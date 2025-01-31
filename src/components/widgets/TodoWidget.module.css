@@ -68,7 +68,6 @@ input:focus {
     top: 0;
     right: -50px;
     transition: 0.5s;
-
 }
 
 .add-button:hover span:after {
