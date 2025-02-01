@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { fetchCoinGeckoData } from "../../services/service";
+import ReactPaginate from 'react-paginate';
+import styles from './Pagination.module.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faAnglesLeft, faAnglesRight, faEllipsis } from '@fortawesome/free-solid-svg-icons';
 
 
 export default function CryptoWidget() {
     const [cryptoData, setCryptoData] = useState([]);
     const [currency, setCurrency] = useState('sgd');
     const [isLoading, setIsLoading] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1); // pagination: https://www.contentful.com/blog/react-pagination/
+    const [currentPage, setCurrentPage] = useState(0); // pagination: https://www.contentful.com/blog/react-pagination/ (0-based indexing)
+    const [totalPages, setTotalPages] = useState(1); // total pgs for pagination
+    const [pageInput, setPageInput] = useState('1');
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
@@ -15,8 +21,9 @@ export default function CryptoWidget() {
             setIsLoading(true);
             toast.info('Fetching cryptocyrrency data...', {autoclose: false});
             try {
-                const data = await fetchCoinGeckoData(currency, currentPage);
+                const data = await fetchCoinGeckoData(currency, currentPage + 1); // add 1 (convert to 1-based indexing)
                 setCryptoData(data);
+                setTotalPages(100);
                 toast.success('Crypto data loaded successfully!'); 
             } catch (error) {
                 toast.error('Faield to fetch crypto data. Please try again.');
@@ -29,9 +36,13 @@ export default function CryptoWidget() {
         fetchData();
     }, [currency, currentPage]);
 
+    useEffect(() => {
+        setPageInput(String(currentPage + 1));
+    }, [currentPage]); // dependency arr
+
     const handleCurrencyChange = (e) => {
         setCurrency(e.target.value);
-        setCurrentPage(1); // reset to pg1 when currency switch
+        setCurrentPage(0); // reset to pg1 when currency switch
     };
 
     const handleSearch = async () => {
@@ -54,15 +65,32 @@ export default function CryptoWidget() {
         }
     };
 
-    const handlePrevPage = () => {
-        if(currentPage > 1) {
-            setCurrentPage((prevPage) => prevPage - 1);
+    // react paginate
+    const handlePageClick = (selectedPage) => {
+        setCurrentPage(selectedPage.selected);
+    };
+
+    const handlePageInputChange = (e) => {
+        const value = e.target.value.replace(/\D/g, "");
+        setPageInput(value);
+    };
+    
+    const handlePageInputKey = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            goToPage();
         }
     };
 
-    const handleNextPage = () => {
-        setCurrentPage((prevPage) => prevPage + 1);
+    const goToPage = () => {
+        const pageNumber = parseInt(pageInput, 10) - 1;
+        if (!isNaN(pageNumber) && pageNumber >= 0 && pageNumber < totalPages) {
+            setCurrentPage(pageNumber);
+        } else {
+            toast.error(`Please enter a valid page number between 1 and ${totalPages}.`);
+        }
     };
+
 
    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
     const formatPrice = (price) => {
@@ -116,7 +144,7 @@ export default function CryptoWidget() {
                 <div>Loading crypto data...</div>
             ) : (
                 <div>
-                    <h3>Top 10 Cryptocurrencies</h3>
+                    <h3>Top Cryptocurrencies</h3>
                     <table>
                         <thead>
                             <tr>
@@ -143,12 +171,36 @@ export default function CryptoWidget() {
                     </table>
                 </div>
             )}
-
             <div>
-                <button onClick={handlePrevPage} disabled={currentPage === 1 || isLoading}><i className="fa-duotone fa-solid fa-angles-left"></i></button>
-                <span>Page {currentPage}</span>
-                <button onClick={handleNextPage} disabled={isLoading}><i className="fa-duotone fa-solid fa-angles-right"></i></button>
+                <label>Jump to page: </label>
+                <input 
+                type="text" 
+                value={pageInput} 
+                onChange={handlePageInputChange} 
+                onKeyDown={handlePageInputKey} 
+                disabled={isLoading} 
+                className={styles.pageInput}
+                />
+                <button onClick={goToPage} disabled={isLoading} className={styles.paginationButton}>Go</button>
             </div>
+
+            <ReactPaginate
+            previousLabel={<FontAwesomeIcon icon={faAnglesLeft} />}
+            nextLabel={<FontAwesomeIcon icon={faAnglesRight} />}
+            breakLabel={<FontAwesomeIcon icon={faEllipsis} />}
+            pageCount={totalPages}
+            marginPagesDisplayed={2}
+            pageRangeDisplayed={2}
+            onPageChange={handlePageClick}
+            containerClassName={styles.pagination}
+            pageClassName={styles.paginationButton}
+            activeClassName={styles.active} 
+            previousClassName={styles.previousButton}
+            nextClassName={styles.nextButton}
+            breakClassName={styles.breakLabelContainer}
+            disabledClassName={styles.disabled}
+            forcePage={currentPage}
+            />
 
         </div>
     );
