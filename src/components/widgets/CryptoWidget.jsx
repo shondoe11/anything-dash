@@ -85,6 +85,10 @@ export default function CryptoWidget() {
         }
     };
 
+    const formatPercentChange = (p) => {
+        return `${p.toFixed(2)}`;
+    }
+
 
     return (
         <div>
@@ -132,7 +136,7 @@ export default function CryptoWidget() {
                                     <td>{coin.symbol.toUpperCase()}</td>
                                     <td>{formatPrice(coin.current_price)}</td>
                                     <td>{formatMarketCap(coin.market_cap)}</td>
-                                    <td style={{color: coin.price_change_percentage_24h >= 0 ? 'green' : 'red',}}>{coin.price_change_percentage_24h}%</td>
+                                    <td style={{color: coin.price_change_percentage_24h >= 0 ? 'green' : 'red',}}>{formatPercentChange(coin.price_change_percentage_24h)}%</td>
                                 </tr>
                             ))}
                         </tbody>
