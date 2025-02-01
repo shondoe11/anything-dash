@@ -73,6 +73,19 @@ export default function CryptoWidget() {
         return formatter.format(price);
     };
 
+    // https://www.geeksforgeeks.org/how-to-convert-long-number-into-abbreviated-string-in-javascript/ -> Approach #2
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed
+    const formatMarketCap = (marketCap) => {
+        if (marketCap >= 1e12) {
+            return `${(marketCap / 1e12).toFixed(2)}T`; // format Trillions
+        } else if (marketCap >= 1e9) {
+            return `${(marketCap / 1e9).toFixed(2)}B`; // format Billions
+        } else {
+            return `${marketCap}`;
+        }
+    };
+
+
     return (
         <div>
             <h2>Cryptocurrency Data</h2>
@@ -118,7 +131,7 @@ export default function CryptoWidget() {
                                     <td>{coin.name}</td>
                                     <td>{coin.symbol.toUpperCase()}</td>
                                     <td>{formatPrice(coin.current_price)}</td>
-                                    <td>{coin.market_cap}</td>
+                                    <td>{formatMarketCap(coin.market_cap)}</td>
                                     <td style={{color: coin.price_change_percentage_24h >= 0 ? 'green' : 'red',}}>{coin.price_change_percentage_24h}%</td>
                                 </tr>
                             ))}
