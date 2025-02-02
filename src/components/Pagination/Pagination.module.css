@@ -1,0 +1,95 @@
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.paginationButton {
+    margin: 0 5px;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.paginationButton:hover {
+    background-color: #f0f0f0;
+}
+
+.paginationButton.active {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+}
+
+.paginationButton.active:hover {
+    background-color: #45a049;
+}
+
+.paginationButton.disabled {
+    color: #ccc;
+    cursor: not-allowed;
+    background-color: #f9f9f9;
+}
+
+.paginationButton.disabled:hover {
+    background-color: #f9f9f9;
+}
+
+.breakLabelContainer {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 0 5px;
+}
+
+.pageInput {
+    width: 60px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 14px;
+    margin: 0 5px;
+    transition: border-color 0.3s ease;
+}
+
+.pageInput:focus {
+    border-color: #4CAF50;
+    outline: none;
+}
+
+.previousButton,
+.nextButton {
+    margin: 0 5px;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.previousButton:hover,
+.nextButton:hover {
+    background-color: #f0f0f0;
+}
+
+.previousButton.disabled,
+.nextButton.disabled {
+    color: #ccc;
+    cursor: not-allowed;
+    background-color: #f9f9f9;
+}
+
+.previousButton.disabled:hover,
+.nextButton.disabled:hover {
+    background-color: #f9f9f9;
+}
