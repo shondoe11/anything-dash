@@ -1,0 +1,88 @@
+.widgetContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+    background: #F8F9FA;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.carouselWrapper {
+    position: relative;
+    padding: 0 3rem;
+}
+
+.slider {
+    position: relative;
+    padding: 1rem 0;
+}
+
+.slide {
+    padding: 0 0.5rem;
+}
+
+.animeCard {
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2 ease, box-shadow 0.2 ease;
+    height: 90%;
+    display: flex;
+    flex-direction: column;
+}
+
+.animeCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.animeImage {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.animeTitle {
+    font-size: 1.25rem;
+    margin: 0.5rem 0;
+    color: #333;
+}
+.animeDetail {
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+    color: #555;
+}
+
+.animeDetail strong {
+    color: #333;
+}
+
+.carouselBtnLeft, .carouselBtnRight {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0.5rem 1rem;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    z-index: 1;
+}
+
+.carouselBtnLeft {
+    left: 0;
+}
+
+.carouselBtnRight {
+    right: 0;
+}
+
+.carouselBtnLeft:hover, .carouselBtnRight:hover {
+    background: #45A049;
+}

@@ -1,0 +1,196 @@
+/* CSS modules styling: https: //create-react-app.dev/docs/adding-a-css-modules-stylesheet/ */
+
+.todo-widget {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #F9F9F9;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+
+label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+input {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px;
+    background-color: #fff;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+input:focus {
+    border-color: #4CAF50;
+    outline: none;
+}
+
+.add-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.add-button span {
+    display: inline-block;
+    position: relative;
+    transition: 0.5s;
+    font-size: 15px;
+}
+
+.add-button:hover {
+    background-color: #45A049;
+    border: 1.5px solid rgb(115, 255, 255);
+    color: rgb(115, 255, 255);
+}
+
+.add-button:hover span {
+    padding-right: 25px;
+}
+
+.add-button span:after {
+    content:  '\21B4';
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    right: -50px;
+    transition: 0.5s;
+}
+
+.add-button:hover span:after {
+    opacity: 1;
+    right: 0;
+}
+
+.section-container {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.new-section {
+    border-color: #3498DB;
+    background-color: #E8F4FD;
+}
+
+.new-section h3 {
+    color: #276B9D;
+}
+
+.overdue-section {
+    border-color: #FF4D4D;
+    background-color: #FFE5E5;
+}
+
+.overdue-section h3 {
+    color: #D90000;
+}
+
+.ongoing-section {
+    border-color: #FFC107;
+    background-color: #FFFAE6;
+}
+
+.ongoing-section h3 {
+    color: #B28E00;
+}
+
+.completed-section {
+    border-color: #4CAF50;
+    background-color: #E7F7EC;
+}
+
+.completed-section h3 {
+    color: #2C7A2C;
+}
+
+.task-list {
+    margin-top: 1rem;
+}
+
+.task-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.task-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+    border-color: gold;
+}
+
+.edit-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+}
+
+.done-button {
+    background-color: transparent;
+    color: #28A745;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+.edit-button {
+    background-color: transparent;
+    color: #FFC107;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+.delete-button {
+    background-color: transparent;
+    color: #FF4D4D;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+.edit-input, .edit-date {
+    width: auto;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.task-item button:hover {
+    opacity: 0.7;
+    scale: 1.2;
+}
+
+.task-item:focus-within {
+    outline: 2px solid #4CAF50;
+    outline-offset: 2px;
+}
