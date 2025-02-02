@@ -117,9 +117,9 @@ export const fetchCoinGeckoData = async (currency = 'sgd', page = 1, searchQuery
     }
 };
 
-export const fetchFootballData = async () => {
+export const fetchFootballData = async (compeId = 'PL') => {
     const footballDataKey = import.meta.env.VITE_FOOTBALL_DATA_KEY;
-    const url = `https://cors-anywhere.herokuapp.com/https://api.football-data.org/v4/competitions/PL/standings`;
+    const url = `https://thingproxy.freeboard.io/fetch/https://api.football-data.org/v4/competitions/${compeId}/standings`;
     const response = await fetch(url, {
         headers: {
             'X-Auth-Token': footballDataKey,
@@ -130,7 +130,7 @@ export const fetchFootballData = async () => {
 };
 
 export const fetchAnimeData = async () => {
-    const url = `https://api.jikan.moe/v4/recommendations/anime`
+    const url = `https://api.jikan.moe/v4/top/anime?filter=airing`
     const response = await fetch(url);
     const data = await response.json();
     return data;
