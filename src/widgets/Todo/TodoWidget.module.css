@@ -62,7 +62,7 @@ input:focus {
 }
 
 .add-button span:after {
-    content:  '\21B4';
+    content: '\21B4';
     position: absolute;
     opacity: 0;
     top: 0;
@@ -101,15 +101,6 @@ input:focus {
     color: #D90000;
 }
 
-.ongoing-section {
-    border-color: #FFC107;
-    background-color: #FFFAE6;
-}
-
-.ongoing-section h3 {
-    color: #B28E00;
-}
-
 .completed-section {
     border-color: #4CAF50;
     background-color: #E7F7EC;
@@ -133,7 +124,7 @@ input:focus {
     background-color: #fff;
     padding: 0.75rem;
     margin-bottom: 1rem;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .task-item:hover {
@@ -178,7 +169,8 @@ input:focus {
     font-size: 1.2rem;
 }
 
-.edit-input, .edit-date {
+.edit-input,
+.edit-date {
     width: auto;
     padding: 6px;
     border: 1px solid #ccc;
@@ -193,4 +185,19 @@ input:focus {
 .task-item:focus-within {
     outline: 2px solid #4CAF50;
     outline-offset: 2px;
+}
+
+.expand-button {
+    background-color: #3498DB;
+    color: white;
+    padding: 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.expand-button:hover {
+    background-color: #2980B9;
 }

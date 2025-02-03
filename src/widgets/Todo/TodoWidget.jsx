@@ -3,10 +3,9 @@ import { deleteDataFromAirtable, fetchAirtableData, postDataToAirtable, editData
 import styles from "./TodoWidget.module.css";
 import { toast } from "react-toastify";
 
-export default function TodoWidget() {
+export default function TodoWidget({refreshTrigger}) {
     const [tasks, setTasks] = useState([]);
     const [overdueTasks, setOverdueTasks] = useState([]);
-    const [ongoingTasks, setOngoingTasks] = useState([]);
     const [completedTasks, setCompletedTasks] = useState([]);
     const [newTask, setNewTask] = useState('');
     const [dueDate, setDueDate] = useState('');
@@ -14,11 +13,12 @@ export default function TodoWidget() {
     const [editTask, setEditTask] = useState('');
     const [editDueDate, setEditDueDate] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [expandedView, setExpandedView] = useState(false);
 
     // fetch tasks on page load
     useEffect(() => {
         refreshTasks();
-    }, []);
+    }, [refreshTrigger]); // refreshTrigger: use counter as state in dashboard and pass into TodoWidget + AnimeWidget
 
     const refreshTasks = async () => {
         setIsLoading(true);
@@ -41,7 +41,6 @@ export default function TodoWidget() {
                         (task) => task.Status === 'New' && (!task['Due Date'] || task['Due Date'] >= today)
                     )
                 );
-                setOngoingTasks(formattedTasks.filter((task) => task.Status === 'Ongoing'));
                 setCompletedTasks(formattedTasks.filter((task) => task.Status === 'Completed'));
         } catch (error) {
             toast.error('Failed to fetch tasks. Please try again.');
@@ -223,141 +222,105 @@ export default function TodoWidget() {
                     )}
                 </div>
             </div>
-            {overdueTasks.length > 0 && ( // hide if no overdue
-                <div className={styles["section-container"] + " " + styles["overdue-section"]}>
-                    <h3>Overdue Tasks</h3>
-                    <div className={styles['task-list']}>
-                        {overdueTasks.map((task) => (
-                            <div key={task.id} className={styles['task-item']}>
-                                {editTaskId === task.id ? (
-                                <div className={styles['edit-container']}>
-                                    <input 
-                                    className={styles['edit-input']}
-                                    value={editTask}
-                                    onChange={(e) => setEditTask(e.target.value)} 
-                                    disabled={isLoading} 
-                                    />
-                                    <input 
-                                    className={styles['edit-date']}
-                                    type="date"
-                                    value={editDueDate}
-                                    onChange={(e) => setEditDueDate(e.target.value)} 
-                                    disabled={isLoading} 
-                                    />
-                                    <button className={styles['edit-button']} onClick={() => handleEdit(task.id)} disabled={isLoading}><i className="fa-regular fa-floppy-disk"></i></button>
-                                </div>
-                                ) : (
-                                <span>{task.Tasks} (Due: {task['Due Date']})</span>
-                                )}
-                                <div className={styles['button-group']}>
-                                    <button className={styles['done-button']} onClick={() => handleDone(task.id)} disabled={isLoading}>{task.Status === "Completed" ? (
-                                    <i className="fa-regular fa-square-check"></i>
-                                    ) : (
-                                    <i className="fa-regular fa-square"></i>
-                                    )}</button>
-                                    <button 
-                                    className={styles['edit-button']} 
-                                    onClick={() => {
-                                    setEditTaskId(task.id); 
-                                    setEditTask(task.Tasks); 
-                                    setEditDueDate(task['Due Date'] || '');}} 
-                                    disabled={isLoading}><i className="fa-regular fa-pen-to-square"></i></button>
-                                    <button className={styles['delete-button']} onClick={() => handleDelete(task.id)}><i className="fa-solid fa-trash"></i></button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+            {!expandedView && (
+                <button className={styles['expand-button']} onClick={() => setExpandedView(true)}>Show More</button>
             )}
-
-            <div className={styles["section-container"] + " " + styles["ongoing-section"]}>
-                <h3>Ongoing Tasks</h3>
-                <div className={styles['task-list']}>
-                    {ongoingTasks.map((task) => (
-                        <div key={task.id} className={styles['task-item']}>
-                            {editTaskId === task.id ? (
-                                <div className={styles['edit-container']}>
-                                    <input 
-                                    className={styles['edit-input']}
-                                    value={editTask}
-                                    onChange={(e) => setEditTask(e.target.value)} 
-                                    disabled={isLoading} />
-                                    <input 
-                                    className={styles['edit-date']}
-                                    type="date"
-                                    value={editDueDate}
-                                    onChange={(e) => setEditDueDate(e.target.value)} 
-                                    disabled={isLoading} />
-                                    <button className={styles['edit-button']} onClick={() => handleEdit(task.id)} disabled={isLoading}><i className="fa-regular fa-floppy-disk"></i></button>
-                                </div>
-                            ) : (
-                            <span>{task.Tasks}</span>
-                            )}
-                            <div className={styles['button-group']}>
-                                <button className={styles['done-button']} onClick={() => handleDone(task.id)} disabled={isLoading}>
-                                {task.Status === "Completed" ? (
-                                <i className="fa-regular fa-square-check"></i>
-                                ) : (
-                                <i className="fa-regular fa-square"></i>
-                                )}</button>
-                                <button 
-                                className={styles['edit-button']} 
-                                onClick={() => {
-                                setEditTaskId(task.id); 
-                                setEditTask(task.Tasks); 
-                                setEditDueDate(task['Due Date'] || '');}}
-                                disabled={isLoading}><i className="fa-regular fa-pen-to-square"></i></button>
-                                <button className={styles['delete-button']} onClick={() => handleDelete(task.id)} disabled={isLoading}><i className="fa-solid fa-trash"></i></button>
+            {expandedView && (
+                <>
+                    <button className={styles['expand-button']} onClick={() => setExpandedView(false)}>Show Less</button>
+                    {overdueTasks.length > 0 && (
+                        <div className={styles["section-container"] + " " + styles["overdue-section"]}>
+                            <h3>Overdue Tasks</h3>
+                            <div className={styles['task-list']}>
+                                {overdueTasks.map((task) => (
+                                    <div key={task.id} className={styles['task-item']}>
+                                        {editTaskId === task.id ? (
+                                        <div className={styles['edit-container']}>
+                                            <input 
+                                            className={styles['edit-input']}
+                                            value={editTask}
+                                            onChange={(e) => setEditTask(e.target.value)} 
+                                            disabled={isLoading} 
+                                            />
+                                            <input 
+                                            className={styles['edit-date']}
+                                            type="date"
+                                            value={editDueDate}
+                                            onChange={(e) => setEditDueDate(e.target.value)} 
+                                            disabled={isLoading} 
+                                            />
+                                            <button className={styles['edit-button']} onClick={() => handleEdit(task.id)} disabled={isLoading}><i className="fa-regular fa-floppy-disk"></i></button>
+                                        </div>
+                                        ) : (
+                                        <span>{task.Tasks} (Due: {task['Due Date']})</span>
+                                        )}
+                                        <div className={styles['button-group']}>
+                                            <button className={styles['done-button']} onClick={() => handleDone(task.id)} disabled={isLoading}>{task.Status === "Completed" ? (
+                                            <i className="fa-regular fa-square-check"></i>
+                                            ) : (
+                                            <i className="fa-regular fa-square"></i>
+                                            )}</button>
+                                            <button 
+                                            className={styles['edit-button']} 
+                                            onClick={() => {
+                                            setEditTaskId(task.id); 
+                                            setEditTask(task.Tasks); 
+                                            setEditDueDate(task['Due Date'] || '');}} 
+                                            disabled={isLoading}><i className="fa-regular fa-pen-to-square"></i></button>
+                                            <button className={styles['delete-button']} onClick={() => handleDelete(task.id)}><i className="fa-solid fa-trash"></i></button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                    ))}
-                </div>
-            </div>
-            
-            <div className={styles["section-container"] + " " + styles["completed-section"]}>
-                <h3>Completed Tasks</h3>
-                <div className={styles['task-list']}>
-                    {completedTasks.map((task) => (
-                        <div key={task.id} className={styles['task-item']}>
-                            {editTaskId === task.id ? (
-                                <div className={styles['edit-container']}>
-                                    <input 
-                                    className={styles['edit-input']}
-                                    value={editTask}
-                                    onChange={(e) => setEditTask(e.target.value)}
-                                    disabled={isLoading} 
-                                    />
-                                    <input 
-                                    className={styles['edit-date']}
-                                    type="date"
-                                    value={editDueDate}
-                                    onChange={(e) => setEditDueDate(e.target.value)}
-                                    disabled={isLoading} 
-                                    />
-                                    <button className={styles['edit-button']} onClick={() => handleEdit(task.id)} disabled={isLoading}><i className="fa-regular fa-floppy-disk"></i></button>
+                    )}
+                    
+                    <div className={styles["section-container"] + " " + styles["completed-section"]}>
+                        <h3>Completed Tasks</h3>
+                        <div className={styles['task-list']}>
+                            {completedTasks.map((task) => (
+                                <div key={task.id} className={styles['task-item']}>
+                                    {editTaskId === task.id ? (
+                                        <div className={styles['edit-container']}>
+                                            <input 
+                                            className={styles['edit-input']}
+                                            value={editTask}
+                                            onChange={(e) => setEditTask(e.target.value)}
+                                            disabled={isLoading} 
+                                            />
+                                            <input 
+                                            className={styles['edit-date']}
+                                            type="date"
+                                            value={editDueDate}
+                                            onChange={(e) => setEditDueDate(e.target.value)}
+                                            disabled={isLoading} 
+                                            />
+                                            <button className={styles['edit-button']} onClick={() => handleEdit(task.id)} disabled={isLoading}><i className="fa-regular fa-floppy-disk"></i></button>
+                                        </div>
+                                    ) : (
+                                    <span>{task.Tasks}</span>
+                                    )}
+                                    <div className={styles['button-group']}>
+                                        <button className={styles['done-button']} onClick={() => handleDone(task.id)} disabled={isLoading}>{task.Status === "Completed" ? (
+                                        <i className="fa-regular fa-square-check"></i>
+                                        ) : (
+                                        <i className="fa-regular fa-square"></i>
+                                        )}</button>
+                                        <button 
+                                        className={styles['edit-button']} 
+                                        onClick={() => {
+                                        setEditTaskId(task.id); 
+                                        setEditTask(task.Tasks); 
+                                        setEditDueDate(task['Due Date'] || '');}}
+                                        disabled={isLoading}><i className="fa-regular fa-pen-to-square"></i></button>
+                                        <button className={styles['delete-button']} onClick={() => handleDelete(task.id)} disabled={isLoading}><i className="fa-solid fa-trash"></i></button>
+                                    </div>
                                 </div>
-                            ) : (
-                            <span>{task.Tasks}</span>
-                            )}
-                            <div className={styles['button-group']}>
-                                <button className={styles['done-button']} onClick={() => handleDone(task.id)} disabled={isLoading}>{task.Status === "Completed" ? (
-                                <i className="fa-regular fa-square-check"></i>
-                                ) : (
-                                <i className="fa-regular fa-square"></i>
-                                )}</button>
-                                <button 
-                                className={styles['edit-button']} 
-                                onClick={() => {
-                                setEditTaskId(task.id); 
-                                setEditTask(task.Tasks); 
-                                setEditDueDate(task['Due Date'] || '');}}
-                                disabled={isLoading}><i className="fa-regular fa-pen-to-square"></i></button>
-                                <button className={styles['delete-button']} onClick={() => handleDelete(task.id)} disabled={isLoading}><i className="fa-solid fa-trash"></i></button>
-                            </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
-            </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 }
