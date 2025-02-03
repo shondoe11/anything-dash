@@ -1,0 +1,16 @@
+.nav-anything {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    position: relative;
+    display: inline-block;
+    transition: all 0.3s ease-in-out;
+}
+
+.nav-anything:hover {
+    color: #ff00ff; 
+    text-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff, 0 0 30px #ff00ff;
+    transform: scale(1.2);
+    transition: all 0.3s ease-in-out;
+}
