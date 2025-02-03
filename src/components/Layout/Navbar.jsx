@@ -2,12 +2,13 @@ import React from 'react';
 import { Navbar, Nav, Container, NavDropdown } from 'react-bootstrap';
 import { FaTasks, FaCloudSunRain, FaCoins, FaFutbol, FaTv } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import styles from './Navbar.module.css'
 
 export default function AppNavbar() {
   return (
     <Navbar bg="dark" variant="dark" expand="lg" collapseOnSelect>
       <Container>
-        <Navbar.Brand as={Link} to="/anything">Anything Dash</Navbar.Brand>
+        <Navbar.Brand as={Link} to="/anything" className={styles['nav-anything']}>Anything Dash</Navbar.Brand>
         <Navbar.Toggle aria-controls="main-nav" />
         <Navbar.Collapse id="main-nav">
           <Nav className="ms-auto">
