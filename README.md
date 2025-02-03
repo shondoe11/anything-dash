@@ -12,7 +12,7 @@ Anything-Dash
 ## Timeline
 1 Week
 
-## Tech & Tools Utilized
+## Tech Stack
 - HTML
 - CSS
 - JavaScript
@@ -20,11 +20,12 @@ Anything-Dash
 - Bruno (testing APIs)
 - Airtable (data collection)
 - Git + GitHub
+- Additional tools/libraries in the [Attributions](#Attributions) section.
 
 ## Project Planning
 
 ### Idea 
-- Dashboard of things, modular widget concept goal, mobile first layout (to expand to desktop layout, then after if possible: tablet layout)
+- Dashboard of things, modular widget concept goal, currently desktop screen ready
 
 ### Stories (State)
 #### To-Do List
@@ -35,8 +36,6 @@ Anything-Dash
     Button: `Create`
   - **Overdue Tasks:**  
     Buttons: `Edit`, `Done`, `Delete` (*hide this section if no overdue tasks*)
-  - **Ongoing Tasks:**
-    Buttons: `Edit`, `Done`
   - **Completed Tasks:**
     Buttons: `Edit`, `Delete`
   **`Done` means tasks get pushed to the Completed Tasks section**
@@ -144,17 +143,41 @@ Anything-Dash
 ```
 src/
 ├── components/
-│   ├── Navbar.jsx
-│   ├── Dashboard.jsx
-│   └── Widgets/
-│       ├── TodoWidget.jsx
-│       └── TodoWidget.module.css
+│   ├── Layout/
+│   │   └── Navbar.jsx
+│   └── UI/
+│       └── Pagination/
+│           ├── Pagination.jsx
+│           └── Pagination.module.css
 ├── services/
 │   └── service.js
+├── widgets/
+│   ├── Todo/
+│   │   ├── TodoWidget.jsx
+│   │   ├── TodoWidget.module.css
+│   ├── Weather/
+│   │   ├── WeatherWidget.jsx
+│   │   └── WeatherWidget.module.css
+│   ├── Crypto/
+│   │   ├── CryptoWidget.jsx
+│   │   └── CryptoWidget.module.css
+│   ├── Football/
+│   │   ├── FootballWidget.jsx
+│   │   └── FootballWidget.module.css
+│   └── Anime/
+│   │   ├── AnimeWidget.jsx
+│   │   └── AnimeWidget.module.css
+├── pages/
+│   ├── Dashboard.jsx
+│   ├── TodoPage.jsx
+│   ├── WeatherPage.jsx
+│   ├── CryptoPage.jsx
+│   ├── FootballPage.jsx
+│   └── AnimePage.jsx
 ├── App.jsx
 ├── App.css
-├── main.jsx
 ├── index.css
+└── main.jsx
 ```
 #### 1. App
 **Purpose:** Highest-level component wraps the entire application.  
@@ -174,7 +197,7 @@ src/
 - Contains the main routed components (Dashboard, Weather, Crypto, etc.).
 - Responsible for applying layout or styling that is consistent across all pages.
 
-##### **Footer (optional)**
+##### **Footer (optional)** *for future updates*
 - Any global footer information (e.g., copyright, disclaimers, etc.).
 
 ---
@@ -182,7 +205,7 @@ src/
 #### 3. Dashboard Page ( `/anything` )
 **Purpose:** The drag & drop board showing each widget in modular cards.
 
-##### **Drag & Drop:**
+##### **Drag & Drop:** *for future updates*
 - A `WidgetContainer` or `Board` component that manages the positions of each widget.
 - Use library (e.g., `react-beautiful-dnd`, `react-grid-layout`, or `react-dnd`) to allow users to rearrange widgets.
 - Saves layout preferences (widget order, positions) in Airtable so the arrangement persists on reload.
@@ -192,7 +215,7 @@ src/
 - **WeatherWidget:**  
   Internally break out into `<CurrentWeatherByCountry />`, `<FourDayForecast />`, `<TownWeather />`, etc.
 - **ToDoWidget:**  
-  Shows New, Overdue, Ongoing, Completed tasks.
+  Shows New, Overdue, Completed tasks.
 - **CryptoWidget:**  
   Shows top 10 coins, currency filter, search for specific coin.
 - **FootballWidget:**  
@@ -242,7 +265,7 @@ Each widget is displayed on the Dashboard, but dedicated routes show each widget
 ---
 
 #### 6. Additional Components / Utilities
-- **DragDropContext** or equivalent from your chosen DnD library.
+- **DragDropContext** or equivalent from a chosen DnD library.
 - **Widget Base Component:** Each widget extends this to reuse styling or logic for drag & drop, show/hide toggles, etc.
 - **ErrorBoundary** or **NotFound Page:** Handles unexpected errors or unknown routes.
 
@@ -257,8 +280,10 @@ Each widget is displayed on the Dashboard, but dedicated routes show each widget
 #### **To-Do:**
 `/anything/todo`
 - Dedicated page for viewing and managing tasks.
-`/anything/todo/:todoId/edit`
-- A dedicated route for editing a single todo item.
+`/anything/todo/new`
+- Dedicated page for starting a new task.
+`/anything/todo/edit`
+- Dedicated page for editing tasks in a list.
 
 #### **Weather:**
 `/anything/weather`
@@ -277,11 +302,11 @@ Each widget is displayed on the Dashboard, but dedicated routes show each widget
 - More detailed anime browsing, search, or recommendations.
 
 #### **Lyrics:**
-`/anything/lyrics`
+`/anything/lyrics` *for future updates*
 - Focused search for song lyrics, advanced queries, or multiple result displays.
 
 #### **Feedback:**
-`/anything/feedback`
+`/anything/feedback` *for future updates*
 - Displays the feedback form page or triggers a popup.
 
 #### **404 / NotFound:**
@@ -289,7 +314,7 @@ Each widget is displayed on the Dashboard, but dedicated routes show each widget
 
 ---
 
-### Drag & Drop Considerations
+### Drag & Drop Considerations *for future updates*
 
 #### **Local vs. Airtable Storage:**
 - The user’s widget arrangement (and show/hide preferences) can be saved in Airtable, ensuring that the layout persists across sessions.
@@ -301,3 +326,33 @@ Each widget is displayed on the Dashboard, but dedicated routes show each widget
 #### **Widget Switching:**
 - Users can drag widgets around or hide them via the Navbar toggles.
 - Dedicated page routes for each widget offer deeper detail without losing the user’s board arrangement on the main dashboard.
+
+---
+
+## Attributions
+
+All assets used in this project are credited to their respective original sources.
+
+### Libraries & Dependencies
+- [Font Awesome](https://fontawesome.com/) - Icons (`@fortawesome/fontawesome-free`, `@fortawesome/react-fontawesome`)
+- [React](https://react.dev/) - Frontend framework (`react`, `react-dom`)
+- [React Router](https://reactrouter.com/) - Routing (`react-router`, `react-router-dom`)
+- [React Toastify](https://fkhadra.github.io/react-toastify/) - Toast notifications (`react-toastify`)
+- [React Paginate](https://www.npmjs.com/package/react-paginate) - Pagination component (`react-paginate`)
+- [React Icons](https://react-icons.github.io/react-icons/) - Icon library (`react-icons`)
+- [Pure React Carousel](https://www.npmjs.com/package/pure-react-carousel) - Carousel component (`pure-react-carousel`)
+- [React Bootstrap](https://react-bootstrap.netlify.app/) - UI components (`react-bootstrap`)
+
+
+### APIs & Data Sources
+- [WeatherAPI](https://www.weatherapi.com/) - Weather data
+- [NEA Weather](https://www.nea.gov.sg/weather) - Singapore weather forecast
+- [CoinGecko](https://www.coingecko.com/) - Cryptocurrency prices
+- [Football-Data API](https://www.football-data.org/) - Football fixtures & standings
+- [Jikan API](https://jikan.moe/) - Anime recommendations
+- [Lyrics.ovh](https://lyricsovh.docs.apiary.io/) - Song lyrics
+
+### Tools & Resources
+- [Bruno](https://www.usebruno.com/) - API testing
+- [Airtable](https://airtable.com/) - Data storage
+- [GitHub](https://github.com/) - Version control & hosting
