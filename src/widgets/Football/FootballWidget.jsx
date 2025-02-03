@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { fetchFootballData } from "../../services/service";
 import { toast } from "react-toastify";
+import ReactPaginate from "react-paginate";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faAnglesLeft, faAnglesRight } from "@fortawesome/free-solid-svg-icons";
+import styles from "../../components/Pagination/Pagination.module.css";
+import FootballWidgetStyle from "./FootballWidgetStyle.module.css";
 
 const competitions = [
     {id: 'WC', name: 'FIFA World Cup'},
@@ -22,6 +27,9 @@ export default function FootballWidget() {
     const [standings, setStandings] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [selectCompe, setSelectCompe] = useState('PL');
+    const [currentPage, setCurrentPage] = useState(0);
+    const itemsPerPage = 10;
+    const totalPages = Math.ceil(standings.length / itemsPerPage);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -44,14 +52,20 @@ export default function FootballWidget() {
 
     const handleCompeChange = (e) => {
         setSelectCompe(e.target.value);
-    }
+        setCurrentPage(0);
+    };
+
+    const displayedStandings = standings.slice(
+    currentPage * itemsPerPage,
+    currentPage * itemsPerPage + itemsPerPage
+    );
 
     return (
         <div>
             <h2>Football Standings</h2>
-            <div>
-                <label>Select Competition: </label>
-                <select value={selectCompe} onChange={handleCompeChange} disabled={isLoading}>
+            <div className={FootballWidgetStyle.selectContainer}>
+                <label htmlFor="competitionSelect">Select Competition: </label>
+                <select id="competitionSelect" value={selectCompe} onChange={handleCompeChange} disabled={isLoading} className={FootballWidgetStyle.selectField} >
                     {competitions.map((comp) => (
                         <option key={comp.id} value={comp.id}>{comp.name}</option>
                     ))}
@@ -60,8 +74,9 @@ export default function FootballWidget() {
             {isLoading ? (
                 <div>Loading football data...</div>
             ) : (
-                <table>
-                    <thead>
+                <>
+                    <table>
+                        <thead>
                         <tr>
                             <th>Position</th>
                             <th>Team</th>
@@ -71,21 +86,36 @@ export default function FootballWidget() {
                             <th>Losses</th>
                             <th>Points</th>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {standings.map((team) => (
+                        </thead>
+                        <tbody>
+                        {displayedStandings.map((team) => (
                             <tr key={team.team.id}>
-                                <td>{team.position}</td>
-                                <td>{team.team.name}</td>
-                                <td>{team.playedGames}</td>
-                                <td>{team.won}</td>
-                                <td>{team.draw}</td>
-                                <td>{team.lost}</td>
-                                <td>{team.points}</td>
+                            <td>{team.position}</td>
+                            <td>{team.team.name}</td>
+                            <td>{team.playedGames}</td>
+                            <td>{team.won}</td>
+                            <td>{team.draw}</td>
+                            <td>{team.lost}</td>
+                            <td>{team.points}</td>
                             </tr>
                         ))}
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                    {totalPages > 1 && (
+                        <ReactPaginate
+                        previousLabel={<FontAwesomeIcon icon={faAnglesLeft} />}
+                        nextLabel={<FontAwesomeIcon icon={faAnglesRight} />}
+                        pageCount={totalPages}
+                        onPageChange={(selectedItem) => setCurrentPage(selectedItem.selected)}
+                        containerClassName={styles.pagination}
+                        pageClassName={styles.paginationButton}
+                        activeClassName={styles.active}
+                        previousClassName={styles.previousButton}
+                        nextClassName={styles.nextButton}
+                        forcePage={currentPage}
+                        />
+                    )}
+                </>
             )}
         </div>
     );
