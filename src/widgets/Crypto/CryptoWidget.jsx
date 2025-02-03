@@ -5,6 +5,7 @@ import ReactPaginate from 'react-paginate';
 import styles from '../../components/Pagination/Pagination.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAnglesLeft, faAnglesRight, faEllipsis } from '@fortawesome/free-solid-svg-icons';
+import CryptoWidgetStyle from './CryptoWidgetStyle.module.css';
 
 
 export default function CryptoWidget() {
@@ -121,8 +122,8 @@ export default function CryptoWidget() {
     return (
         <div>
             <h2>Cryptocurrency Data</h2>
-            <div>
-                <label>Select Currency:</label>
+            <div className={CryptoWidgetStyle.inputGroup}>
+                <label>Select Currency: </label>
                 <select value={currency} onChange={handleCurrencyChange} disabled={isLoading}>
                     <option value='usd'>USD</option>
                     <option value='eur'>EUR</option>
@@ -135,8 +136,10 @@ export default function CryptoWidget() {
             <div>
                 <form onSubmit={(e) => {e.preventDefault(); handleSearch();}}>
                     <label>Search Coin:</label>
-                    <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Enter coin name/symbol" disabled={isLoading} />
-                    <button type="submit" disabled={isLoading}>{isLoading ? 'Searching...' : 'Search'}</button>
+                    <div className={CryptoWidgetStyle.searchGroup}>
+                        <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Enter coin name/symbol" disabled={isLoading} />
+                        <button type="submit" disabled={isLoading} className={CryptoWidgetStyle.searchButton}><span>{isLoading ? 'Searching...' : 'Search'}</span></button>
+                    </div>
                 </form>
             </div>
 
