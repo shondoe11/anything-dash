@@ -20,14 +20,14 @@ export default function CryptoWidget() {
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
-            toast.info('Fetching cryptocyrrency data...', {autoclose: false});
+            toast.info('Fetching cryptocurrency data...', {autoclose: false});
             try {
                 const data = await fetchCoinGeckoData(currency, currentPage + 1); // add 1 (convert to 1-based indexing)
                 setCryptoData(data);
                 setTotalPages(100);
                 toast.success('Crypto data loaded successfully!'); 
             } catch (error) {
-                toast.error('Faield to fetch crypto data. Please try again.');
+                toast.error('Failed to fetch crypto data. Please try again.');
                 console.error('fetch crypto data FAILED: ', error);
             } finally {
                 setIsLoading(false);
