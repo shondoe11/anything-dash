@@ -18,7 +18,7 @@ export default function TodoWidget({refreshTrigger}) {
     // fetch tasks on page load
     useEffect(() => {
         refreshTasks();
-    }, [refreshTrigger]); // refreshTrigger: use counter as state in dashboard and pass into TodoWidget + AnimeWidget
+    }, [refreshTrigger]); // refreshTrigger: use counter as state in dashboard and pass into TodoWidget + AnimeWidget //! not advisable. lift state instead
 
     const refreshTasks = async () => {
         setIsLoading(true);
