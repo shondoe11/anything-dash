@@ -1,4 +1,4 @@
-// store ALL API requests
+//* store ALL API requests
 
 export const fetchAirtableData = async () => {
     const airtableApiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
@@ -119,7 +119,7 @@ export const fetchCoinGeckoData = async (currency = 'sgd', page = 1, searchQuery
 
 export const fetchFootballData = async (compeId = 'PL') => {
     const footballDataKey = import.meta.env.VITE_FOOTBALL_DATA_KEY;
-    const url = `https://api.football-data.org/v4/competitions/${compeId}/standings`;
+    const url = `https://thingproxy.freeboard.io/fetch/https://api.football-data.org/v4/competitions/${compeId}/standings`;
     const response = await fetch(url, {
         headers: {
             'X-Auth-Token': footballDataKey,
