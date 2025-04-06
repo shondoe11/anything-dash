@@ -1,14 +1,12 @@
-import React from 'react';
 import { Navbar, Nav, Container, NavDropdown } from 'react-bootstrap';
 import { FaTasks, FaCloudSunRain, FaCoins, FaFutbol, FaTv } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-import styles from './Navbar.module.css'
 
 export default function AppNavbar() {
   return (
     <Navbar bg="dark" variant="dark" expand="lg" collapseOnSelect>
       <Container>
-        <Navbar.Brand as={Link} to="/anything" className={styles['nav-anything']}>Anything Dash</Navbar.Brand>
+        <Navbar.Brand as={Link} to="/anything" className="fw-bold text-uppercase fs-4" style={{transition: 'all 0.3s ease-in-out'}} onMouseOver={(e) => {e.currentTarget.style.color = '#ff00ff'; e.currentTarget.style.textShadow = '0 0 10px #ff00ff, 0 0 20px #00ffff, 0 0 30px #ff00ff'; e.currentTarget.style.transform = 'scale(1.2)';}} onMouseOut={(e) => {e.currentTarget.style.color = ''; e.currentTarget.style.textShadow = ''; e.currentTarget.style.transform = '';}}>Anything Dash</Navbar.Brand>
         <Navbar.Toggle aria-controls="main-nav" />
         <Navbar.Collapse id="main-nav">
           <Nav className="ms-auto">
