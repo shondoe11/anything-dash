@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { fetchAirtableData, fetchWeatherData, fetchNEAWeatherData, fetchCoinGeckoData, fetchFootballData, fetchAnimeData } from './services/service';
 
 function App() {
