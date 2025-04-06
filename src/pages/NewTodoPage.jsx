@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { Container } from 'react-bootstrap';
+import { useState } from 'react';
+import { Container, Form, Button, Card, Spinner } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { postDataToAirtable } from '../services/service';
-import styles from '../widgets/Todo/TodoWidget.module.css';
 
 export default function NewTaskPage() {
   const [newTask, setNewTask] = useState('');
@@ -24,7 +23,7 @@ export default function NewTaskPage() {
         'Due Date': dueDate || null,
       });
       toast.success('Task added successfully!');
-      // reset form fields after successful submission
+      //~ reset form fields aft submit success
       setNewTask('');
       setDueDate('');
     } catch (error) {
@@ -39,33 +38,48 @@ export default function NewTaskPage() {
   return (
     <Container className="my-4">
       <h1>Create New Task</h1>
-      <div className={styles['todo-widget']}>
-        <form onSubmit={handleAdd}>
-          <div className={styles['input-group']}>
-            <label>Task Name:</label>
-            <input
-              type="text"
-              placeholder="Add a New Task [required]"
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
-              disabled={isLoading}
-              required
-            />
-          </div>
-          <div className={styles['input-group']}>
-            <label>Select Due Date (optional):</label>
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              disabled={isLoading}
-            />
-          </div>
-          <button className={styles['add-button']} type="submit" disabled={isLoading}>
-            <span>{isLoading ? 'Adding...' : 'Create'}</span>
-          </button>
-        </form>
-      </div>
+      <Card className="shadow-sm border-0 p-0">
+        <Card.Body>
+          <Form onSubmit={handleAdd}>
+            <Form.Group className="mb-3">
+              <Form.Label>Task Name:</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Add a New Task [required]"
+                value={newTask}
+                onChange={(e) => setNewTask(e.target.value)}
+                disabled={isLoading}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Select Due Date (optional):</Form.Label>
+              <Form.Control
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                disabled={isLoading}
+              />
+            </Form.Group>
+            <Button className="w-100" variant="primary" type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                  <span className="ms-2">Adding...</span>
+                </>
+              ) : (
+                'Create'
+              )}
+            </Button>
+          </Form>
+        </Card.Body>
+      </Card>
     </Container>
   );
 }
