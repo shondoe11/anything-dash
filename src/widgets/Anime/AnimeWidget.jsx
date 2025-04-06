@@ -2,13 +2,12 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { fetchAnimeData, postDataToAirtable } from "../../services/service";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar, faCalendar, faClock, faTv, faFileVideo, faChartSimple, faThumbsUp,faFileLines, faAnglesLeft, faAnglesRight } from '@fortawesome/free-solid-svg-icons';
-import styles from './AnimeWidget.module.css';
-import { CarouselProvider, Slider, Slide, ButtonBack, ButtonNext } from 'pure-react-carousel'; // functions
-import 'pure-react-carousel/dist/react-carousel.es.css'; // styles
+import { faStar, faCalendar, faClock, faTv, faFileVideo, faChartSimple, faThumbsUp, faFileLines } from '@fortawesome/free-solid-svg-icons';
+import { Card, Button, Carousel, Spinner, Row, Col } from 'react-bootstrap';
+import PropTypes from 'prop-types';
 
 
-export default function AnimeWidget({refreshTodoList}) {
+export default function AnimeWidget({ refreshTodoList }) {
     const [animeList, setAnimeList] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -18,7 +17,7 @@ export default function AnimeWidget({refreshTodoList}) {
             toast.info('Fetching anime...', {autoClose: false});
             try {
                 const data = await fetchAnimeData();
-                const topAiringAnime = data.data.slice(0, 50); // top 50 entries
+                const topAiringAnime = data.data.slice(0, 50); //~ top 50 entries
                 setAnimeList(topAiringAnime);
                 toast.success('Top Current Animes loaded!');
             } catch (error) {
@@ -54,54 +53,102 @@ export default function AnimeWidget({refreshTodoList}) {
     };
     
     return (
-        <div className={styles.widgetContainer}>
-            <h2>Top Airing Animes</h2>
-            {isLoading ? (
-                <div>Loading anime...</div>
-            ) : (
-                <div className={styles.carouselWrapper}>
-                    <CarouselProvider 
-                    naturalSlideWidth={250} 
-                    naturalSlideHeight={500} 
-                    totalSlides={animeList.length} 
-                    visibleSlides={3} 
-                    infinite={true} 
-                    playDirection={'forward'}
-                    >
-                        <ButtonBack className={styles.carouselBtnLeft}><FontAwesomeIcon icon={faAnglesLeft} /></ButtonBack>
-                        <Slider className={styles.slider}>
+        <Card className="border shadow-sm mb-4">
+            <Card.Header className="bg-primary text-white">
+                <h5 className="mb-0">Top Airing Animes</h5>
+            </Card.Header>
+            <Card.Body>
+                {isLoading ? (
+                    <div className="text-center py-3">
+                        <Spinner animation="border" role="status">
+                            <span className="visually-hidden">Loading anime...</span>
+                        </Spinner>
+                    </div>
+                ) : (
+                    <div className="position-relative">
+                        <Carousel indicators={false} interval={null} className="mx-auto" style={{ maxWidth: '90%' }}>
                             {animeList.map((anime, index) => (
-                                <Slide key={`${anime.mal_id}-${index}`} index={index} className={styles.slide}>
-                                    <div className={styles.animeCard}>
-                                            <img src={anime.images?.jpg?.image_url || 'http://placehold.it/200x250.jpg'} alt={anime.title} className={styles.animeImage} />
-                                            <div className={styles.content}>
-                                            <h3 className={styles.animeTitle}>{anime.title}</h3>
-                                            {anime.title_english && (
-                                                <p className={styles.animeDetail}><strong>English Title: {anime.title_english}</strong></p>
-                                            )}
-                                            <p className={styles.animeDetail}><FontAwesomeIcon icon={faCalendar} /> <strong>Air Date:</strong> {anime.aired?.string || 'N/A'}</p>       
-                                            <p className={styles.animeDetail}><FontAwesomeIcon icon={faTv} /> <strong>Broadcast:</strong> {anime.broadcast?.string || 'N/A'}</p>       
-                                            <p className={styles.animeDetail}><FontAwesomeIcon icon={faFileVideo} /> <strong>Episodes:</strong> {anime.episodes || 'N/A'}</p>
-                                            <p className={styles.animeDetail}><FontAwesomeIcon icon={faClock} /> <strong>Duration:</strong> {anime.duration || 'N/A'}</p>
-                                            <p className={styles.animeDetail}><FontAwesomeIcon icon={faChartSimple} /> <strong>Rating:</strong> {anime.rating || 'N/A'}</p>
-                                            <p className={styles.animeDetail}><FontAwesomeIcon icon={faThumbsUp} /> <strong>Score:</strong> <FontAwesomeIcon icon={faStar} /> {anime.score || 'N/A'}</p>
-                                            <p className={styles.animeDetail}><FontAwesomeIcon icon={faFileLines} /> <strong>Synopsis:</strong> {anime.synopsis ? `${anime.synopsis.substring(0, 100)}...` : 'N/A'}</p>
-                                            <div className={styles.buttonContainer}>
-                                            <button className={styles.moreDetailsButton} 
-                                            onClick={() => window.open(anime.url, '_blank')}
-                                            >More Details</button>
-                                            <button className={styles.addTodoButton} 
-                                            onClick={() => handleAddToTodo(anime)}>Add to Todo list</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Slide>
+                                <Carousel.Item key={`${anime.mal_id}-${index}`}>
+                                    <Row className="g-0 justify-content-center">
+                                        <Col xs={12} md={10} lg={8}>
+                                            <Card className="h-100 shadow-sm">
+                                                <Row className="g-0">
+                                                    <Col xs={4} md={3}>
+                                                        <Card.Img 
+                                                            src={anime.images?.jpg?.image_url || 'http://placehold.it/200x250.jpg'} 
+                                                            alt={anime.title} 
+                                                            style={{ height: '100%', objectFit: 'cover' }}
+                                                        />
+                                                    </Col>
+                                                    <Col xs={8} md={9}>
+                                                        <Card.Body>
+                                                            <Card.Title className="border-bottom pb-2">{anime.title}</Card.Title>
+                                                            <Row className="mt-2 g-2">
+                                                                <Col xs={12}>
+                                                                    {anime.title_english && (
+                                                                        <p className="mb-1 small"><strong>English Title:</strong> {anime.title_english}</p>
+                                                                    )}
+                                                                </Col>
+                                                                <Col xs={12} sm={6}>
+                                                                    <p className="mb-1 small"><FontAwesomeIcon icon={faCalendar} /> <strong>Air Date:</strong> {anime.aired?.string || 'N/A'}</p>
+                                                                </Col>
+                                                                <Col xs={12} sm={6}>
+                                                                    <p className="mb-1 small"><FontAwesomeIcon icon={faTv} /> <strong>Broadcast:</strong> {anime.broadcast?.string || 'N/A'}</p>
+                                                                </Col>
+                                                                <Col xs={12} sm={6}>
+                                                                    <p className="mb-1 small"><FontAwesomeIcon icon={faFileVideo} /> <strong>Episodes:</strong> {anime.episodes || 'N/A'}</p>
+                                                                </Col>
+                                                                <Col xs={12} sm={6}>
+                                                                    <p className="mb-1 small"><FontAwesomeIcon icon={faClock} /> <strong>Duration:</strong> {anime.duration || 'N/A'}</p>
+                                                                </Col>
+                                                                <Col xs={12} sm={6}>
+                                                                    <p className="mb-1 small"><FontAwesomeIcon icon={faChartSimple} /> <strong>Rating:</strong> {anime.rating || 'N/A'}</p>
+                                                                </Col>
+                                                                <Col xs={12} sm={6}>
+                                                                    <p className="mb-1 small"><FontAwesomeIcon icon={faThumbsUp} /> <strong>Score:</strong> <FontAwesomeIcon icon={faStar} className="text-warning" /> {anime.score || 'N/A'}</p>
+                                                                </Col>
+                                                                <Col xs={12}>
+                                                                    <p className="mb-1 small"><FontAwesomeIcon icon={faFileLines} /> <strong>Synopsis:</strong> {anime.synopsis ? `${anime.synopsis.substring(0, 100)}...` : 'N/A'}</p>
+                                                                </Col>
+                                                            </Row>
+                                                            <div className="d-flex gap-2 mt-3 justify-content-end">
+                                                                <Button 
+                                                                    variant="outline-primary" 
+                                                                    size="sm" 
+                                                                    onClick={() => window.open(anime.url, '_blank')}
+                                                                >
+                                                                    More Details
+                                                                </Button>
+                                                                <Button 
+                                                                    variant="outline-success" 
+                                                                    size="sm" 
+                                                                    onClick={() => handleAddToTodo(anime)}
+                                                                >
+                                                                    Add to Todo list
+                                                                </Button>
+                                                            </div>
+                                                        </Card.Body>
+                                                    </Col>
+                                                </Row>
+                                            </Card>
+                                        </Col>
+                                    </Row>
+                                </Carousel.Item>
                             ))}
-                        </Slider>
-                            <ButtonNext className={styles.carouselBtnRight}><FontAwesomeIcon icon={faAnglesRight} /></ButtonNext>
-                    </CarouselProvider>
-                </div>
-            )}
-        </div>
+                        </Carousel>
+                    </div>
+                )}
+            </Card.Body>
+        </Card>
     );
 }
+
+//~ def prop types fr AnimeWidget
+AnimeWidget.propTypes = {
+    refreshTodoList: PropTypes.func
+};
+
+//~ default props
+AnimeWidget.defaultProps = {
+    refreshTodoList: () => {}
+};
