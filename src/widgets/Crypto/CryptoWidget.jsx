@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { fetchCoinGeckoData } from "../../services/service";
 import ReactPaginate from 'react-paginate';
-import styles from '../../components/Pagination/Pagination.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAnglesLeft, faAnglesRight, faEllipsis } from '@fortawesome/free-solid-svg-icons';
-import CryptoWidgetStyle from './CryptoWidgetStyle.module.css';
+import { Form, Table, InputGroup, Button, Spinner } from 'react-bootstrap';
 
 
 export default function CryptoWidget() {
@@ -13,7 +12,7 @@ export default function CryptoWidget() {
     const [currency, setCurrency] = useState('sgd');
     const [isLoading, setIsLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(0); // pagination: https://www.contentful.com/blog/react-pagination/ (0-based indexing)
-    const [totalPages, setTotalPages] = useState(1); // total pgs for pagination
+    const [totalPages, setTotalPages] = useState(1); //~ total pgs for pagination
     const [pageInput, setPageInput] = useState('1');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -22,7 +21,7 @@ export default function CryptoWidget() {
             setIsLoading(true);
             toast.info('Fetching cryptocurrency data...', {autoclose: false});
             try {
-                const data = await fetchCoinGeckoData(currency, currentPage + 1); // add 1 (convert to 1-based indexing)
+                const data = await fetchCoinGeckoData(currency, currentPage + 1); //~ add 1 (convert to 1-based indexing)
                 setCryptoData(data);
                 setTotalPages(100);
                 toast.success('Crypto data loaded successfully!'); 
@@ -39,11 +38,11 @@ export default function CryptoWidget() {
 
     useEffect(() => {
         setPageInput(String(currentPage + 1));
-    }, [currentPage]); // dependency arr
+    }, [currentPage]); //~ dependency arr
 
     const handleCurrencyChange = (e) => {
         setCurrency(e.target.value);
-        setCurrentPage(0); // reset to pg1 when currency switch
+        setCurrentPage(0); //~ reset to pg1 when currency switch
     };
 
     const handleSearch = async () => {
@@ -66,7 +65,7 @@ export default function CryptoWidget() {
         }
     };
 
-    // react paginate
+    //& react paginate
     const handlePageClick = (selectedPage) => {
         setCurrentPage(selectedPage.selected);
     };
@@ -122,33 +121,39 @@ export default function CryptoWidget() {
     return (
         <div>
             <h2>Cryptocurrency Data</h2>
-            <div className={CryptoWidgetStyle.inputGroup}>
-                <label>Select Currency: </label>
-                <select value={currency} onChange={handleCurrencyChange} disabled={isLoading}>
+            <Form.Group className="mb-3">
+                <Form.Label>Select Currency: </Form.Label>
+                <Form.Select value={currency} onChange={handleCurrencyChange} disabled={isLoading} className="w-auto">
                     <option value='usd'>USD</option>
                     <option value='eur'>EUR</option>
                     <option value='gbp'>GBP</option>
                     <option value='jpy'>JPY</option>
                     <option value='sgd'>SGD</option>
-                </select>
-            </div>
+                </Form.Select>
+            </Form.Group>
 
-            <div>
-                <form onSubmit={(e) => {e.preventDefault(); handleSearch();}}>
-                    <label>Search Coin:</label>
-                    <div className={CryptoWidgetStyle.searchGroup}>
-                        <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Enter coin name/symbol" disabled={isLoading} />
-                        <button type="submit" disabled={isLoading} className={CryptoWidgetStyle.searchButton}><span>{isLoading ? 'Searching...' : 'Search'}</span></button>
-                    </div>
-                </form>
-            </div>
+            <Form onSubmit={(e) => {e.preventDefault(); handleSearch();}} className="mb-3">
+                <Form.Group>
+                    <Form.Label>Search Coin:</Form.Label>
+                    <InputGroup>
+                        <Form.Control type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Enter coin name/symbol" disabled={isLoading} />
+                        <Button type="submit" disabled={isLoading} variant="primary">
+                            {isLoading ? 'Searching...' : 'Search'}
+                        </Button>
+                    </InputGroup>
+                </Form.Group>
+            </Form>
 
             {isLoading ? (
-                <div>Loading crypto data...</div>
+                <div className="d-flex justify-content-center my-3">
+                    <Spinner animation="border" role="status">
+                        <span className="visually-hidden">Loading crypto data...</span>
+                    </Spinner>
+                </div>
             ) : (
                 <div>
                     <h3>Top Cryptocurrencies</h3>
-                    <table>
+                    <Table hover responsive bordered className="mb-3">
                         <thead>
                             <tr>
                                 <th>Rank</th>
@@ -167,25 +172,26 @@ export default function CryptoWidget() {
                                     <td>{coin.symbol.toUpperCase()}</td>
                                     <td>{formatPrice(coin.current_price)}</td>
                                     <td>{formatMarketCap(coin.market_cap)}</td>
-                                    <td style={{color: coin.price_change_percentage_24h >= 0 ? 'green' : 'red',}}>{formatPercentChange(coin.price_change_percentage_24h)}%</td>
+                                    <td className={coin.price_change_percentage_24h >= 0 ? 'text-success' : 'text-danger'}>{formatPercentChange(coin.price_change_percentage_24h)}%</td>
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </Table>
                 </div>
             )}
-            <div>
-                <label>Jump to page: </label>
-                <input 
+            <Form.Group className="d-flex align-items-center justify-content-center gap-2 mb-3">
+                <Form.Label className="mb-0">Jump to page: </Form.Label>
+                <Form.Control 
                 type="text" 
                 value={pageInput} 
                 onChange={handlePageInputChange} 
                 onKeyDown={handlePageInputKey} 
                 disabled={isLoading} 
-                className={styles.pageInput}
+                className="w-auto"
+                size="sm"
                 />
-                <button onClick={goToPage} disabled={isLoading} className={styles.paginationButton}>Go</button>
-            </div>
+                <Button onClick={goToPage} disabled={isLoading} size="sm" variant="primary">Go</Button>
+            </Form.Group>
 
             <ReactPaginate
             previousLabel={<FontAwesomeIcon icon={faAnglesLeft} />}
@@ -195,13 +201,17 @@ export default function CryptoWidget() {
             marginPagesDisplayed={2}
             pageRangeDisplayed={2}
             onPageChange={handlePageClick}
-            containerClassName={styles.pagination}
-            pageClassName={styles.paginationButton}
-            activeClassName={styles.active} 
-            previousClassName={styles.previousButton}
-            nextClassName={styles.nextButton}
-            breakClassName={styles.breakLabelContainer}
-            disabledClassName={styles.disabled}
+            containerClassName="pagination justify-content-center mt-3"
+            pageClassName="page-item"
+            pageLinkClassName="page-link"
+            activeClassName="active" 
+            previousClassName="page-item"
+            nextClassName="page-item"
+            previousLinkClassName="page-link"
+            nextLinkClassName="page-link"
+            breakClassName="page-item"
+            breakLinkClassName="page-link"
+            disabledClassName="disabled"
             forcePage={currentPage}
             />
 
