@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { deleteDataFromAirtable, fetchAirtableData, postDataToAirtable, editDataInAirtable } from "../../services/service";
-import styles from "./TodoWidget.module.css";
 import { toast } from "react-toastify";
+import { Card, Form, Button, Spinner } from 'react-bootstrap';
+import PropTypes from 'prop-types';
 
-export default function TodoWidget({refreshTrigger}) {
+
+export default function TodoWidget({refreshTrigger, expandedView: propExpandedView}) {
     const [tasks, setTasks] = useState([]);
     const [overdueTasks, setOverdueTasks] = useState([]);
     const [completedTasks, setCompletedTasks] = useState([]);
@@ -13,12 +15,13 @@ export default function TodoWidget({refreshTrigger}) {
     const [editTask, setEditTask] = useState('');
     const [editDueDate, setEditDueDate] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [expandedView, setExpandedView] = useState(false);
+    const [expandedView, setExpandedView] = useState(propExpandedView || false);
 
-    // fetch tasks on page load
+    //& fetch tasks on page load
     useEffect(() => {
         refreshTasks();
-    }, [refreshTrigger]); // refreshTrigger: use counter as state in dashboard and pass into TodoWidget + AnimeWidget //! not advisable. lift state instead
+    }, [refreshTrigger]); //~ refreshTrigger: use counter as state in dashboard and pass into TodoWidget + AnimeWidget 
+    //! not advisable. lift state instead
 
     const refreshTasks = async () => {
         setIsLoading(true);
@@ -46,8 +49,8 @@ export default function TodoWidget({refreshTrigger}) {
             toast.error('Failed to fetch tasks. Please try again.');
             console.error('fetch tasks FAIL ', error);
         } finally {
-            setIsLoading(false); //always set loading state back to false at end of function
-            toast.dismiss(); // dismiss toast loading
+            setIsLoading(false); //~ always set loading state back false at end function
+            toast.dismiss(); //~ dismiss toast loading
         }
     };
 
@@ -66,7 +69,7 @@ export default function TodoWidget({refreshTrigger}) {
             });
             setNewTask('');
             setDueDate('');
-            // refresh tasks
+            //~ refresh tasks
             refreshTasks();
             toast.success('Task added successfully!');
         } catch (error) {
@@ -101,7 +104,7 @@ export default function TodoWidget({refreshTrigger}) {
         }
     }
 
-    // marking task done
+    //& marking task done
     const handleDone = async (id) => {
         setIsLoading(true);
         toast.info('Marking task as completed...', {autoClose: false});
@@ -135,192 +138,304 @@ export default function TodoWidget({refreshTrigger}) {
     };
 
     return (
-        <div className={styles['todo-widget']}>
-            <h2>Todo List</h2>
-            <div className={styles["section-container"] + " " + styles["new-section"]}>
-                <h3>New Tasks</h3>
-                <div className={styles['input-group']}>
-                    <label>Task Name:</label>
-                    <input
-                    value={newTask}
-                    onChange={(e) => setNewTask(e.target.value)}
-                    placeholder="Add a New Task [required]"
-                    disabled={isLoading}
-                    required />
-                </div>
-                <div className={styles['input-group']}>
-                    <label>Select Due Date (optional):</label>
-                    <input 
-                    type="date"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    placeholder="Due Date"
-                    disabled={isLoading}
-                    />
-                </div>
-                <button className={styles['add-button']} onClick={handleAdd}><span>{isLoading ? 'Adding...' : 'Create'}</span></button>
+        <Card className="border shadow-sm mb-4">
+            <Card.Header className="bg-primary text-white">
+                <h5 className="mb-0">Todo List</h5>
+            </Card.Header>
+            <Card.Body>
+                <Card className="mb-3 border-0 bg-light">
+                    <Card.Body>
+                        <h6 className="mb-3">New Tasks</h6>
+                        <Form className="mb-3">
+                            <Form.Group className="mb-2">
+                                <Form.Label>Task Name:</Form.Label>
+                                <Form.Control
+                                    value={newTask}
+                                    onChange={(e) => setNewTask(e.target.value)}
+                                    placeholder="Add a New Task [required]"
+                                    disabled={isLoading}
+                                    required 
+                                />
+                            </Form.Group>
+                            <Form.Group className="mb-2">
+                                <Form.Label>Select Due Date (optional):</Form.Label>
+                                <Form.Control 
+                                    type="date"
+                                    value={dueDate}
+                                    onChange={(e) => setDueDate(e.target.value)}
+                                    disabled={isLoading}
+                                />
+                            </Form.Group>
+                            <Button 
+                                variant="success" 
+                                className="mt-2" 
+                                onClick={handleAdd}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? 'Adding...' : 'Create'}
+                            </Button>
+                        </Form>
 
-                <div className={styles['task-list']}>
+                <div>
                     {isLoading ? (
-                        <div>Loading tasks...</div>
+                        <div className="text-center py-3">
+                            <Spinner animation="border" role="status" size="sm">
+                                <span className="visually-hidden">Loading tasks...</span>
+                            </Spinner>
+                        </div>
                     ) : (
                         tasks.map((task) => (
-                            <div key={task.id} className={styles['task-item']}>
-                                {editTaskId === task.id ? (
-                                    <div className={styles['edit-container']}>
-                                        <input 
-                                            className={styles['edit-input']}
-                                            value={editTask}
-                                            onChange={(e) => setEditTask(e.target.value)} 
-                                            disabled={isLoading} />
-                                        <input 
-                                            className={styles['edit-date']}
-                                            type="date"
-                                            value={editDueDate}
-                                            onChange={(e) => setEditDueDate(e.target.value)} 
-                                            disabled={isLoading} />
-                                        <button 
-                                            className={styles['edit-button']} 
-                                            onClick={() => handleEdit(task.id)} 
-                                            disabled={isLoading}>
-                                            <i className="fa-regular fa-floppy-disk"></i>
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <span>{task.Tasks}</span>
-                                )}
-                                <div className={styles['button-group']}>
-                                    <button 
-                                        className={styles['done-button']} 
-                                        onClick={() => handleDone(task.id)} 
-                                        disabled={isLoading}>
-                                        {task.Status === 'Completed' ? (
-                                            <i className="fa-regular fa-square-check"></i>
-                                        ) : (
-                                            <i className="fa-regular fa-square"></i>
-                                        )}
-                                    </button>
-                                    <button 
-                                        className={styles['edit-button']} 
-                                        onClick={() => {
-                                            setEditTaskId(task.id);
-                                            setEditTask(task.Tasks);
-                                            setEditDueDate(task['Due Date'] || '');
-                                        }} 
-                                        disabled={isLoading}>
-                                        <i className="fa-regular fa-pen-to-square"></i>
-                                    </button>
-                                    <button 
-                                        className={styles['delete-button']} 
-                                        onClick={() => handleDelete(task.id)} 
-                                        disabled={isLoading}>
-                                        <i className="fa-solid fa-trash"></i>
-                                    </button>
-                                </div>  
-                            </div>
+                            <Card key={task.id} className="mb-2 border">
+                                <Card.Body className="py-2 d-flex justify-content-between align-items-center">
+                                    {editTaskId === task.id ? (
+                                        <Form className="d-flex flex-grow-1 me-2 gap-2">
+                                            <Form.Control 
+                                                size="sm"
+                                                value={editTask}
+                                                onChange={(e) => setEditTask(e.target.value)} 
+                                                disabled={isLoading} 
+                                            />
+                                            <Form.Control 
+                                                size="sm"
+                                                type="date"
+                                                value={editDueDate}
+                                                onChange={(e) => setEditDueDate(e.target.value)} 
+                                                disabled={isLoading} 
+                                            />
+                                            <Button 
+                                                variant="outline-success" 
+                                                size="sm"
+                                                onClick={() => handleEdit(task.id)} 
+                                                disabled={isLoading}
+                                            >
+                                                <i className="fa-regular fa-floppy-disk"></i>
+                                            </Button>
+                                        </Form>
+                                    ) : (
+                                        <span className="text-truncate">{task.Tasks}</span>
+                                    )}
+                                    {editTaskId !== task.id && (
+                                        <div className="d-flex gap-1">
+                                            <Button 
+                                                variant="outline-success" 
+                                                size="sm"
+                                                onClick={() => handleDone(task.id)} 
+                                                disabled={isLoading}
+                                            >
+                                                {task.Status === 'Completed' ? (
+                                                    <i className="fa-regular fa-square-check"></i>
+                                                ) : (
+                                                    <i className="fa-regular fa-square"></i>
+                                                )}
+                                            </Button>
+                                            <Button 
+                                                variant="outline-primary" 
+                                                size="sm"
+                                                onClick={() => {
+                                                    setEditTaskId(task.id);
+                                                    setEditTask(task.Tasks);
+                                                    setEditDueDate(task['Due Date'] || '');
+                                                }} 
+                                                disabled={isLoading}
+                                            >
+                                                <i className="fa-regular fa-pen-to-square"></i>
+                                            </Button>
+                                            <Button 
+                                                variant="outline-danger" 
+                                                size="sm"
+                                                onClick={() => handleDelete(task.id)} 
+                                                disabled={isLoading}
+                                            >
+                                                <i className="fa-solid fa-trash"></i>
+                                            </Button>
+                                        </div>
+                                    )}
+                                </Card.Body>
+                            </Card>
                         ))
                     )}
                 </div>
-            </div>
-            {!expandedView && (
-                <button className={styles['expand-button']} onClick={() => setExpandedView(true)}>Show More</button>
-            )}
-            {expandedView && (
-                <>
-                    <button className={styles['expand-button']} onClick={() => setExpandedView(false)}>Show Less</button>
-                    {overdueTasks.length > 0 && (
-                        <div className={styles["section-container"] + " " + styles["overdue-section"]}>
-                            <h3>Overdue Tasks</h3>
-                            <div className={styles['task-list']}>
-                                {overdueTasks.map((task) => (
-                                    <div key={task.id} className={styles['task-item']}>
-                                        {editTaskId === task.id ? (
-                                        <div className={styles['edit-container']}>
-                                            <input 
-                                            className={styles['edit-input']}
-                                            value={editTask}
-                                            onChange={(e) => setEditTask(e.target.value)} 
-                                            disabled={isLoading} 
-                                            />
-                                            <input 
-                                            className={styles['edit-date']}
-                                            type="date"
-                                            value={editDueDate}
-                                            onChange={(e) => setEditDueDate(e.target.value)} 
-                                            disabled={isLoading} 
-                                            />
-                                            <button className={styles['edit-button']} onClick={() => handleEdit(task.id)} disabled={isLoading}><i className="fa-regular fa-floppy-disk"></i></button>
-                                        </div>
-                                        ) : (
-                                        <span>{task.Tasks} (Due: {task['Due Date']})</span>
-                                        )}
-                                        <div className={styles['button-group']}>
-                                            <button className={styles['done-button']} onClick={() => handleDone(task.id)} disabled={isLoading}>{task.Status === "Completed" ? (
-                                            <i className="fa-regular fa-square-check"></i>
-                                            ) : (
-                                            <i className="fa-regular fa-square"></i>
-                                            )}</button>
-                                            <button 
-                                            className={styles['edit-button']} 
-                                            onClick={() => {
-                                            setEditTaskId(task.id); 
-                                            setEditTask(task.Tasks); 
-                                            setEditDueDate(task['Due Date'] || '');}} 
-                                            disabled={isLoading}><i className="fa-regular fa-pen-to-square"></i></button>
-                                            <button className={styles['delete-button']} onClick={() => handleDelete(task.id)}><i className="fa-solid fa-trash"></i></button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                    </Card.Body>
+                </Card>
+
+                {!expandedView && (
+                    <div className="text-center">
+                        <Button variant="outline-primary" onClick={() => setExpandedView(true)}>Show More</Button>
+                    </div>
+                )}
+                {expandedView && (
+                    <>
+                        <div className="text-center mb-3">
+                            <Button variant="outline-primary" onClick={() => setExpandedView(false)}>Show Less</Button>
                         </div>
+                    {overdueTasks.length > 0 && (
+                        <Card className="mb-3 border-0 bg-light">
+                            <Card.Body>
+                                <h6 className="mb-3 text-danger">Overdue Tasks</h6>
+                                <div>
+                                    {overdueTasks.map((task) => (
+                                        <Card key={task.id} className="mb-2 border border-danger">
+                                            <Card.Body className="py-2 d-flex justify-content-between align-items-center">
+                                                {editTaskId === task.id ? (
+                                                    <Form className="d-flex flex-grow-1 me-2 gap-2">
+                                                        <Form.Control 
+                                                            size="sm"
+                                                            value={editTask}
+                                                            onChange={(e) => setEditTask(e.target.value)} 
+                                                            disabled={isLoading} 
+                                                        />
+                                                        <Form.Control 
+                                                            size="sm"
+                                                            type="date"
+                                                            value={editDueDate}
+                                                            onChange={(e) => setEditDueDate(e.target.value)} 
+                                                            disabled={isLoading} 
+                                                        />
+                                                        <Button 
+                                                            variant="outline-success" 
+                                                            size="sm"
+                                                            onClick={() => handleEdit(task.id)} 
+                                                            disabled={isLoading}
+                                                        >
+                                                            <i className="fa-regular fa-floppy-disk"></i>
+                                                        </Button>
+                                                    </Form>
+                                                ) : (
+                                                    <span className="text-danger text-truncate">{task.Tasks} (Due: {task['Due Date']})</span>
+                                                )}
+                                                {editTaskId !== task.id && (
+                                                    <div className="d-flex gap-1">
+                                                        <Button 
+                                                            variant="outline-success" 
+                                                            size="sm"
+                                                            onClick={() => handleDone(task.id)} 
+                                                            disabled={isLoading}
+                                                        >
+                                                            {task.Status === "Completed" ? (
+                                                                <i className="fa-regular fa-square-check"></i>
+                                                            ) : (
+                                                                <i className="fa-regular fa-square"></i>
+                                                            )}
+                                                        </Button>
+                                                        <Button 
+                                                            variant="outline-primary" 
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                setEditTaskId(task.id); 
+                                                                setEditTask(task.Tasks); 
+                                                                setEditDueDate(task['Due Date'] || '');
+                                                            }} 
+                                                            disabled={isLoading}
+                                                        >
+                                                            <i className="fa-regular fa-pen-to-square"></i>
+                                                        </Button>
+                                                        <Button 
+                                                            variant="outline-danger" 
+                                                            size="sm"
+                                                            onClick={() => handleDelete(task.id)} 
+                                                            disabled={isLoading}
+                                                        >
+                                                            <i className="fa-solid fa-trash"></i>
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </Card.Body>
+                                        </Card>
+                                    ))}
+                                </div>
+                            </Card.Body>
+                        </Card>
                     )}
                     
-                    <div className={styles["section-container"] + " " + styles["completed-section"]}>
-                        <h3>Completed Tasks</h3>
-                        <div className={styles['task-list']}>
-                            {completedTasks.map((task) => (
-                                <div key={task.id} className={styles['task-item']}>
-                                    {editTaskId === task.id ? (
-                                        <div className={styles['edit-container']}>
-                                            <input 
-                                            className={styles['edit-input']}
-                                            value={editTask}
-                                            onChange={(e) => setEditTask(e.target.value)}
-                                            disabled={isLoading} 
-                                            />
-                                            <input 
-                                            className={styles['edit-date']}
-                                            type="date"
-                                            value={editDueDate}
-                                            onChange={(e) => setEditDueDate(e.target.value)}
-                                            disabled={isLoading} 
-                                            />
-                                            <button className={styles['edit-button']} onClick={() => handleEdit(task.id)} disabled={isLoading}><i className="fa-regular fa-floppy-disk"></i></button>
-                                        </div>
-                                    ) : (
-                                    <span>{task.Tasks}</span>
-                                    )}
-                                    <div className={styles['button-group']}>
-                                        <button className={styles['done-button']} onClick={() => handleDone(task.id)} disabled={isLoading}>{task.Status === "Completed" ? (
-                                        <i className="fa-regular fa-square-check"></i>
-                                        ) : (
-                                        <i className="fa-regular fa-square"></i>
-                                        )}</button>
-                                        <button 
-                                        className={styles['edit-button']} 
-                                        onClick={() => {
-                                        setEditTaskId(task.id); 
-                                        setEditTask(task.Tasks); 
-                                        setEditDueDate(task['Due Date'] || '');}}
-                                        disabled={isLoading}><i className="fa-regular fa-pen-to-square"></i></button>
-                                        <button className={styles['delete-button']} onClick={() => handleDelete(task.id)} disabled={isLoading}><i className="fa-solid fa-trash"></i></button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                    <Card className="mb-3 border-0 bg-light">
+                        <Card.Body>
+                            <h6 className="mb-3 text-success">Completed Tasks</h6>
+                            <div>
+                                {completedTasks.map((task) => (
+                                    <Card key={task.id} className="mb-2 border border-success">
+                                        <Card.Body className="py-2 d-flex justify-content-between align-items-center">
+                                            {editTaskId === task.id ? (
+                                                <Form className="d-flex flex-grow-1 me-2 gap-2">
+                                                    <Form.Control 
+                                                        size="sm"
+                                                        value={editTask}
+                                                        onChange={(e) => setEditTask(e.target.value)}
+                                                        disabled={isLoading} 
+                                                    />
+                                                    <Form.Control 
+                                                        size="sm"
+                                                        type="date"
+                                                        value={editDueDate}
+                                                        onChange={(e) => setEditDueDate(e.target.value)}
+                                                        disabled={isLoading} 
+                                                    />
+                                                    <Button 
+                                                        variant="outline-success" 
+                                                        size="sm"
+                                                        onClick={() => handleEdit(task.id)} 
+                                                        disabled={isLoading}
+                                                    >
+                                                        <i className="fa-regular fa-floppy-disk"></i>
+                                                    </Button>
+                                                </Form>
+                                            ) : (
+                                                <span className="text-success text-truncate">{task.Tasks}</span>
+                                            )}
+                                            {editTaskId !== task.id && (
+                                                <div className="d-flex gap-1">
+                                                    <Button 
+                                                        variant="outline-success" 
+                                                        size="sm"
+                                                        onClick={() => handleDone(task.id)} 
+                                                        disabled={isLoading}
+                                                    >
+                                                        {task.Status === "Completed" ? (
+                                                            <i className="fa-regular fa-square-check"></i>
+                                                        ) : (
+                                                            <i className="fa-regular fa-square"></i>
+                                                        )}
+                                                    </Button>
+                                                    <Button 
+                                                        variant="outline-primary" 
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            setEditTaskId(task.id); 
+                                                            setEditTask(task.Tasks); 
+                                                            setEditDueDate(task['Due Date'] || '');
+                                                        }}
+                                                        disabled={isLoading}
+                                                    >
+                                                        <i className="fa-regular fa-pen-to-square"></i>
+                                                    </Button>
+                                                    <Button 
+                                                        variant="outline-danger" 
+                                                        size="sm"
+                                                        onClick={() => handleDelete(task.id)} 
+                                                        disabled={isLoading}
+                                                    >
+                                                        <i className="fa-solid fa-trash"></i>
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </Card.Body>
+                                    </Card>
+                                ))}
+                            </div>
+                        </Card.Body>
+                    </Card>
                 </>
             )}
-        </div>
+            </Card.Body>
+        </Card>
     );
 }
+
+TodoWidget.propTypes = {
+    refreshTrigger: PropTypes.number,
+    expandedView: PropTypes.bool
+};
+
+TodoWidget.defaultProps = {
+    refreshTrigger: 0,
+    expandedView: false
+};
