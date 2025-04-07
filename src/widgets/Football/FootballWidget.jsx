@@ -4,8 +4,7 @@ import { toast } from "react-toastify";
 import ReactPaginate from "react-paginate";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAnglesLeft, faAnglesRight } from "@fortawesome/free-solid-svg-icons";
-import styles from "../../components/Pagination/Pagination.module.css";
-import FootballWidgetStyle from "./FootballWidgetStyle.module.css";
+import { Form, Table, Spinner } from 'react-bootstrap';
 
 const competitions = [
     {id: 'WC', name: 'FIFA World Cup'},
@@ -63,19 +62,23 @@ export default function FootballWidget() {
     return (
         <div>
             <h2>Football Standings</h2>
-            <div className={FootballWidgetStyle.selectContainer}>
-                <label htmlFor="competitionSelect">Select Competition: </label>
-                <select id="competitionSelect" value={selectCompe} onChange={handleCompeChange} disabled={isLoading} className={FootballWidgetStyle.selectField} >
+            <Form.Group className="mb-3">
+                <Form.Label htmlFor="competitionSelect">Select Competition: </Form.Label>
+                <Form.Select id="competitionSelect" value={selectCompe} onChange={handleCompeChange} disabled={isLoading} className="w-auto">
                     {competitions.map((comp) => (
                         <option key={comp.id} value={comp.id}>{comp.name}</option>
                     ))}
-                </select>
-            </div>
+                </Form.Select>
+            </Form.Group>
             {isLoading ? (
-                <div>Loading football data...</div>
+                <div className="d-flex justify-content-center my-3">
+                    <Spinner animation="border" role="status">
+                        <span className="visually-hidden">Loading football data...</span>
+                    </Spinner>
+                </div>
             ) : (
                 <>
-                    <table>
+                    <Table hover responsive bordered className="mb-3">
                         <thead>
                         <tr>
                             <th>Position</th>
@@ -100,18 +103,22 @@ export default function FootballWidget() {
                             </tr>
                         ))}
                         </tbody>
-                    </table>
+                    </Table>
                     {totalPages > 1 && (
                         <ReactPaginate
                         previousLabel={<FontAwesomeIcon icon={faAnglesLeft} />}
                         nextLabel={<FontAwesomeIcon icon={faAnglesRight} />}
                         pageCount={totalPages}
                         onPageChange={(selectedItem) => setCurrentPage(selectedItem.selected)}
-                        containerClassName={styles.pagination}
-                        pageClassName={styles.paginationButton}
-                        activeClassName={styles.active}
-                        previousClassName={styles.previousButton}
-                        nextClassName={styles.nextButton}
+                        containerClassName="pagination justify-content-center mt-3"
+                        pageClassName="page-item"
+                        pageLinkClassName="page-link"
+                        activeClassName="active"
+                        previousClassName="page-item"
+                        nextClassName="page-item"
+                        previousLinkClassName="page-link"
+                        nextLinkClassName="page-link"
+                        disabledClassName="disabled"
                         forcePage={currentPage}
                         />
                     )}
