@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchWeatherData, fetchNEAWeatherData, fetchFourDayWeatherDataSG } from "../../services/service";
-import styles from './WeatherWidget.module.css'
 import { toast } from 'react-toastify';
+import { Card, Row, Col, Form, Button, Spinner } from 'react-bootstrap';
 
 export default function WeatherWidget() {
     const [forecastData, setForecastData] = useState(null);
@@ -34,7 +34,7 @@ export default function WeatherWidget() {
         setForecastData(forecasts);
     };
 
-    // fetch initial NEA forecast data
+    //& fetch initial NEA forecast data
     useEffect(() => {
         const loadInitialData = async () => {
             try {
@@ -63,7 +63,7 @@ export default function WeatherWidget() {
                 country: weather.location.country,
                 city: weather.location.name
             });
-            // setCountrySearch('');
+            //~ setCountrySearch('');
             toast.success('Weather data fetch success')
         } catch (error) {
             console.error('fetch weather FAIL : ', error);
@@ -90,77 +90,102 @@ export default function WeatherWidget() {
     }, [townSearch]);
 
     return (
-        <div className={styles.weatherWidget}>
-            <div className={styles.topRow}>
+        <Card className="p-3 mb-4 bg-light">
+            <Row className="g-3">
 
-                <div className={`${styles.section} ${styles.currentWeather}`}>
-                    <h3>Current Weather by Country</h3>
-                    <form onSubmit={handleCountrySearch} className={styles.searchForm}>
-                        <div className={styles.inputGroup}>
-                            <label>Search Location:</label>
-                            <input 
-                            type="text" 
-                            value={countrySearch} 
-                            onChange={(e) => setCountrySearch(e.target.value)} 
-                            placeholder="Enter country/city" />
-                        </div>
-                        <button type="submit" className={styles.searchButton}><span>Search</span></button>
-                    </form>
-                    {isLoading ? (
-                        <div>Loading...</div>
-                    ) : (currentWeather && (
-                        <div className={styles.weatherCard}>
-                            <h4>{currentWeather.country}, {currentWeather.city}:</h4>
-                            <div className={styles.weatherInfo}>
-                                <img src={currentWeather.icon} alt="weather-condition.jpg" />
-                                <div>
-                                    <p>{currentWeather.temp}°C</p>
-                                    <p>{currentWeather.condition}</p>
+                <Col md={4} lg={3}>
+                    <Card className="h-100 shadow-sm">
+                        <Card.Body>
+                            <h5 className="fs-6 fw-bold mb-3">Current Weather by Country</h5>
+                            <Form onSubmit={handleCountrySearch} className="d-flex flex-column gap-2 mb-2">
+                                <Form.Group>
+                                    <Form.Label className="small">Search Location:</Form.Label>
+                                    <Form.Control 
+                                    size="sm"
+                                    type="text" 
+                                    value={countrySearch} 
+                                    onChange={(e) => setCountrySearch(e.target.value)} 
+                                    placeholder="Enter country/city" />
+                                </Form.Group>
+                                <Button type="submit" variant="success" size="sm" className="align-self-end">Search</Button>
+                            </Form>
+                            {isLoading ? (
+                                <div className="d-flex justify-content-center my-2">
+                                    <Spinner animation="border" size="sm" role="status">
+                                        <span className="visually-hidden">Loading...</span>
+                                    </Spinner>
                                 </div>
-                            </div>
-                        </div>
-                        )
-                    )}
-                </div>
+                            ) : (currentWeather && (
+                                <Card className="bg-light mt-2">
+                                    <Card.Body className="p-2">
+                                        <h6 className="mb-2">{currentWeather.country}, {currentWeather.city}:</h6>
+                                        <div className="d-flex align-items-center gap-2">
+                                            <img src={currentWeather.icon} alt="weather-condition" className="img-fluid" style={{width: '40px'}} />
+                                            <div>
+                                                <p className="mb-0">{currentWeather.temp}°C</p>
+                                                <p className="mb-0 small">{currentWeather.condition}</p>
+                                            </div>
+                                        </div>
+                                    </Card.Body>
+                                </Card>
+                                )
+                            )}
+                        </Card.Body>
+                    </Card>
+                </Col>
 
-                <div className={`${styles.section} ${styles.forecastSection}`}>
-                    <h3>4-Day Singapore Forecast</h3>
-                    <div className={styles.forecastGrid}>
-                        {forecastData?.map((day, index) => (
-                            <div key={index} className={styles.forecastItem}>
-                                <h4>{day.day} ({new Date(day.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })})</h4>
-                                <p className={styles.smallText}>🔮 {day.forecast.text} ({day.forecast.summary})</p>
-                                <p className={styles.smallText}>🌡️ {day.temperature.low}°C - {day.temperature.high}°C</p>
-                                <p className={styles.smallText}>💧 {day.relativeHumidity.low}% - {day.relativeHumidity.high}%</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className={`${styles.section} ${styles.townWeather}`}>
-                    <h3>Singapore Town Weather</h3>
-                    <form className={styles.searchForm}>
-                        <div className={styles.inputGroup}>
-                            <label>Search Town:</label>
-                            <select 
-                            value={townSearch} 
-                            onChange={(e) => setTownSearch(e.target.value)}>
-                                <option value=''>Select a town</option>
-                                {towns.map((town, index) => (
-                                    <option key={index} value={town}>{town}</option>
+                <Col md={8} lg={6}>
+                    <Card className="h-100 shadow-sm">
+                        <Card.Body>
+                            <h5 className="fs-6 fw-bold mb-3">4-Day Singapore Forecast</h5>
+                            <Row className="row-cols-1 row-cols-sm-2 row-cols-lg-4 g-2">
+                                {forecastData?.map((day, index) => (
+                                    <Col key={index}>
+                                        <Card className="h-100 bg-light border-0 text-center">
+                                            <Card.Body className="p-2">
+                                                <h6 className="small fw-bold">{day.day} ({new Date(day.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })})</h6>
+                                                <p className="small mb-1">🔮 {day.forecast.text} ({day.forecast.summary})</p>
+                                                <p className="small mb-1">🌡️ {day.temperature.low}°C - {day.temperature.high}°C</p>
+                                                <p className="small mb-1">💧 {day.relativeHumidity.low}% - {day.relativeHumidity.high}%</p>
+                                            </Card.Body>
+                                        </Card>
+                                    </Col>
                                 ))}
-                            </select>
-                        </div>
-                    </form>
-                    {townWeather && (
-                        <div className={styles.weatherCard}>
-                            <h4>{townWeather.area}:</h4>
-                            <p>{townWeather.forecast}</p>
-                        </div>
-                    )}
-                </div>
+                            </Row>
+                        </Card.Body>
+                    </Card>
+                </Col>
 
-            </div>
-        </div>
+                <Col md={12} lg={3}>
+                    <Card className="h-100 shadow-sm">
+                        <Card.Body>
+                            <h5 className="fs-6 fw-bold mb-3">Singapore Town Weather</h5>
+                            <Form>
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="small">Search Town:</Form.Label>
+                                    <Form.Select 
+                                    size="sm"
+                                    value={townSearch} 
+                                    onChange={(e) => setTownSearch(e.target.value)}>
+                                        <option value=''>Select a town</option>
+                                        {towns.map((town, index) => (
+                                            <option key={index} value={town}>{town}</option>
+                                        ))}
+                                    </Form.Select>
+                                </Form.Group>
+                            </Form>
+                            {townWeather && (
+                                <Card className="bg-light mt-2">
+                                    <Card.Body className="p-2">
+                                        <h6 className="mb-2">{townWeather.area}:</h6>
+                                        <p className="small mb-0">{townWeather.forecast}</p>
+                                    </Card.Body>
+                                </Card>
+                            )}
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+        </Card>
     );
 }
