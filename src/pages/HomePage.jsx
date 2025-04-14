@@ -1,4 +1,3 @@
-import React from 'react';
 import { Container, Row, Col, Card, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 
@@ -13,7 +12,7 @@ export default function HomePage() {
             Explore the widgets below or use the navigation bar at the top to jump directly to your area of interest.
           </p>
           <br />
-          <p>** If you are not sure what to navigate first, click 'ANYTHING DASH' above to see everything implemented so far!</p>
+          <p>** If you are not sure what to navigate first, click &apos;Dashboard&apos; above to see everything implemented so far!</p>
         </Col>
       </Row>
 
