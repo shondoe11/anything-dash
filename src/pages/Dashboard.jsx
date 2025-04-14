@@ -17,10 +17,14 @@ export default function Dashboard() {
     <Container>
       <h1 className="my-4">My Dashboard</h1>
       <WeatherWidget />
-      <div className="d-flex gap-3 my-4">
-        <CryptoWidget />
+      <div className="my-4">
         <TodoWidget expandedView={false} refreshTrigger={refreshTrigger} />
-        <FootballWidget  />
+      </div>
+      <div className="my-4">
+        <CryptoWidget />
+      </div>
+      <div className="my-4">
+        <FootballWidget />
       </div>
       <AnimeWidget refreshTodoList={refreshTodoList} />
     </Container>
