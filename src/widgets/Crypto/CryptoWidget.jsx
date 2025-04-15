@@ -4,7 +4,8 @@ import { fetchCoinGeckoData } from "../../services/service";
 import ReactPaginate from 'react-paginate';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAnglesLeft, faAnglesRight, faEllipsis } from '@fortawesome/free-solid-svg-icons';
-import { Form, Table, InputGroup, Button, Spinner } from 'react-bootstrap';
+import { Form, Table, InputGroup, Button, Spinner, Card, Badge } from 'react-bootstrap';
+import { FaCoins } from 'react-icons/fa';
 
 
 export default function CryptoWidget() {
@@ -119,8 +120,20 @@ export default function CryptoWidget() {
 
 
     return (
-        <div>
-            <h2>Cryptocurrency Data</h2>
+        <>
+            <Card className="border-0 shadow-sm mb-4 widget-card overflow-hidden">
+                <Card.Header className="d-flex justify-content-between align-items-center py-3 px-4" style={{background: 'linear-gradient(45deg, var(--primary), var(--secondary))', border: 'none'}}>
+                    <div className="d-flex align-items-center">
+                        <FaCoins className="text-white me-2 widget-icon" size={20} />
+                        <h5 className="mb-0 text-white fw-bold">Cryptocurrency Dashboard</h5>
+                    </div>
+                    <div>
+                        <Badge bg="light" text="dark" className="px-3 py-2 rounded-pill">
+                            {cryptoData.length} Coins
+                        </Badge>
+                    </div>
+                </Card.Header>
+                <Card.Body className="p-4">
             <Form.Group className="mb-3">
                 <Form.Label>Select Currency: </Form.Label>
                 <Form.Select value={currency} onChange={handleCurrencyChange} disabled={isLoading} className="w-auto">
@@ -153,7 +166,7 @@ export default function CryptoWidget() {
             ) : (
                 <div>
                     <h3>Top Cryptocurrencies</h3>
-                    <Table hover responsive bordered className="mb-3">
+                    <Table hover responsive bordered className="mb-3 crypto-table">
                         <thead>
                             <tr>
                                 <th>Rank</th>
@@ -214,7 +227,8 @@ export default function CryptoWidget() {
             disabledClassName="disabled"
             forcePage={currentPage}
             />
-
-        </div>
+                </Card.Body>
+            </Card>
+        </>
     );
 }
