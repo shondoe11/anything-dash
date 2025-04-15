@@ -3,13 +3,15 @@ import { toast } from "react-toastify";
 import { fetchAnimeData, postDataToAirtable } from "../../services/service";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar, faCalendar, faClock, faTv, faFileVideo, faChartSimple, faThumbsUp, faFileLines } from '@fortawesome/free-solid-svg-icons';
-import { Card, Button, Carousel, Spinner, Row, Col } from 'react-bootstrap';
+import { Card, Button, Carousel, Spinner, Row, Col, Badge } from 'react-bootstrap';
 import PropTypes from 'prop-types';
+import { FaTv } from 'react-icons/fa';
 
 
 export default function AnimeWidget({ refreshTodoList }) {
     const [animeList, setAnimeList] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(0);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -53,9 +55,17 @@ export default function AnimeWidget({ refreshTodoList }) {
     };
     
     return (
-        <Card className="border shadow-sm mb-4">
-            <Card.Header className="bg-primary text-white">
-                <h5 className="mb-0">Top Airing Animes</h5>
+        <Card className="border-0 shadow-sm mb-4 widget-card overflow-hidden">
+            <Card.Header className="d-flex justify-content-between align-items-center py-3 px-4" style={{background: 'linear-gradient(45deg, var(--primary), var(--secondary))', border: 'none'}}>
+                <div className="d-flex align-items-center">
+                    <FaTv className="text-white me-2 widget-icon" size={20} />
+                    <h5 className="mb-0 text-white fw-bold">Top Airing Animes</h5>
+                </div>
+                <div>
+                    <Badge bg="light" text="dark" className="px-3 py-2 rounded-pill">
+                        {animeList.length} Animes
+                    </Badge>
+                </div>
             </Card.Header>
             <Card.Body>
                 {isLoading ? (
@@ -65,8 +75,30 @@ export default function AnimeWidget({ refreshTodoList }) {
                         </Spinner>
                     </div>
                 ) : (
-                    <div className="position-relative">
-                        <Carousel indicators={false} interval={null} className="mx-auto" style={{ maxWidth: '90%' }}>
+                    <div className="position-relative custom-carousel-container">
+                        <button 
+                            className="carousel-custom-control prev" 
+                            onClick={() => document.querySelector('.carousel-control-prev').click()}
+                            aria-label="Previous slide"
+                        >
+                            <span aria-hidden="true" style={{fontSize: '24px'}}>&lsaquo;</span>
+                        </button>
+                        <button 
+                            className="carousel-custom-control next" 
+                            onClick={() => document.querySelector('.carousel-control-next').click()}
+                            aria-label="Next slide"
+                        >
+                            <span aria-hidden="true" style={{fontSize: '24px'}}>&rsaquo;</span>
+                        </button>
+                        <Carousel 
+                            indicators={false} 
+                            interval={null} 
+                            className="mx-auto custom-carousel" 
+                            style={{ maxWidth: '90%' }} 
+                            controls={false}
+                            activeIndex={activeIndex}
+                            onSelect={(index) => setActiveIndex(index)}
+                        >
                             {animeList.map((anime, index) => (
                                 <Carousel.Item key={`${anime.mal_id}-${index}`}>
                                     <Row className="g-0 justify-content-center">
@@ -136,6 +168,19 @@ export default function AnimeWidget({ refreshTodoList }) {
                                 </Carousel.Item>
                             ))}
                         </Carousel>
+
+                        <div className="custom-pagination mt-3">
+                            {animeList.map((_, index) => (
+                                <button 
+                                    key={index}
+                                    className={`pagination-dot ${index === activeIndex ? 'active' : ''}`}
+                                    onClick={() => {
+                                        setActiveIndex(index);
+                                    }}
+                                    aria-label={`Go to slide ${index + 1}`}
+                                />
+                            ))}
+                        </div>
                     </div>
                 )}
             </Card.Body>
