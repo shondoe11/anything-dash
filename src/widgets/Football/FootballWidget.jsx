@@ -4,7 +4,8 @@ import { toast } from "react-toastify";
 import ReactPaginate from "react-paginate";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAnglesLeft, faAnglesRight } from "@fortawesome/free-solid-svg-icons";
-import { Form, Table, Spinner } from 'react-bootstrap';
+import { Form, Table, Spinner, Card, Badge } from 'react-bootstrap';
+import { FaFutbol } from 'react-icons/fa';
 
 const competitions = [
     {id: 'WC', name: 'FIFA World Cup'},
@@ -60,8 +61,20 @@ export default function FootballWidget() {
     );
 
     return (
-        <div>
-            <h2>Football Standings</h2>
+        <>
+            <Card className="border-0 shadow-sm mb-4 widget-card overflow-hidden">
+                <Card.Header className="d-flex justify-content-between align-items-center py-3 px-4" style={{background: 'linear-gradient(45deg, var(--primary), var(--secondary))', border: 'none'}}>
+                    <div className="d-flex align-items-center">
+                        <FaFutbol className="text-white me-2 widget-icon" size={20} />
+                        <h5 className="mb-0 text-white fw-bold">Football Standings</h5>
+                    </div>
+                    <div>
+                        <Badge bg="light" text="dark" className="px-3 py-2 rounded-pill">
+                            {selectCompe}
+                        </Badge>
+                    </div>
+                </Card.Header>
+                <Card.Body className="p-4">
             <Form.Group className="mb-3">
                 <Form.Label htmlFor="competitionSelect">Select Competition: </Form.Label>
                 <Form.Select id="competitionSelect" value={selectCompe} onChange={handleCompeChange} disabled={isLoading} className="w-auto">
@@ -78,7 +91,7 @@ export default function FootballWidget() {
                 </div>
             ) : (
                 <>
-                    <Table hover responsive bordered className="mb-3">
+                    <Table hover responsive bordered className="mb-3 football-table">
                         <thead>
                         <tr>
                             <th>Position</th>
@@ -124,6 +137,8 @@ export default function FootballWidget() {
                     )}
                 </>
             )}
-        </div>
+                </Card.Body>
+            </Card>
+        </>
     );
 }
