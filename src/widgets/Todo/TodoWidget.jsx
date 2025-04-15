@@ -121,6 +121,23 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
         }
     };
     
+    //& mark completed task as incomplete
+    const handleIncomplete = async (id) => {
+        setIsLoading(true);
+        toast.info('Marking task as incomplete...', {autoClose: false});
+        try {
+            await editDataInAirtable(id, {Status: 'New'});
+            refreshTasks();
+            toast.success('Task marked as incomplete!');
+        } catch (error) {
+            toast.error('Failed to mark task as incomplete. Please try again.');
+            console.error('mark task incomplete FAILED: ', error);
+        } finally {
+            setIsLoading(false);
+            toast.dismiss();
+        }
+    };
+    
     const handleDelete = async (id) => {
         setIsLoading(true);
         toast.info('Deleting task...', {autoClose: false});
@@ -269,11 +286,12 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
                                                                         </div>
                                                                     )}
                                                                 </div>
-                                                                <div className="d-flex gap-2">
+                                                                <div className="d-flex gap-2 align-items-center">
                                                                     <Button 
                                                                         variant="outline-success" 
                                                                         size="sm"
-                                                                        className="rounded-circle p-2"
+                                                                        className="rounded-circle d-flex align-items-center justify-content-center"
+                                                                        style={{width: '32px', height: '32px', padding: 0}}
                                                                         onClick={() => handleDone(task.id)} 
                                                                         disabled={isLoading}
                                                                         title="Mark as completed"
@@ -283,7 +301,8 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
                                                                     <Button 
                                                                         variant="outline-primary" 
                                                                         size="sm"
-                                                                        className="rounded-circle p-2"
+                                                                        className="rounded-circle d-flex align-items-center justify-content-center"
+                                                                        style={{width: '32px', height: '32px', padding: 0}}
                                                                         onClick={() => {
                                                                             setEditTaskId(task.id);
                                                                             setEditTask(task.Tasks);
@@ -297,7 +316,8 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
                                                                     <Button 
                                                                         variant="outline-danger" 
                                                                         size="sm"
-                                                                        className="rounded-circle p-2"
+                                                                        className="rounded-circle d-flex align-items-center justify-content-center"
+                                                                        style={{width: '32px', height: '32px', padding: 0}}
                                                                         onClick={() => handleDelete(task.id)} 
                                                                         disabled={isLoading}
                                                                         title="Delete task"
@@ -349,11 +369,12 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                            <div className="d-flex gap-2">
+                                                            <div className="d-flex gap-2 align-items-center">
                                                                 <Button 
                                                                     variant="outline-success" 
                                                                     size="sm"
-                                                                    className="rounded-circle p-2"
+                                                                    className="rounded-circle d-flex align-items-center justify-content-center"
+                                                                    style={{width: '32px', height: '32px', padding: 0}}
                                                                     onClick={() => handleDone(task.id)} 
                                                                     disabled={isLoading}
                                                                     title="Mark as completed"
@@ -363,7 +384,8 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
                                                                 <Button 
                                                                     variant="outline-primary" 
                                                                     size="sm"
-                                                                    className="rounded-circle p-2"
+                                                                    className="rounded-circle d-flex align-items-center justify-content-center"
+                                                                    style={{width: '32px', height: '32px', padding: 0}}
                                                                     onClick={() => {
                                                                         setEditTaskId(task.id);
                                                                         setEditTask(task.Tasks);
@@ -377,7 +399,8 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
                                                                 <Button 
                                                                     variant="outline-danger" 
                                                                     size="sm"
-                                                                    className="rounded-circle p-2"
+                                                                    className="rounded-circle d-flex align-items-center justify-content-center"
+                                                                    style={{width: '32px', height: '32px', padding: 0}}
                                                                     onClick={() => handleDelete(task.id)} 
                                                                     disabled={isLoading}
                                                                     title="Delete task"
@@ -428,11 +451,38 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                            <div className="d-flex gap-2">
+                                                            <div className="d-flex gap-2 align-items-center">
+                                                                <Button 
+                                                                    variant="outline-warning" 
+                                                                    size="sm"
+                                                                    className="rounded-circle d-flex align-items-center justify-content-center"
+                                                                    style={{width: '32px', height: '32px', padding: 0}}
+                                                                    onClick={() => handleIncomplete(task.id)} 
+                                                                    disabled={isLoading}
+                                                                    title="Mark as incomplete"
+                                                                >
+                                                                    <i className="fa-solid fa-rotate-left"></i>
+                                                                </Button>
+                                                                <Button 
+                                                                    variant="outline-primary" 
+                                                                    size="sm"
+                                                                    className="rounded-circle d-flex align-items-center justify-content-center"
+                                                                    style={{width: '32px', height: '32px', padding: 0}}
+                                                                    onClick={() => {
+                                                                        setEditTaskId(task.id);
+                                                                        setEditTask(task.Tasks);
+                                                                        setEditDueDate(task['Due Date'] || '');
+                                                                    }}
+                                                                    disabled={isLoading}
+                                                                    title="Edit task"
+                                                                >
+                                                                    <i className="fa-solid fa-pencil"></i>
+                                                                </Button>
                                                                 <Button 
                                                                     variant="outline-danger" 
                                                                     size="sm"
-                                                                    className="rounded-circle p-2"
+                                                                    className="rounded-circle d-flex align-items-center justify-content-center"
+                                                                    style={{width: '32px', height: '32px', padding: 0}}
                                                                     onClick={() => handleDelete(task.id)} 
                                                                     disabled={isLoading}
                                                                     title="Delete task"
@@ -457,7 +507,7 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
                 </Card.Body>
             </Card>
             
-            {!expandedView && (
+            {!expandedView ? (
                 <div className="text-center mt-3 mb-4">
                     <Button 
                         variant="outline-primary" 
@@ -465,6 +515,16 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
                         className="px-4 py-2 rounded-pill"
                     >
                         <i className="fa-solid fa-chevron-down me-2"></i> Show More
+                    </Button>
+                </div>
+            ) : (
+                <div className="text-center mt-3 mb-4">
+                    <Button 
+                        variant="outline-primary" 
+                        onClick={() => setExpandedView(false)} 
+                        className="px-4 py-2 rounded-pill"
+                    >
+                        <i className="fa-solid fa-chevron-up me-2"></i> Show Less
                     </Button>
                 </div>
             )}
