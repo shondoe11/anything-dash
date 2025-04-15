@@ -90,7 +90,7 @@ export default function WeatherWidget() {
     }, [townSearch]);
 
     return (
-        <Card className="p-3 mb-4 bg-light">
+        <Card className="p-3 mb-4 weather-container">
             <Row className="g-3">
 
                 <Col md={4} lg={3}>
@@ -116,7 +116,7 @@ export default function WeatherWidget() {
                                     </Spinner>
                                 </div>
                             ) : (currentWeather && (
-                                <Card className="bg-light mt-2">
+                                <Card className="weather-card mt-2 custom-dark-card">
                                     <Card.Body className="p-2">
                                         <h6 className="mb-2">{currentWeather.country}, {currentWeather.city}:</h6>
                                         <div className="d-flex align-items-center gap-2">
@@ -141,7 +141,7 @@ export default function WeatherWidget() {
                             <Row className="row-cols-1 row-cols-sm-2 row-cols-lg-4 g-2">
                                 {forecastData?.map((day, index) => (
                                     <Col key={index}>
-                                        <Card className="h-100 bg-light border-0 text-center">
+                                        <Card className="h-100 weather-card border-0 text-center">
                                             <Card.Body className="p-2">
                                                 <h6 className="small fw-bold">{day.day} ({new Date(day.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })})</h6>
                                                 <p className="small mb-1">🔮 {day.forecast.text} ({day.forecast.summary})</p>
@@ -175,7 +175,7 @@ export default function WeatherWidget() {
                                 </Form.Group>
                             </Form>
                             {townWeather && (
-                                <Card className="bg-light mt-2">
+                                <Card className="weather-card mt-2 custom-dark-card">
                                     <Card.Body className="p-2">
                                         <h6 className="mb-2">{townWeather.area}:</h6>
                                         <p className="small mb-0">{townWeather.forecast}</p>
