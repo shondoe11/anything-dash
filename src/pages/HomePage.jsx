@@ -18,7 +18,7 @@ export default function HomePage() {
 
       <Row className="mb-4">
         <Col md={4} className="mb-3">
-          <Card>
+          <Card className="widget-card homepage-card">
             <Card.Body>
               <Card.Title>Task Management</Card.Title>
               <Card.Text>
@@ -32,7 +32,7 @@ export default function HomePage() {
         </Col>
 
         <Col md={4} className="mb-3">
-          <Card>
+          <Card className="widget-card homepage-card">
             <Card.Body>
               <Card.Title>Weather Forecast</Card.Title>
               <Card.Text>
@@ -46,7 +46,7 @@ export default function HomePage() {
         </Col>
 
         <Col md={4} className="mb-3">
-          <Card>
+          <Card className="widget-card homepage-card">
             <Card.Body>
               <Card.Title>Cryptocurrency Data</Card.Title>
               <Card.Text>
@@ -62,7 +62,7 @@ export default function HomePage() {
 
       <Row className="mb-4">
         <Col md={6} className="mb-3">
-          <Card>
+          <Card className="widget-card homepage-card">
             <Card.Body>
               <Card.Title>Football Fixtures</Card.Title>
               <Card.Text>
@@ -76,7 +76,7 @@ export default function HomePage() {
         </Col>
 
         <Col md={6} className="mb-3">
-          <Card>
+          <Card className="widget-card homepage-card">
             <Card.Body>
               <Card.Title>Anime Recommendations</Card.Title>
               <Card.Text>
