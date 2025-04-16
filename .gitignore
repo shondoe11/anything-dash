@@ -37,3 +37,5 @@ config.env
 *.bru
 *.bru.json
 /bruno/
+# Local Netlify folder
+.netlify
