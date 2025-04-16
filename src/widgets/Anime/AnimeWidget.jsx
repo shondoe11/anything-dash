@@ -78,14 +78,20 @@ export default function AnimeWidget({ refreshTodoList }) {
                     <div className="position-relative custom-carousel-container">
                         <button 
                             className="carousel-custom-control prev" 
-                            onClick={() => document.querySelector('.carousel-control-prev').click()}
+                            onClick={() => {
+                                //~ go prev slide, wrap around if at first
+                                setActiveIndex(prev => prev === 0 ? animeList.length - 1 : prev - 1);
+                            }}
                             aria-label="Previous slide"
                         >
                             <span aria-hidden="true" style={{fontSize: '24px'}}>&lsaquo;</span>
                         </button>
                         <button 
                             className="carousel-custom-control next" 
-                            onClick={() => document.querySelector('.carousel-control-next').click()}
+                            onClick={() => {
+                                //~ go next slide, wrap around if at last
+                                setActiveIndex(prev => prev === animeList.length - 1 ? 0 : prev + 1);
+                            }}
                             aria-label="Next slide"
                         >
                             <span aria-hidden="true" style={{fontSize: '24px'}}>&rsaquo;</span>
