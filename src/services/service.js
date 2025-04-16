@@ -118,13 +118,9 @@ export const fetchCoinGeckoData = async (currency = 'sgd', page = 1, searchQuery
 };
 
 export const fetchFootballData = async (compeId = 'PL') => {
-    const footballDataKey = import.meta.env.VITE_FOOTBALL_DATA_KEY;
-    const url = `https://thingproxy.freeboard.io/fetch/https://api.football-data.org/v4/competitions/${compeId}/standings`;
-    const response = await fetch(url, {
-        headers: {
-            'X-Auth-Token': footballDataKey,
-        },
-    });
+    //~ call netlify function as proxy
+    const url = `/.netlify/functions/football-proxy?league=${compeId}`;
+    const response = await fetch(url);
     const data = await response.json();
     return data;
 };
