@@ -103,7 +103,7 @@ export default function EditTasksPage() {
       
       {isLoading ? (
         <div className="text-center py-5">
-          <Spinner animation="border" variant="primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+          <Spinner animation="border" variant="primary" role="status" className="spinner-3rem">
             <span className="visually-hidden">Loading...</span>
           </Spinner>
           <p className="mt-3 text-muted">Fetching your tasks...</p>
@@ -113,11 +113,7 @@ export default function EditTasksPage() {
           {tasks.map((task) => (
             <Col xs={12} key={task.id} className="mb-3">
               <Card 
-                className="border-0 shadow-sm widget-card" 
-                style={{
-                  borderLeft: task.Status === 'Completed' ? '4px solid var(--success)' : '4px solid var(--primary)',
-                  transition: 'all 0.3s ease'
-                }}
+                className={`border-0 shadow-sm widget-card transition-card ${task.Status === 'Completed' ? 'border-left-success' : 'border-left-primary'}`}  
               >
                 <Card.Body className="p-0">
                   <Row className="g-0">
@@ -133,7 +129,7 @@ export default function EditTasksPage() {
                               className="border-0 shadow-sm"
                             />
                           </Form.Group>
-                          <Form.Group className="mb-2 mb-md-0 ms-md-2" style={{minWidth: '200px'}}>
+                          <Form.Group className="mb-2 mb-md-0 ms-md-2 form-minwide">
                             <Form.Label className="small text-muted mb-1">Due Date</Form.Label>
                             <Form.Control
                               type="date"
@@ -184,7 +180,7 @@ export default function EditTasksPage() {
                           <Button
                             variant={task.Status === 'Completed' ? "success" : "outline-success"}
                             size="sm"
-                            className="rounded-circle d-flex align-items-center justify-content-center" style={{width: '32px', height: '32px', padding: 0}}
+                            className="rounded-circle d-flex align-items-center justify-content-center circle-btn"
                             onClick={() => handleDone(task.id)}
                             disabled={isLoading}
                             title={task.Status === 'Completed' ? "Mark as incomplete" : "Mark as complete"}
@@ -198,7 +194,7 @@ export default function EditTasksPage() {
                           <Button
                             variant="outline-primary"
                             size="sm"
-                            className="rounded-circle d-flex align-items-center justify-content-center" style={{width: '32px', height: '32px', padding: 0}}
+                            className="rounded-circle d-flex align-items-center justify-content-center circle-btn"
                             onClick={() => {
                               setEditTaskId(task.id);
                               setEditTask(task.Tasks);
@@ -212,7 +208,7 @@ export default function EditTasksPage() {
                           <Button
                             variant="outline-danger"
                             size="sm"
-                            className="rounded-circle d-flex align-items-center justify-content-center" style={{width: '32px', height: '32px', padding: 0}}
+                            className="rounded-circle d-flex align-items-center justify-content-center circle-btn"
                             onClick={() => handleDelete(task.id)}
                             disabled={isLoading}
                             title="Delete task"
@@ -231,7 +227,7 @@ export default function EditTasksPage() {
       ) : (
         <div className="text-center py-5">
           <div className="mb-4">
-            <i className="fa-regular fa-clipboard text-muted" style={{fontSize: '4rem'}}></i>
+            <i className="fa-regular fa-clipboard text-muted icon-large"></i>
           </div>
           <h4 className="text-muted mb-3">No tasks found</h4>
           <p className="text-muted">You don&apos;t have any tasks yet. Create a new task to get started.</p>
