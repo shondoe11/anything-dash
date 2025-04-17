@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import { FaTv } from 'react-icons/fa';
 
 
-export default function AnimeWidget({ refreshTodoList }) {
+export default function AnimeWidget({ refreshTodoList = () => {} }) {
     const [animeList, setAnimeList] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
@@ -56,7 +56,7 @@ export default function AnimeWidget({ refreshTodoList }) {
     
     return (
         <Card className="border-0 shadow-sm mb-4 widget-card overflow-hidden">
-            <Card.Header className="d-flex justify-content-between align-items-center py-3 px-4" style={{background: 'linear-gradient(45deg, var(--primary), var(--secondary))', border: 'none'}}>
+            <Card.Header className="d-flex justify-content-between align-items-center py-3 px-4 gradient-header">
                 <div className="d-flex align-items-center">
                     <FaTv className="text-white me-2 widget-icon" size={20} />
                     <h5 className="mb-0 text-white fw-bold">Top Airing Animes</h5>
@@ -84,7 +84,7 @@ export default function AnimeWidget({ refreshTodoList }) {
                             }}
                             aria-label="Previous slide"
                         >
-                            <span aria-hidden="true" style={{fontSize: '24px'}}>&lsaquo;</span>
+                            <span aria-hidden="true" className="icon-24px">&lsaquo;</span>
                         </button>
                         <button 
                             className="carousel-custom-control next" 
@@ -94,13 +94,12 @@ export default function AnimeWidget({ refreshTodoList }) {
                             }}
                             aria-label="Next slide"
                         >
-                            <span aria-hidden="true" style={{fontSize: '24px'}}>&rsaquo;</span>
+                            <span aria-hidden="true" className="icon-24px">&rsaquo;</span>
                         </button>
                         <Carousel 
                             indicators={false} 
                             interval={null} 
-                            className="mx-auto custom-carousel" 
-                            style={{ maxWidth: '90%' }} 
+                            className="mx-auto custom-carousel max-w-90" 
                             controls={false}
                             activeIndex={activeIndex}
                             onSelect={(index) => setActiveIndex(index)}
@@ -115,7 +114,7 @@ export default function AnimeWidget({ refreshTodoList }) {
                                                         <Card.Img 
                                                             src={anime.images?.jpg?.image_url || 'http://placehold.it/200x250.jpg'} 
                                                             alt={anime.title} 
-                                                            style={{ height: '100%', objectFit: 'cover' }}
+                                                            className="h-100 object-cover" 
                                                         />
                                                     </Col>
                                                     <Col xs={8} md={9}>
@@ -197,9 +196,4 @@ export default function AnimeWidget({ refreshTodoList }) {
 //~ def prop types fr AnimeWidget
 AnimeWidget.propTypes = {
     refreshTodoList: PropTypes.func
-};
-
-//~ default props
-AnimeWidget.defaultProps = {
-    refreshTodoList: () => {}
 };
