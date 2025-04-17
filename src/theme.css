@@ -965,3 +965,117 @@ p, span, a, label {
 .dark-mode .main-content {
   animation: darkModeTransition 0.5s;
 }
+
+/* theme toggle button */
+.theme-toggle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+.theme-toggle.light {
+  color: var(--text-primary);
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.theme-toggle.light:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+  color: var(--text-primary);
+}
+.theme-toggle.dark {
+  color: var(--text-primary);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.theme-toggle.dark:hover {
+  background-color: rgba(255, 255, 0, 0.2);
+  color: #ffdd00;
+}
+
+/* Utility classes for refactored inline styles */
+.gradient-header {
+  background: linear-gradient(45deg, var(--primary), var(--secondary));
+  border: none;
+}
+.tabs-border-bottom {
+  border-bottom: 2px solid var(--gray-200) !important;
+}
+.rounded-card {
+  border-radius: 10px !important;
+}
+.transition-card {
+  transition: all 0.3s ease !important;
+}
+.spinner-2rem {
+  width: 2rem !important;
+  height: 2rem !important;
+}
+.spinner-3rem {
+  width: 3rem !important;
+  height: 3rem !important;
+}
+.form-minwide {
+  min-width: 200px !important;
+}
+.circle-btn {
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+}
+.icon-large {
+  font-size: 4rem !important;
+}
+.navbar-brand-transition {
+  transition: all 0.3s ease-in-out !important;
+}
+.navbar-brand-icon {
+  width: 40px !important;
+  height: 40px !important;
+}
+.dashboard-btn {
+  padding: 0.4rem 0.8rem !important;
+}
+
+.opacity-60 {
+  opacity: 0.6 !important;
+}
+
+.opacity-80 {
+  opacity: 0.8 !important;
+}
+
+.img-40 {
+  width: 40px !important;
+}
+
+.icon-24px {
+  font-size: 24px !important;
+}
+
+.max-w-90 {
+  max-width: 90% !important;
+}
+
+.object-cover {
+  object-fit: cover !important;
+}
+
+/* Navbar brand hover effect */
+.navbar-brand-transition:hover {
+  color: var(--primary) !important;
+  text-shadow: 0 0 10px rgba(var(--primary-rgb), 0.4);
+  transform: scale(1.05);
+}
+
+.border-left-primary {
+  border-left: 4px solid var(--primary) !important;
+}
+
+.border-left-success {
+  border-left: 4px solid var(--success) !important;
+}
+
+.border-left-danger {
+  border-left: 4px solid var(--danger) !important;
+}
