@@ -122,7 +122,7 @@ export default function CryptoWidget() {
     return (
         <>
             <Card className="border-0 shadow-sm mb-4 widget-card overflow-hidden">
-                <Card.Header className="d-flex justify-content-between align-items-center py-3 px-4" style={{background: 'linear-gradient(45deg, var(--primary), var(--secondary))', border: 'none'}}>
+                <Card.Header className="d-flex justify-content-between align-items-center py-3 px-4 gradient-header">
                     <div className="d-flex align-items-center">
                         <FaCoins className="text-white me-2 widget-icon" size={20} />
                         <h5 className="mb-0 text-white fw-bold">Cryptocurrency Dashboard</h5>
