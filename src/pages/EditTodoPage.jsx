@@ -3,6 +3,7 @@ import { Container, Form, Button, Card, Spinner, Row, Col, Badge } from 'react-b
 import { toast } from 'react-toastify';
 import { fetchAirtableData, editDataInAirtable, deleteDataFromAirtable } from '../services/service';
 
+
 export default function EditTasksPage() {
   const [tasks, setTasks] = useState([]);
   const [editTaskId, setEditTaskId] = useState(null);
@@ -179,11 +180,11 @@ export default function EditTasksPage() {
                     
                     {editTaskId !== task.id && (
                       <Col xs={3} className="p-3 d-flex align-items-center justify-content-end">
-                        <div className="d-flex gap-2">
+                        <div className="d-flex align-items-start gap-2">
                           <Button
                             variant={task.Status === 'Completed' ? "success" : "outline-success"}
                             size="sm"
-                            className="rounded-circle p-2"
+                            className="rounded-circle d-flex align-items-center justify-content-center" style={{width: '32px', height: '32px', padding: 0}}
                             onClick={() => handleDone(task.id)}
                             disabled={isLoading}
                             title={task.Status === 'Completed' ? "Mark as incomplete" : "Mark as complete"}
@@ -197,7 +198,7 @@ export default function EditTasksPage() {
                           <Button
                             variant="outline-primary"
                             size="sm"
-                            className="rounded-circle p-2"
+                            className="rounded-circle d-flex align-items-center justify-content-center" style={{width: '32px', height: '32px', padding: 0}}
                             onClick={() => {
                               setEditTaskId(task.id);
                               setEditTask(task.Tasks);
@@ -211,7 +212,7 @@ export default function EditTasksPage() {
                           <Button
                             variant="outline-danger"
                             size="sm"
-                            className="rounded-circle p-2"
+                            className="rounded-circle d-flex align-items-center justify-content-center" style={{width: '32px', height: '32px', padding: 0}}
                             onClick={() => handleDelete(task.id)}
                             disabled={isLoading}
                             title="Delete task"
