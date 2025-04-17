@@ -5,7 +5,7 @@ import { Card, Form, Button, Spinner, Badge, Row, Col, Tab, Tabs } from 'react-b
 import { FaTasks, FaCalendarAlt, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import PropTypes from 'prop-types';
 
-export default function TodoWidget({refreshTrigger, expandedView: propExpandedView}) {
+export default function TodoWidget({ expandedView: propExpandedView = false }) {
     const [tasks, setTasks] = useState([]);
     const [overdueTasks, setOverdueTasks] = useState([]);
     const [completedTasks, setCompletedTasks] = useState([]);
@@ -20,31 +20,34 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
     //& fetch tasks on page load
     useEffect(() => {
         refreshTasks();
-    }, [refreshTrigger]); //~ refreshTrigger: use counter as state in dashboard and pass into TodoWidget + AnimeWidget 
-    //! not advisable. lift state instead
+    }, []); //~ fetch tasks on mount only
 
     const refreshTasks = async () => {
         setIsLoading(true);
         toast.info('Fetching tasks...', {autoClose: false});
         try {
             const data = await fetchAirtableData();
-            data.reverse();
             const today = new Date().toISOString().split('T')[0];
             const formattedTasks = data.map(record => ({
                 id: record.id,
-                ...record.fields
+                ...record.fields,
+                createdTime: record.createdTime
             }));
             setOverdueTasks(
-                formattedTasks.filter(
-                    (task) => task.Status === 'New' && task['Due Date'] && task['Due Date'] < today
-                )
+                formattedTasks
+                    .filter((task) => task.Status === 'New' && task['Due Date'] && task['Due Date'] < today)
+                    .sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime))
             );
             setTasks(
-                formattedTasks.filter(
-                    (task) => task.Status === 'New' && (!task['Due Date'] || task['Due Date'] >= today)
-                )
+                formattedTasks
+                    .filter((task) => task.Status === 'New' && (!task['Due Date'] || task['Due Date'] >= today))
+                    .sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime))
             );
-            setCompletedTasks(formattedTasks.filter((task) => task.Status === 'Completed'));
+            setCompletedTasks(
+                formattedTasks
+                    .filter((task) => task.Status === 'Completed')
+                    .sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime))
+            );
         } catch (error) {
             toast.error('Failed to fetch tasks. Please try again.');
             console.error('fetch tasks FAIL ', error);
@@ -157,7 +160,7 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
     return (
         <>
             <Card className="border-0 shadow-sm mb-4 widget-card overflow-hidden">
-                <Card.Header className="d-flex justify-content-between align-items-center py-3 px-4" style={{background: 'linear-gradient(45deg, var(--primary), var(--secondary))', border: 'none'}}>
+                <Card.Header className="d-flex justify-content-between align-items-center py-3 px-4 gradient-header">
                     <div className="d-flex align-items-center">
                         <FaTasks className="text-white me-2 widget-icon" size={20} />
                         <h5 className="mb-0 text-white fw-bold">Todo Dashboard</h5>
@@ -222,7 +225,7 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
                         </Col>
                         
                         <Col md={12} lg={expandedView ? 12 : 7} className="p-4">
-                            <Tabs defaultActiveKey="active" className="mb-4" style={{borderBottom: '2px solid var(--gray-200)'}}>
+                            <Tabs defaultActiveKey="active" className="mb-4 tabs-border-bottom">
                                 <Tab 
                                     eventKey="active" 
                                     title={
@@ -235,14 +238,14 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
                                     <div className="pt-3">
                                         {isLoading ? (
                                             <div className="text-center py-4">
-                                                <Spinner animation="border" role="status" variant="primary" style={{width: '2rem', height: '2rem'}}>
+                                                <Spinner animation="border" role="status" variant="primary" className="spinner-2rem">
                                                     <span className="visually-hidden">Loading tasks...</span>
                                                 </Spinner>
                                                 <p className="mt-3 text-muted">Loading tasks...</p>
                                             </div>
                                         ) : tasks.length > 0 ? (
                                             tasks.map((task) => (
-                                                <Card key={task.id} className="mb-3 border-0 shadow-sm" style={{borderRadius: '10px', transition: 'all 0.3s ease'}}>
+                                                <Card key={task.id} className="mb-3 border-0 shadow-sm rounded-card transition-card">
                                                     <Card.Body className="p-3">
                                                         {editTaskId === task.id ? (
                                                             <Form className="d-flex flex-column flex-md-row align-items-md-center gap-2">
@@ -255,7 +258,7 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
                                                                         disabled={isLoading} 
                                                                     />
                                                                 </Form.Group>
-                                                                <Form.Group className="mb-2 mb-md-0 ms-md-2" style={{minWidth: '200px'}}>
+                                                                <Form.Group className="mb-2 mb-md-0 ms-md-2 form-minwide">
                                                                     <Form.Label className="small text-muted mb-1">Due Date</Form.Label>
                                                                     <Form.Control 
                                                                         className="border-0 shadow-sm"
@@ -350,14 +353,14 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
                                     <div className="pt-3">
                                         {isLoading ? (
                                             <div className="text-center py-4">
-                                                <Spinner animation="border" role="status" variant="danger" style={{width: '2rem', height: '2rem'}}>
+                                                <Spinner animation="border" role="status" variant="danger" className="spinner-2rem">
                                                     <span className="visually-hidden">Loading tasks...</span>
                                                 </Spinner>
                                                 <p className="mt-3 text-muted">Loading overdue tasks...</p>
                                             </div>
                                         ) : overdueTasks.length > 0 ? (
                                             overdueTasks.map((task) => (
-                                                <Card key={task.id} className="mb-3 border-0 shadow-sm" style={{borderRadius: '10px', borderLeft: '4px solid var(--danger)', transition: 'all 0.3s ease'}}>
+                                                <Card key={task.id} className="mb-3 border-0 shadow-sm rounded-card border-left-danger transition-card">
                                                     <Card.Body className="p-3">
                                                         <div className="d-flex justify-content-between align-items-center">
                                                             <div>
@@ -432,14 +435,14 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
                                     <div className="pt-3">
                                         {isLoading ? (
                                             <div className="text-center py-4">
-                                                <Spinner animation="border" role="status" variant="success" style={{width: '2rem', height: '2rem'}}>
+                                                <Spinner animation="border" role="status" variant="success" className="spinner-2rem">
                                                     <span className="visually-hidden">Loading tasks...</span>
                                                 </Spinner>
                                                 <p className="mt-3 text-muted">Loading completed tasks...</p>
                                             </div>
                                         ) : completedTasks.length > 0 ? (
                                             completedTasks.map((task) => (
-                                                <Card key={task.id} className="mb-3 border-0 shadow-sm" style={{borderRadius: '10px', borderLeft: '4px solid var(--success)', opacity: 0.8, transition: 'all 0.3s ease'}}>
+                                                <Card key={task.id} className="mb-3 border-0 shadow-sm rounded-card border-left-success opacity-80 transition-card">
                                                     <Card.Body className="p-3">
                                                         <div className="d-flex justify-content-between align-items-center">
                                                             <div>
@@ -533,11 +536,5 @@ export default function TodoWidget({refreshTrigger, expandedView: propExpandedVi
 }
 
 TodoWidget.propTypes = {
-    refreshTrigger: PropTypes.number,
     expandedView: PropTypes.bool
-};
-
-TodoWidget.defaultProps = {
-    refreshTrigger: 0,
-    expandedView: false
 };
