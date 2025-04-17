@@ -4,35 +4,25 @@ import { Link } from 'react-router-dom';
 import useTheme from '../../hooks/useTheme';
 
 export default function AppNavbar() {
-  const { darkMode, toggleDarkMode } = useTheme();
+  const { theme, toggleTheme } = useTheme();
+  const darkMode = theme === 'dark';
   
   return (
     <Navbar 
-      bg={darkMode ? "dark" : "light"} 
-      variant={darkMode ? "dark" : "light"} 
+      bg={theme} 
+      variant={theme} 
       expand="lg" 
       collapseOnSelect 
       className="py-2 navbar-modern sticky-top"
     >
       <Container>
         <div className="d-flex align-items-center">
-          <Navbar.Brand 
-            as={Link} 
-            to="/" 
-            className="fw-bold text-uppercase fs-4 d-flex align-items-center" 
-            style={{transition: 'all 0.3s ease-in-out'}}
-            onMouseOver={(e) => {
-              e.currentTarget.style.color = '#4361ee'; 
-              e.currentTarget.style.textShadow = '0 0 10px rgba(67, 97, 238, 0.4)'; 
-              e.currentTarget.style.transform = 'scale(1.05)';
-            }} 
-            onMouseOut={(e) => {
-              e.currentTarget.style.color = ''; 
-              e.currentTarget.style.textShadow = ''; 
-              e.currentTarget.style.transform = '';
-            }}
+          <Navbar.Brand
+            as={Link}
+            to="/"
+            className="fw-bold text-uppercase fs-4 d-flex align-items-center navbar-brand-transition"
           >
-            <span className="me-2 bg-primary text-white p-2 rounded-circle d-inline-flex justify-content-center align-items-center" style={{width: '40px', height: '40px'}}>
+            <span className="me-2 bg-primary text-white p-2 rounded-circle d-inline-flex justify-content-center align-items-center navbar-brand-icon" style={{width: '40px', height: '40px'}}>
               <FaHome />
             </span>
             Anything Dash
@@ -40,35 +30,19 @@ export default function AppNavbar() {
           
           <Button
             variant={darkMode ? "outline-light" : "outline-dark"}
-            className="d-flex align-items-center justify-content-center ms-2 theme-toggle"
+            className={`d-flex align-items-center justify-content-center ms-2 theme-toggle ${theme}`}
             size="sm"
-            onClick={toggleDarkMode}
+            onClick={toggleTheme}
             title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-            aria-label="Toggle dark mode"
-            style={{ 
-              width: '34px', 
-              height: '34px', 
-              borderRadius: '50%',
-              color: darkMode ? "#ffffff" : "#212529",
-              backgroundColor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = darkMode ? 'rgba(255,255,0,0.2)' : 'rgba(0,0,0,0.2)';
-              e.currentTarget.style.color = darkMode ? '#ffdd00' : '#212529';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
-              e.currentTarget.style.color = darkMode ? '#ffffff' : '#212529';
-            }}
+            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
           >
-            {darkMode ? <FaSun /> : <FaMoon />}
+            {theme === 'dark' ? <FaSun /> : <FaMoon />}
           </Button>
           
           <Button
             as={Link}
             to="/anything"
             className="fw-bold shadow-sm mx-2 fs-6 dashboard-btn d-flex align-items-center justify-content-center"
-            style={{ padding: '0.4rem 0.8rem' }}
             variant="primary"
           >
             <FaHome className="me-2" /> Dashboard
