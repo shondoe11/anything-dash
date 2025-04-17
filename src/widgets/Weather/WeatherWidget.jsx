@@ -120,7 +120,7 @@ export default function WeatherWidget() {
                                     <Card.Body className="p-2">
                                         <h6 className="mb-2">{currentWeather.country}, {currentWeather.city}:</h6>
                                         <div className="d-flex align-items-center gap-2">
-                                            <img src={currentWeather.icon} alt="weather-condition" className="img-fluid" style={{width: '40px'}} />
+                                            <img src={currentWeather.icon} alt="weather-condition" className="img-fluid img-40" />
                                             <div>
                                                 <p className="mb-0">{currentWeather.temp}°C</p>
                                                 <p className="mb-0 small">{currentWeather.condition}</p>
