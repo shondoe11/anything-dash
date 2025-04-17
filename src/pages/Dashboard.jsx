@@ -17,8 +17,7 @@ export default function Dashboard() {
   return (
     <Container>
       <Card className="border-0 shadow-sm mb-4 widget-card overflow-hidden mt-4">
-        <Card.Header className="d-flex justify-content-between align-items-center py-3 px-4" 
-          style={{background: 'linear-gradient(45deg, var(--primary), var(--secondary))', border: 'none'}}>
+        <Card.Header className="d-flex justify-content-between align-items-center py-3 px-4 gradient-header">
           <div className="d-flex align-items-center">
             <FaHome className="text-white me-2 widget-icon" size={24} />
             <h3 className="mb-0 text-white fw-bold">My Dashboard</h3>
@@ -32,7 +31,7 @@ export default function Dashboard() {
       </Card>
       <WeatherWidget />
       <div className="my-4">
-        <TodoWidget expandedView={false} refreshTrigger={refreshTrigger} />
+        <TodoWidget key={refreshTrigger} expandedView={false} />
       </div>
       <div className="my-4">
         <CryptoWidget />
