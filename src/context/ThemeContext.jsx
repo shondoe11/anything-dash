@@ -4,52 +4,40 @@ import PropTypes from 'prop-types';
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
-  //& check if user alrdy hav pref in localStorage
-  const [darkMode, setDarkMode] = useState(() => {
-    const savedMode = localStorage.getItem('darkMode');
-    //~ also check system pref if no saved pref
-    if (savedMode === null) {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  //& check fr theme in localStorage / system default
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light' || saved === 'dark') {
+      return saved;
     }
-    return savedMode === 'true';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
 
-  //~ toggle theme function
-  const toggleDarkMode = () => {
-    setDarkMode(prevMode => !prevMode);
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  //~ update localStorage & document body class on dark mode change
+  //& update localStorage & body class
   useEffect(() => {
-    localStorage.setItem('darkMode', darkMode);
-    
-    if (darkMode) {
-      document.body.classList.add('dark-mode');
-    } else {
-      document.body.classList.remove('dark-mode');
-    }
-  }, [darkMode]);
+    localStorage.setItem('theme', theme);
+    document.body.classList.toggle('dark-mode', theme === 'dark');
+  }, [theme]);
 
-  //~ listen fr system theme preference changes
+  //~ listen to sys preference changes when no explicit preference
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e) => {
-      const userHasExplicitPreference = localStorage.getItem('darkMode') !== null;
-      if (!userHasExplicitPreference) {
-        setDarkMode(e.matches);
+    const handleChange = e => {
+      if (!localStorage.getItem('theme')) {
+        setTheme(e.matches ? 'dark' : 'light');
       }
     };
-    
     mediaQuery.addEventListener('change', handleChange);
-    
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange);
-    };
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  //~ provide theme context to app
+  //~ provide theme context
   return (
-    <ThemeContext.Provider value={{ darkMode, toggleDarkMode }}>
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );
