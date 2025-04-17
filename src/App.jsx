@@ -12,12 +12,19 @@ import HomePage from './pages/HomePage';
 import NewTodoPage from './pages/NewTodoPage';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastContainer } from 'react-toastify';
+import useTheme from './hooks/useTheme';
 
 //~ CSS imports
 import './App.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './theme.css';
+
+//& wrapper: inject theme in ToastContainer
+function ThemedToastContainer(props) {
+  const { theme } = useTheme();
+  return <ToastContainer {...props} theme={theme} />;
+}
 
 function App() {
   return (
@@ -39,7 +46,7 @@ function App() {
             </Routes>
           </Container>
         </main>
-        <ToastContainer 
+        <ThemedToastContainer
           position="bottom-right"
           autoClose={3000}
           hideProgressBar={false}
@@ -49,7 +56,6 @@ function App() {
           pauseOnFocusLoss
           draggable
           pauseOnHover
-          theme="colored"
         />
       </div>
     </ThemeProvider>
