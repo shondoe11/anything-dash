@@ -510,25 +510,25 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
                 </Card.Body>
             </Card>
             
-            {!expandedView ? (
-                <div className="text-center mt-3 mb-4">
-                    <Button 
-                        variant="outline-primary" 
-                        onClick={() => setExpandedView(true)} 
-                        className="px-4 py-2 rounded-pill"
-                    >
-                        <i className="fa-solid fa-chevron-down me-2"></i> Show More
-                    </Button>
-                </div>
-            ) : (
-                <div className="text-center mt-3 mb-4">
-                    <Button 
-                        variant="outline-primary" 
-                        onClick={() => setExpandedView(false)} 
-                        className="px-4 py-2 rounded-pill"
-                    >
-                        <i className="fa-solid fa-chevron-up me-2"></i> Show Less
-                    </Button>
+            { !propExpandedView && (
+                <div className="text-center mt-3 mb-4 d-none d-lg-block">
+                    { !expandedView ? (
+                        <Button 
+                            variant="outline-primary" 
+                            onClick={() => setExpandedView(true)} 
+                            className="px-4 py-2 rounded-pill"
+                        >
+                            <i className="fa-solid fa-chevron-down me-2"></i> Show More
+                        </Button>
+                    ) : (
+                        <Button 
+                            variant="outline-primary" 
+                            onClick={() => setExpandedView(false)} 
+                            className="px-4 py-2 rounded-pill"
+                        >
+                            <i className="fa-solid fa-chevron-up me-2"></i> Show Less
+                        </Button>
+                    )}
                 </div>
             )}
         </>
