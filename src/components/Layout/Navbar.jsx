@@ -2,9 +2,11 @@ import { Navbar, Nav, Container, Button } from 'react-bootstrap';
 import { FaTasks, FaCloudSunRain, FaCoins, FaFutbol, FaTv, FaHome, FaSun, FaMoon } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import useTheme from '../../hooks/useTheme';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AppNavbar() {
   const { theme, toggleTheme } = useTheme();
+  const { netlifyUser, login, logout } = useAuth();
   const darkMode = theme === 'dark';
   
   return (
@@ -86,6 +88,12 @@ export default function AppNavbar() {
             <Nav.Link as={Link} to="/anime" className="mx-1 nav-link-hover d-flex align-items-center justify-content-center">
               <FaTv className="me-2" /> <span>Anime</span>
             </Nav.Link>
+            
+            <Nav.Item>
+              <Nav.Link as={Button} variant={darkMode ? "outline-light" : "outline-dark"} onClick={netlifyUser ? logout : login} className="mx-2">
+                {netlifyUser ? 'Logout' : 'Login'}
+              </Nav.Link>
+            </Nav.Item>
           </Nav>
         </Navbar.Collapse>
       </Container>
