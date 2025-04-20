@@ -4,8 +4,10 @@ import { toast } from "react-toastify";
 import ReactPaginate from "react-paginate";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAnglesLeft, faAnglesRight } from "@fortawesome/free-solid-svg-icons";
-import { Form, Table, Spinner, Card, Badge } from 'react-bootstrap';
+import { Form, Table, Spinner, Card, Badge, Button } from 'react-bootstrap';
 import { FaFutbol } from 'react-icons/fa';
+import { useAuth } from '../../context/AuthContext';
+import { fetchFootballPreferences, saveFootballPreferences } from '../../services/service';
 
 const competitions = [
     {id: 'WC', name: 'FIFA World Cup'},
@@ -27,6 +29,7 @@ export default function FootballWidget() {
     const [standings, setStandings] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [selectCompe, setSelectCompe] = useState('PL');
+    const { userRecordId, login } = useAuth();
     const [currentPage, setCurrentPage] = useState(0);
     const itemsPerPage = 10;
     const totalPages = Math.ceil(standings.length / itemsPerPage);
@@ -50,9 +53,27 @@ export default function FootballWidget() {
         fetchData();
     }, [selectCompe]);
 
+    useEffect(() => {
+        if (!userRecordId) return;
+        fetchFootballPreferences(userRecordId).then(fields => {
+            if (fields.Competition) setSelectCompe(fields.Competition);
+        });
+    }, [userRecordId]);
+
     const handleCompeChange = (e) => {
         setSelectCompe(e.target.value);
         setCurrentPage(0);
+    };
+
+    const handleSaveFootballPref = async () => {
+        if (!userRecordId) { login(); return; }
+        try {
+            await saveFootballPreferences(userRecordId, { Competition: selectCompe });
+            toast.success('Preferences saved!');
+        } catch (error) {
+            toast.error('Failed to save preferences. Please try again.');
+            console.error(error);
+        }
     };
 
     const displayedStandings = standings.slice(
@@ -83,6 +104,9 @@ export default function FootballWidget() {
                     ))}
                 </Form.Select>
             </Form.Group>
+            <Button size="sm" variant="primary" className="mt-2 mb-3" onClick={handleSaveFootballPref}>
+                Save Preferences
+            </Button>
             {isLoading ? (
                 <div className="d-flex justify-content-center my-3">
                     <Spinner animation="border" role="status">
