@@ -4,8 +4,10 @@ import { toast } from "react-toastify";
 import { Card, Form, Button, Spinner, Badge, Row, Col, Tab, Tabs } from 'react-bootstrap';
 import { FaTasks, FaCalendarAlt, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import PropTypes from 'prop-types';
+import { useAuth } from '../../context/AuthContext';
 
 export default function TodoWidget({ expandedView: propExpandedView = false }) {
+    const { userRecordId, login } = useAuth();
     const [tasks, setTasks] = useState([]);
     const [overdueTasks, setOverdueTasks] = useState([]);
     const [completedTasks, setCompletedTasks] = useState([]);
@@ -17,16 +19,15 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
     const [isLoading, setIsLoading] = useState(false);
     const [expandedView, setExpandedView] = useState(propExpandedView || false);
 
-    //& fetch tasks on page load
     useEffect(() => {
-        refreshTasks();
-    }, []); //~ fetch tasks on mount only
+        if (userRecordId) refreshTasks();
+    }, [userRecordId]); //~ fetch tasks on user login
 
     const refreshTasks = async () => {
         setIsLoading(true);
         toast.info('Fetching tasks...', {autoClose: false});
         try {
-            const data = await fetchAirtableData();
+            const data = await fetchAirtableData(userRecordId);
             const today = new Date().toISOString().split('T')[0];
             const formattedTasks = data.map(record => ({
                 id: record.id,
@@ -58,6 +59,11 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
     };
 
     const handleAdd = async () => {
+        if (!userRecordId) {
+            //~ open login modal fr unauthenticated users
+            login();
+            return;
+        }
         if (!newTask) {
             toast.error('Please enter a task name.');
             return;
@@ -65,8 +71,8 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
         setIsLoading(true);
         toast.info('Adding task...', {autoClose: false});
         try {
-            await postDataToAirtable({
-                Tasks: newTask, 
+            await postDataToAirtable(userRecordId, {
+                Tasks: newTask,
                 Status: 'New',
                 'Due Date': dueDate || null
             });
