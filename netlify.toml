@@ -1,0 +1,12 @@
+[dev]
+  command = "npm run dev"
+  port = 8888
+  targetPort = 5173
+  identity = true
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[context.production.environment]
+  VITE_NETLIFY_IDENTITY_URL = "https://anything-dash.netlify.app/.netlify/identity"
