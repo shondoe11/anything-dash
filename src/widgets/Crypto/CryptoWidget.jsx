@@ -6,7 +6,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAnglesLeft, faAnglesRight, faEllipsis } from '@fortawesome/free-solid-svg-icons';
 import { Form, Table, InputGroup, Button, Spinner, Card, Badge } from 'react-bootstrap';
 import { FaCoins } from 'react-icons/fa';
-
+import { useAuth } from '../../context/AuthContext';
+import { fetchCryptoPreferences, saveCryptoPreferences } from '../../services/service';
 
 export default function CryptoWidget() {
     const [cryptoData, setCryptoData] = useState([]);
@@ -16,6 +17,7 @@ export default function CryptoWidget() {
     const [totalPages, setTotalPages] = useState(1); //~ total pgs for pagination
     const [pageInput, setPageInput] = useState('1');
     const [searchQuery, setSearchQuery] = useState('');
+    const { userRecordId, login } = useAuth();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -40,6 +42,13 @@ export default function CryptoWidget() {
     useEffect(() => {
         setPageInput(String(currentPage + 1));
     }, [currentPage]); //~ dependency arr
+
+    useEffect(() => {
+        if (!userRecordId) return;
+        fetchCryptoPreferences(userRecordId).then(fields => {
+            if (fields.Currency) setCurrency(fields.Currency.toLowerCase());
+        });
+    }, [userRecordId]);
 
     const handleCurrencyChange = (e) => {
         setCurrency(e.target.value);
@@ -92,6 +101,16 @@ export default function CryptoWidget() {
         }
     };
 
+    const handleSaveCryptoPref = async () => {
+        if (!userRecordId) { login(); return; }
+        try {
+            await saveCryptoPreferences(userRecordId, { Currency: currency.toUpperCase() });
+            toast.success('Preferences saved!');
+        } catch (error) {
+            toast.error('Failed to save preferences. Please try again.');
+            console.error(error);
+        }
+    };
 
    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
     const formatPrice = (price) => {
@@ -117,7 +136,6 @@ export default function CryptoWidget() {
     const formatPercentChange = (p) => {
         return `${p.toFixed(2)}`;
     }
-
 
     return (
         <>
@@ -227,6 +245,9 @@ export default function CryptoWidget() {
             disabledClassName="disabled"
             forcePage={currentPage}
             />
+            <Button size="sm" variant="primary" className="mt-2" onClick={handleSaveCryptoPref}>
+                Save Preferences
+            </Button>
                 </Card.Body>
             </Card>
         </>
