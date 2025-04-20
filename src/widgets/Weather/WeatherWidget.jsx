@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { fetchWeatherData, fetchNEAWeatherData, fetchFourDayWeatherDataSG } from "../../services/service";
 import { toast } from 'react-toastify';
 import { Card, Row, Col, Form, Button, Spinner } from 'react-bootstrap';
+import { useAuth } from '../../context/AuthContext';
+import { fetchWeatherPreferences, saveWeatherPreferences } from '../../services/service';
 
 export default function WeatherWidget() {
     const [forecastData, setForecastData] = useState(null);
@@ -11,6 +13,7 @@ export default function WeatherWidget() {
     const [townWeather, setTownWeather] = useState('');
     const [towns, setTowns] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const { userRecordId, login } = useAuth();
 
     useEffect(() => {
         const fetchTowns = async () => {
@@ -89,6 +92,28 @@ export default function WeatherWidget() {
         fetchTownWeather();
     }, [townSearch]);
 
+    const handleSaveWeatherPref = async () => {
+        if (!userRecordId) {
+            login();
+            return;
+        }
+        try {
+            await saveWeatherPreferences(userRecordId, { Country: countrySearch, Town: townSearch });
+            toast.success('Preferences saved!');
+        } catch (error) {
+            toast.error('Failed to save preferences. Please try again.');
+            console.error(error);
+        }
+    };
+
+    useEffect(() => {
+        if (!userRecordId) return;
+        fetchWeatherPreferences(userRecordId).then(fields => {
+            if (fields.Country) setCountrySearch(fields.Country);
+            if (fields.Town) setTownSearch(fields.Town);
+        });
+    }, [userRecordId]);
+
     return (
         <Card className="p-3 mb-4 weather-container">
             <Row className="g-3">
@@ -109,6 +134,9 @@ export default function WeatherWidget() {
                                 </Form.Group>
                                 <Button type="submit" variant="success" size="sm" className="align-self-end">Search</Button>
                             </Form>
+                            <Button size="sm" variant="primary" className="mt-2" onClick={handleSaveWeatherPref}>
+                                Save Preferences
+                            </Button>
                             {isLoading ? (
                                 <div className="d-flex justify-content-center my-2">
                                     <Spinner animation="border" size="sm" role="status">
