@@ -16,31 +16,29 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     //~ only init once & set global fr compatibility
-    identityWidget.init({ APIUrl: import.meta.env.VITE_NETLIFY_IDENTITY_URL });
     window.netlifyIdentity = identityWidget;
-    identityWidget.on('init', user => {
+    identityWidget.on('init', async user => {
       setIdentityReady(true);
+      setIsReady(true);
+      if (user) {
+        setNetlifyUser(user);
+        const { id: netlifyId, email } = user;
+        const recordId = await getOrCreateUser(netlifyId, email);
+        setUserRecordId(recordId);
+      }
     });
-    identityWidget.on('login', user => {
+    identityWidget.on('login', async user => {
       setNetlifyUser(user);
       const { id: netlifyId, email } = user;
-      getOrCreateUser(netlifyId, email).then(id => setUserRecordId(id));
+      const recordId = await getOrCreateUser(netlifyId, email);
+      setUserRecordId(recordId);
       identityWidget.close();
     });
     identityWidget.on('logout', () => {
       setNetlifyUser(null);
       setUserRecordId(null);
     });
-    //~ check fr existing sesh after init
-    identityWidget.on('init', user => {
-      if (user) {
-        setNetlifyUser(user);
-        const { id: netlifyId, email } = user;
-        getOrCreateUser(netlifyId, email).then(id => setUserRecordId(id));
-      }
-      setIsReady(true);
-    });
-    identityWidget.init(); //~ trigger init event
+    identityWidget.init({ APIUrl: import.meta.env.VITE_NETLIFY_IDENTITY_URL });
     return () => {
       identityWidget.off('login');
       identityWidget.off('logout');
