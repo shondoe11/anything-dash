@@ -97,11 +97,35 @@ export default function WeatherWidget() {
             login();
             return;
         }
+        //& guard fr no current weather
+        if (!currentWeather) {
+            toast.error('Please fetch weather data before saving preferences.');
+            return;
+        }
         try {
-            await saveWeatherPreferences(userRecordId, { Country: countrySearch, Town: townSearch });
+            await saveWeatherPreferences(userRecordId, { Country: countrySearch });
             toast.success('Preferences saved!');
         } catch (error) {
             toast.error('Failed to save preferences. Please try again.');
+            console.error(error);
+        }
+    };
+
+    //& save singapore town preference
+    const handleSaveTownPref = async () => {
+        if (!userRecordId) {
+            login();
+            return;
+        }
+        if (!townSearch) {
+            toast.error('Please select a town before saving preferences.');
+            return;
+        }
+        try {
+            await saveWeatherPreferences(userRecordId, { Town: townSearch });
+            toast.success('Town preference saved!');
+        } catch (error) {
+            toast.error('Failed to save town preference. Please try again.');
             console.error(error);
         }
     };
@@ -202,6 +226,9 @@ export default function WeatherWidget() {
                                     </Form.Select>
                                 </Form.Group>
                             </Form>
+                            <Button size="sm" variant="primary" className="mt-2" onClick={handleSaveTownPref} disabled={isLoading || !townSearch}>
+                                Save Preferences
+                            </Button>
                             {townWeather && (
                                 <Card className="weather-card mt-2 custom-dark-card">
                                     <Card.Body className="p-2">
