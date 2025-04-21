@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { deleteDataFromAirtable, fetchAirtableData, postDataToAirtable, editDataInAirtable } from "../../services/service";
 import { toast } from "react-toastify";
 import { Card, Form, Button, Spinner, Badge, Row, Col, Tab, Tabs } from 'react-bootstrap';
@@ -19,11 +19,7 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
     const [isLoading, setIsLoading] = useState(false);
     const [expandedView, setExpandedView] = useState(propExpandedView || false);
 
-    useEffect(() => {
-        if (userRecordId) refreshTasks();
-    }, [userRecordId]); //~ fetch tasks on user login
-
-    const refreshTasks = async () => {
+    const refreshTasks = useCallback(async () => {
         setIsLoading(true);
         toast.info('Fetching tasks...', {autoClose: false});
         try {
@@ -56,7 +52,13 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
             setIsLoading(false); //~ always set loading state back false at end function
             toast.dismiss(); //~ dismiss toast loading
         }
-    };
+    }, [userRecordId]);
+
+    useEffect(() => {
+        if (userRecordId) {
+            refreshTasks();
+        }
+    }, [userRecordId, refreshTasks]); //~ fetch tasks on user login
 
     const handleAdd = async () => {
         if (!userRecordId) {
@@ -79,7 +81,7 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
             setNewTask('');
             setDueDate('');
             //~ refresh tasks
-            refreshTasks();
+            await refreshTasks();
             toast.success('Task added successfully!');
         } catch (error) {
             toast.error('Failed to add task. Please try again.');
@@ -102,7 +104,7 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
             setEditTaskId(null);
             setEditTask('');
             setEditDueDate('');
-            refreshTasks();
+            await refreshTasks();
             toast.success('Task updated successfully!');
         } catch (error) {
             toast.error('Failed to update task. Please try again.');
@@ -119,7 +121,7 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
         toast.info('Marking task as completed...', {autoClose: false});
         try {
             await editDataInAirtable(id, {Status: 'Completed'});
-            refreshTasks();
+            await refreshTasks();
             toast.success('Task marked as completed!');
         } catch (error) {
             toast.error('Failed to mark task as completed. Please try again.');
@@ -136,7 +138,7 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
         toast.info('Marking task as incomplete...', {autoClose: false});
         try {
             await editDataInAirtable(id, {Status: 'New'});
-            refreshTasks();
+            await refreshTasks();
             toast.success('Task marked as incomplete!');
         } catch (error) {
             toast.error('Failed to mark task as incomplete. Please try again.');
@@ -152,7 +154,7 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
         toast.info('Deleting task...', {autoClose: false});
         try {
             await deleteDataFromAirtable(id);
-            refreshTasks();
+            await refreshTasks();
             toast.success('Task deleted successfully!');
         } catch (error) {
             toast.error('Failed to delete task. Please try again.');
