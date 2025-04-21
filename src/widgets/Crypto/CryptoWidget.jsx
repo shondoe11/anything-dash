@@ -17,6 +17,7 @@ export default function CryptoWidget() {
     const [totalPages, setTotalPages] = useState(1); //~ total pgs for pagination
     const [pageInput, setPageInput] = useState('1');
     const [searchQuery, setSearchQuery] = useState('');
+    const [prefLoaded, setPrefLoaded] = useState(false);
     const { userRecordId, login } = useAuth();
 
     useEffect(() => {
@@ -36,18 +37,24 @@ export default function CryptoWidget() {
                 toast.dismiss();
             }
         };
+        if (userRecordId && !prefLoaded) return;  //~ wait fr prefs to load
         fetchData();
-    }, [currency, currentPage]);
+    }, [currency, currentPage, userRecordId, prefLoaded]);
 
     useEffect(() => {
         setPageInput(String(currentPage + 1));
     }, [currentPage]); //~ dependency arr
 
     useEffect(() => {
-        if (!userRecordId) return;
-        fetchCryptoPreferences(userRecordId).then(fields => {
-            if (fields.Currency) setCurrency(fields.Currency.toLowerCase());
-        });
+        if (!userRecordId) {
+            setPrefLoaded(true);
+            return;
+        }
+        fetchCryptoPreferences(userRecordId)
+            .then(fields => {
+                if (fields.Currency) setCurrency(fields.Currency.toLowerCase());
+            })
+            .finally(() => setPrefLoaded(true));
     }, [userRecordId]);
 
     const handleCurrencyChange = (e) => {
@@ -152,7 +159,7 @@ export default function CryptoWidget() {
                     </div>
                 </Card.Header>
                 <Card.Body className="p-4">
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-3 d-flex align-items-center gap-2">
                 <Form.Label>Select Currency: </Form.Label>
                 <Form.Select value={currency} onChange={handleCurrencyChange} disabled={isLoading} className="w-auto">
                     <option value='usd'>USD</option>
@@ -161,6 +168,9 @@ export default function CryptoWidget() {
                     <option value='jpy'>JPY</option>
                     <option value='sgd'>SGD</option>
                 </Form.Select>
+                <Button size="sm" variant="primary" onClick={handleSaveCryptoPref} disabled={isLoading}>
+                    Save Preferences
+                </Button>
             </Form.Group>
 
             <Form onSubmit={(e) => {e.preventDefault(); handleSearch();}} className="mb-3">
@@ -245,9 +255,6 @@ export default function CryptoWidget() {
             disabledClassName="disabled"
             forcePage={currentPage}
             />
-            <Button size="sm" variant="primary" className="mt-2" onClick={handleSaveCryptoPref}>
-                Save Preferences
-            </Button>
                 </Card.Body>
             </Card>
         </>
