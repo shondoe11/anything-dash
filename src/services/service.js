@@ -208,6 +208,7 @@ export const fetchWeatherPreferences = async (userRecordId) => {
     const data = await resp.json();
     return data.records[0]?.fields || {};
 };
+
 export const saveWeatherPreferences = async (userRecordId, fields) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
@@ -217,23 +218,34 @@ export const saveWeatherPreferences = async (userRecordId, fields) => {
     const listResp = await fetch(listUrl, { headers: { Authorization: `Bearer ${apiKey}` } });
     const listData = await listResp.json();
     if (listData.records.length) {
-        const recordId = listData.records[0].id;
+        const [first, ...rest] = listData.records;
+        if (rest.length) {
+            await Promise.all(rest.map(r =>
+                fetch(`https://api.airtable.com/v0/${baseId}/${table}/${r.id}`, {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${apiKey}` },
+                })
+            ));
+        }
+        const recordId = first.id;
         const url = `https://api.airtable.com/v0/${baseId}/${table}/${recordId}`;
-        return fetch(url, {
+        const resp = await fetch(url, {
             method: 'PATCH',
             headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ fields }),
-        }).then(res => res.json());
+        });
+        return resp.json();
     } else {
         const url = `https://api.airtable.com/v0/${baseId}/${table}`;
-        return fetch(url, {
+        const resp = await fetch(url, {
             method: 'POST',
             headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ records: [{ fields: { User: [userRecordId], ...fields } }] }),
-        }).then(res => res.json());
+        });
+        return resp.json();
     }
 };
-//& crypto prefs
+
 export const fetchCryptoPreferences = async (userRecordId) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
@@ -244,6 +256,7 @@ export const fetchCryptoPreferences = async (userRecordId) => {
     const data = await resp.json();
     return data.records[0]?.fields || {};
 };
+
 export const saveCryptoPreferences = async (userRecordId, fields) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
@@ -253,23 +266,34 @@ export const saveCryptoPreferences = async (userRecordId, fields) => {
     const listResp = await fetch(listUrl, { headers: { Authorization: `Bearer ${apiKey}` } });
     const listData = await listResp.json();
     if (listData.records.length) {
-        const recordId = listData.records[0].id;
+        const [first, ...rest] = listData.records;
+        if (rest.length) {
+            await Promise.all(rest.map(r =>
+                fetch(`https://api.airtable.com/v0/${baseId}/${table}/${r.id}`, {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${apiKey}` },
+                })
+            ));
+        }
+        const recordId = first.id;
         const url = `https://api.airtable.com/v0/${baseId}/${table}/${recordId}`;
-        return fetch(url, {
+        const resp = await fetch(url, {
             method: 'PATCH',
             headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ fields }),
-        }).then(res => res.json());
+        });
+        return resp.json();
     } else {
         const url = `https://api.airtable.com/v0/${baseId}/${table}`;
-        return fetch(url, {
+        const resp = await fetch(url, {
             method: 'POST',
             headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ records: [{ fields: { User: [userRecordId], ...fields } }] }),
-        }).then(res => res.json());
+        });
+        return resp.json();
     }
 };
-//& football prefs
+
 export const fetchFootballPreferences = async (userRecordId) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
@@ -280,6 +304,7 @@ export const fetchFootballPreferences = async (userRecordId) => {
     const data = await resp.json();
     return data.records[0]?.fields || {};
 };
+
 export const saveFootballPreferences = async (userRecordId, fields) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
@@ -289,19 +314,30 @@ export const saveFootballPreferences = async (userRecordId, fields) => {
     const listResp = await fetch(listUrl, { headers: { Authorization: `Bearer ${apiKey}` } });
     const listData = await listResp.json();
     if (listData.records.length) {
-        const recordId = listData.records[0].id;
+        const [first, ...rest] = listData.records;
+        if (rest.length) {
+            await Promise.all(rest.map(r =>
+                fetch(`https://api.airtable.com/v0/${baseId}/${table}/${r.id}`, {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${apiKey}` },
+                })
+            ));
+        }
+        const recordId = first.id;
         const url = `https://api.airtable.com/v0/${baseId}/${table}/${recordId}`;
-        return fetch(url, {
+        const resp = await fetch(url, {
             method: 'PATCH',
             headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ fields }),
-        }).then(res => res.json());
+        });
+        return resp.json();
     } else {
         const url = `https://api.airtable.com/v0/${baseId}/${table}`;
-        return fetch(url, {
+        const resp = await fetch(url, {
             method: 'POST',
             headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ records: [{ fields: { User: [userRecordId], ...fields } }] }),
-        }).then(res => res.json());
+        });
+        return resp.json();
     }
 };
