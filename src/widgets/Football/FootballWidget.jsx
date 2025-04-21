@@ -33,8 +33,10 @@ export default function FootballWidget() {
     const [currentPage, setCurrentPage] = useState(0);
     const itemsPerPage = 10;
     const totalPages = Math.ceil(standings.length / itemsPerPage);
+    const [prefLoaded, setPrefLoaded] = useState(false);
 
     useEffect(() => {
+        if (userRecordId && !prefLoaded) return;
         const fetchData = async () => {
             setIsLoading(true);
             toast.info('Fetching football data...', {autoClose: false});
@@ -51,13 +53,18 @@ export default function FootballWidget() {
             }
         };
         fetchData();
-    }, [selectCompe]);
+    }, [selectCompe, userRecordId, prefLoaded]);
 
     useEffect(() => {
-        if (!userRecordId) return;
-        fetchFootballPreferences(userRecordId).then(fields => {
-            if (fields.Competition) setSelectCompe(fields.Competition);
-        });
+        if (!userRecordId) {
+            setPrefLoaded(true);
+            return;
+        }
+        fetchFootballPreferences(userRecordId)
+            .then(fields => {
+                if (fields.Competition) setSelectCompe(fields.Competition);
+            })
+            .finally(() => setPrefLoaded(true));
     }, [userRecordId]);
 
     const handleCompeChange = (e) => {
@@ -96,17 +103,17 @@ export default function FootballWidget() {
                     </div>
                 </Card.Header>
                 <Card.Body className="p-4">
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-3 d-flex align-items-center gap-2">
                 <Form.Label htmlFor="competitionSelect">Select Competition: </Form.Label>
                 <Form.Select id="competitionSelect" value={selectCompe} onChange={handleCompeChange} disabled={isLoading} className="w-auto">
                     {competitions.map((comp) => (
                         <option key={comp.id} value={comp.id}>{comp.name}</option>
                     ))}
                 </Form.Select>
+                <Button size="sm" variant="primary" onClick={handleSaveFootballPref} disabled={isLoading}>
+                    Save Preferences
+                </Button>
             </Form.Group>
-            <Button size="sm" variant="primary" className="mt-2 mb-3" onClick={handleSaveFootballPref}>
-                Save Preferences
-            </Button>
             {isLoading ? (
                 <div className="d-flex justify-content-center my-3">
                     <Spinner animation="border" role="status">
