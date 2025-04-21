@@ -1,18 +1,27 @@
 //* store ALL API requests
 
-export const fetchAirtableData = async (userRecordId) => {
+export const fetchAirtableData = async (userRecordId, userEmail) => {
     const airtableApiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const airtableBaseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
     const airtableTableTodo = import.meta.env.VITE_AIRTABLE_TABLE_TODO;
-    const filter = encodeURIComponent(`{User}='${userRecordId}'`);
-    const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableTodo}?filterByFormula=${filter}`;
-    const response = await fetch(url, {
-        headers: {
-            Authorization: `Bearer ${airtableApiKey}`,
-        },
-    });
-    const data = await response.json();
-    return data.records;
+    //& server-side filter by lookup email field fr user link
+    const filterFormula = `{Email (from User)} = "${userEmail}"`;
+    const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableTodo}?filterByFormula=${encodeURIComponent(filterFormula)}`;
+    const response = await fetch(url, { headers: { Authorization: `Bearer ${airtableApiKey}` } });
+    let records = [];
+    if (!response.ok) {
+        console.error(`[todo] fetchAirtableData error: ${response.status} ${response.statusText}`);
+    } else {
+        const data = await response.json();
+        records = data.records || [];
+    }
+    if (!records.length) {
+        const allUrl = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableTodo}`;
+        const allResp = await fetch(allUrl, { headers: { Authorization: `Bearer ${airtableApiKey}` } });
+        const allData = await allResp.json();
+        records = allData.records.filter(r => Array.isArray(r.fields.User) && r.fields.User.includes(userRecordId));
+    }
+    return records;
 };
 
 export const postDataToAirtable = async (userRecordId, newRecord) => {
@@ -138,7 +147,7 @@ export const getOrCreateUser = async (netlifyUserId, email) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
     const tableUsers = import.meta.env.VITE_AIRTABLE_TABLE_USERS;
-    const filter = encodeURIComponent(`{netlify_user_id}='${netlifyUserId}'`);
+    const filter = encodeURIComponent(`{netlify_user_id}="${netlifyUserId}"`);
     const url = `https://api.airtable.com/v0/${baseId}/${tableUsers}?filterByFormula=${filter}`;
     const resp = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
     const data = await resp.json();
@@ -159,7 +168,7 @@ export const fetchLayout = async (userRecordId) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
     const tableLayouts = import.meta.env.VITE_AIRTABLE_TABLE_LAYOUTS;
-    const filter = encodeURIComponent(`{User}='${userRecordId}'`);
+    const filter = encodeURIComponent(`{User}="${userRecordId}"`);
     const url = `https://api.airtable.com/v0/${baseId}/${tableLayouts}?filterByFormula=${filter}`;
     const resp = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
     const data = await resp.json();
@@ -170,7 +179,7 @@ export const saveLayout = async (userRecordId, layoutJSON) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
     const tableLayouts = import.meta.env.VITE_AIRTABLE_TABLE_LAYOUTS;
-    const filter = encodeURIComponent(`{User}='${userRecordId}'`);
+    const filter = encodeURIComponent(`{User}="${userRecordId}"`);
     const listUrl = `https://api.airtable.com/v0/${baseId}/${tableLayouts}?filterByFormula=${filter}`;
     const listResp = await fetch(listUrl, { headers: { Authorization: `Bearer ${apiKey}` } });
     const listData = await listResp.json();
@@ -198,59 +207,60 @@ export const saveLayout = async (userRecordId, layoutJSON) => {
 };
 
 //^ preference APIs
+//& fetch latest weather preferences by linked user record
 export const fetchWeatherPreferences = async (userRecordId) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
     const table = import.meta.env.VITE_AIRTABLE_TABLE_WEATHER;
-    const filter = encodeURIComponent(`{User}='${userRecordId}'`);
-    const url = `https://api.airtable.com/v0/${baseId}/${table}?filterByFormula=${filter}`;
+    //! use find with arrayjoin to match linked user id in user field
+    const filterFormula = `FIND("${userRecordId}", ARRAYJOIN({User}))>0`;
+    const url = `https://api.airtable.com/v0/${baseId}/${table}?filterByFormula=${encodeURIComponent(filterFormula)}`;
     const resp = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
     const data = await resp.json();
-    return data.records[0]?.fields || {};
+    const records = data.records || [];
+    if (!records.length) return { fields: {}, recordId: null };
+    records.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+    const latest = records[0];
+    return { fields: latest.fields || {}, recordId: latest.id };
 };
 
-export const saveWeatherPreferences = async (userRecordId, fields) => {
+//& save / update weather preferences by record ID
+export const saveWeatherPreferences = async (userRecordId, fields, prefRecordId = null) => {
+    // ensure we use existing record if one exists, to avoid duplicates
+    if (!prefRecordId) {
+        const { recordId: existingId } = await fetchWeatherPreferences(userRecordId);
+        prefRecordId = existingId;
+    }
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
     const table = import.meta.env.VITE_AIRTABLE_TABLE_WEATHER;
-    const filter = encodeURIComponent(`{User}='${userRecordId}'`);
-    const listUrl = `https://api.airtable.com/v0/${baseId}/${table}?filterByFormula=${filter}`;
-    const listResp = await fetch(listUrl, { headers: { Authorization: `Bearer ${apiKey}` } });
-    const listData = await listResp.json();
-    if (listData.records.length) {
-        const [first, ...rest] = listData.records;
-        if (rest.length) {
-            await Promise.all(rest.map(r =>
-                fetch(`https://api.airtable.com/v0/${baseId}/${table}/${r.id}`, {
-                    method: 'DELETE',
-                    headers: { Authorization: `Bearer ${apiKey}` },
-                })
-            ));
-        }
-        const recordId = first.id;
-        const url = `https://api.airtable.com/v0/${baseId}/${table}/${recordId}`;
-        const resp = await fetch(url, {
-            method: 'PATCH',
-            headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fields }),
+    let resp, data;
+    if (prefRecordId) {
+        const url = `https://api.airtable.com/v0/${baseId}/${table}/${prefRecordId}`;
+        resp = await fetch(url, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields }),
         });
-        return resp.json();
-    } else {
-        const url = `https://api.airtable.com/v0/${baseId}/${table}`;
-        const resp = await fetch(url, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ records: [{ fields: { User: [userRecordId], ...fields } }] }),
-        });
-        return resp.json();
+        data = await resp.json();
+        return data; //~ patched record
     }
+    //~ create new
+    const url = `https://api.airtable.com/v0/${baseId}/${table}`;
+    resp = await fetch(url, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ records: [{ fields: { User: [userRecordId], ...fields } }] }),
+    });
+    data = await resp.json();
+    return data.records[0]; //~ new record
 };
 
 export const fetchCryptoPreferences = async (userRecordId) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
     const table = import.meta.env.VITE_AIRTABLE_TABLE_CRYPTO;
-    const filter = encodeURIComponent(`{User}='${userRecordId}'`);
+    const filter = encodeURIComponent(`{User}="${userRecordId}"`);
     const url = `https://api.airtable.com/v0/${baseId}/${table}?filterByFormula=${filter}`;
     const resp = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
     const data = await resp.json();
@@ -261,7 +271,7 @@ export const saveCryptoPreferences = async (userRecordId, fields) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
     const table = import.meta.env.VITE_AIRTABLE_TABLE_CRYPTO;
-    const filter = encodeURIComponent(`{User}='${userRecordId}'`);
+    const filter = encodeURIComponent(`{User}="${userRecordId}"`);
     const listUrl = `https://api.airtable.com/v0/${baseId}/${table}?filterByFormula=${filter}`;
     const listResp = await fetch(listUrl, { headers: { Authorization: `Bearer ${apiKey}` } });
     const listData = await listResp.json();
@@ -298,7 +308,7 @@ export const fetchFootballPreferences = async (userRecordId) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
     const table = import.meta.env.VITE_AIRTABLE_TABLE_FOOTBALL;
-    const filter = encodeURIComponent(`{User}='${userRecordId}'`);
+    const filter = encodeURIComponent(`{User}="${userRecordId}"`);
     const url = `https://api.airtable.com/v0/${baseId}/${table}?filterByFormula=${filter}`;
     const resp = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
     const data = await resp.json();
@@ -309,7 +319,7 @@ export const saveFootballPreferences = async (userRecordId, fields) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
     const table = import.meta.env.VITE_AIRTABLE_TABLE_FOOTBALL;
-    const filter = encodeURIComponent(`{User}='${userRecordId}'`);
+    const filter = encodeURIComponent(`{User}="${userRecordId}"`);
     const listUrl = `https://api.airtable.com/v0/${baseId}/${table}?filterByFormula=${filter}`;
     const listResp = await fetch(listUrl, { headers: { Authorization: `Bearer ${apiKey}` } });
     const listData = await listResp.json();
