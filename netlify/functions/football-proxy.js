@@ -1,8 +1,7 @@
-/* eslint-env node */
 /* eslint-disable no-undef */
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
-exports.handler = async function(event, context) {
+export const handler = async (event) => {
   //~ allow only get requests
   if (event.httpMethod !== 'GET') {
     return {
