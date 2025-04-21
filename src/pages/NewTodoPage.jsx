@@ -2,14 +2,17 @@ import { useState } from 'react';
 import { Container, Form, Button, Card, Spinner } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { postDataToAirtable } from '../services/service';
+import { useAuth } from '../context/AuthContext';
 
 export default function NewTaskPage() {
+  const { userRecordId, login } = useAuth();
   const [newTask, setNewTask] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAdd = async (e) => {
     e.preventDefault();
+    if (!userRecordId) { login(); return; }
     if (!newTask) {
       toast.error('Please enter a task name.');
       return;
@@ -17,7 +20,7 @@ export default function NewTaskPage() {
     setIsLoading(true);
     toast.info('Adding task...', { autoClose: false });
     try {
-      await postDataToAirtable({
+      await postDataToAirtable(userRecordId, {
         Tasks: newTask,
         Status: 'New',
         'Due Date': dueDate || null,
