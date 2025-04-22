@@ -4,6 +4,8 @@ import { toast } from 'react-toastify';
 import { Card, Row, Col, Form, Button, Spinner } from 'react-bootstrap';
 import { useAuth } from '../../context/AuthContext';
 import { fetchWeatherPreferences, saveWeatherPreferences } from '../../services/service';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faThermometerHalf, faTint } from '@fortawesome/free-solid-svg-icons';
 
 export default function WeatherWidget() {
     const [forecastData, setForecastData] = useState(null);
@@ -14,8 +16,9 @@ export default function WeatherWidget() {
     const [towns, setTowns] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     //~ track Airtable record ID fr pref upsert
-    const [prefRecordId, setPrefRecordId] = useState(null);
     const { userRecordId, login } = useAuth();
+    const [prefCountry, setPrefCountry] = useState('');
+    const [prefTown, setPrefTown] = useState('');
 
     useEffect(() => {
         const fetchTowns = async () => {
@@ -104,18 +107,22 @@ export default function WeatherWidget() {
             toast.error('Please fetch weather data before saving preferences.');
             return;
         }
+        if (countrySearch === prefCountry) {
+            toast.error('No changes to save.');
+            return;
+        }
         try {
-            //~ patch existing / create new pref
-            const result = await saveWeatherPreferences(userRecordId, { Country: countrySearch }, prefRecordId);
-            setPrefRecordId(result.id);
+            //~ update country field on Users record
+            await saveWeatherPreferences(userRecordId, { Country: countrySearch });
             toast.success('Preferences saved!');
+            setPrefCountry(countrySearch);
         } catch (error) {
             toast.error('Failed to save preferences. Please try again.');
             console.error(error);
         }
     };
 
-    //& save singapore town preference
+    //& save SG town preference
     const handleSaveTownPref = async () => {
         if (!userRecordId) {
             login();
@@ -125,11 +132,15 @@ export default function WeatherWidget() {
             toast.error('Please select a town before saving preferences.');
             return;
         }
+        if (townSearch === prefTown) {
+            toast.error('No changes to save.');
+            return;
+        }
         try {
-            //~ patch existing / create new pref
-            const result = await saveWeatherPreferences(userRecordId, { Town: townSearch }, prefRecordId);
-            setPrefRecordId(result.id);
+            //~ update town field on Users record
+            await saveWeatherPreferences(userRecordId, { Town: townSearch });
             toast.success('Town preference saved!');
+            setPrefTown(townSearch);
         } catch (error) {
             toast.error('Failed to save town preference. Please try again.');
             console.error(error);
@@ -140,9 +151,10 @@ export default function WeatherWidget() {
         if (!userRecordId) return;
         const loadPrefs = async () => {
             try {
-                const { fields, recordId } = await fetchWeatherPreferences(userRecordId);
+                const { fields } = await fetchWeatherPreferences(userRecordId);
                 if (fields.Country) {
                     setCountrySearch(fields.Country);
+                    setPrefCountry(fields.Country);
                     //~ load saved country weather
                     const weather = await fetchWeatherData(fields.Country);
                     setCurrentWeather({
@@ -153,8 +165,10 @@ export default function WeatherWidget() {
                         city: weather.location.name
                     });
                 }
-                if (fields.Town) setTownSearch(fields.Town);
-                setPrefRecordId(recordId);
+                if (fields.Town) {
+                    setTownSearch(fields.Town);
+                    setPrefTown(fields.Town);
+                }
             } catch (error) {
                 console.error('load weather prefs failed:', error);
             }
@@ -162,13 +176,16 @@ export default function WeatherWidget() {
         loadPrefs();
     }, [userRecordId]);
 
+    //& capitalize first letter of input
+    const capitalizeFirstLetter = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+
     return (
         <Card className="p-3 mb-4 weather-container overflow-visible">
             <Row className="g-3">
 
                 <Col md={4} lg={3}>
                     <Card className="h-100 shadow-sm">
-                        <Card.Body>
+                        <Card.Body className="h-100 d-flex flex-column justify-content-between">
                             <h5 className="fs-6 fw-bold mb-3">Current Weather by Country</h5>
                             <Form onSubmit={handleCountrySearch} className="mb-2">
                                 <Form.Group className="mb-2">
@@ -179,7 +196,15 @@ export default function WeatherWidget() {
                                                 size="sm"
                                                 type="text"
                                                 value={countrySearch}
-                                                onChange={(e) => setCountrySearch(e.target.value)}
+                                                onChange={(e) => {
+                                                    //~ allow letters & spaces only
+                                                    let val = e.target.value.replace(/[^A-Za-z\s]/g, '');
+                                                    //~ auto-capitalize first letter if all lowercase
+                                                    if (/^[a-z\s]+$/.test(val)) {
+                                                        val = capitalizeFirstLetter(val);
+                                                    }
+                                                    setCountrySearch(val);
+                                                }}
                                                 placeholder="Enter country/city"
                                             />
                                         </Col>
@@ -191,8 +216,8 @@ export default function WeatherWidget() {
                                     </Row>
                                 </Form.Group>
                             </Form>
-                            <Button size="sm" variant="primary" className="mt-2 d-block mx-auto" onClick={handleSaveWeatherPref}>
-                                Save Preferences
+                            <Button size="sm" variant="primary" className="d-block mx-auto" onClick={handleSaveWeatherPref} disabled={isLoading || countrySearch === prefCountry}>
+                                Save Preference
                             </Button>
                             {isLoading ? (
                                 <div className="d-flex justify-content-center my-2">
@@ -230,8 +255,14 @@ export default function WeatherWidget() {
                                             <Card.Body className="p-2">
                                                 <h6 className="small fw-bold">{day.day} ({new Date(day.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })})</h6>
                                                 <p className="small mb-1"> {day.forecast.text} ({day.forecast.summary})</p>
-                                                <p className="small mb-1"> {day.temperature.low}°C - {day.temperature.high}°C</p>
-                                                <p className="small mb-1"> {day.relativeHumidity.low}% - {day.relativeHumidity.high}%</p>
+                                                <p className="small mb-1 d-flex align-items-center justify-content-center">
+                                                    <FontAwesomeIcon icon={faThermometerHalf} className="me-1" />
+                                                    {day.temperature.low}°C - {day.temperature.high}°C
+                                                </p>
+                                                <p className="small mb-1 d-flex align-items-center justify-content-center">
+                                                    <FontAwesomeIcon icon={faTint} className="me-1 text-primary" />
+                                                    {day.relativeHumidity.low}% - {day.relativeHumidity.high}%
+                                                </p>
                                             </Card.Body>
                                         </Card>
                                     </Col>
@@ -243,7 +274,7 @@ export default function WeatherWidget() {
 
                 <Col md={12} lg={3}>
                     <Card className="h-100 shadow-sm">
-                        <Card.Body>
+                        <Card.Body className="h-100 d-flex flex-column justify-content-between">
                             <h5 className="fs-6 fw-bold mb-3">Singapore Town Weather</h5>
                             <Form>
                                 <Form.Group className="mb-3">
@@ -259,8 +290,8 @@ export default function WeatherWidget() {
                                     </Form.Select>
                                 </Form.Group>
                             </Form>
-                            <Button size="sm" variant="primary" className="mt-2 d-block mx-auto" onClick={handleSaveTownPref} disabled={isLoading || !townSearch}>
-                                Save Preferences
+                            <Button size="sm" variant="primary" className="d-block mx-auto" onClick={handleSaveTownPref} disabled={isLoading || townSearch === prefTown}>
+                                Save Preference
                             </Button>
                             {townWeather && (
                                 <Card className="weather-card mt-2 custom-dark-card">
