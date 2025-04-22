@@ -5,7 +5,7 @@ import CryptoWidget from '../widgets/Crypto/CryptoWidget';
 import FootballWidget from '../widgets/Football/FootballWidget';
 import AnimeWidget from '../widgets/Anime/AnimeWidget';
 import { useState } from 'react';
-import { FaHome } from 'react-icons/fa';
+import { FaTachometerAlt } from 'react-icons/fa';
 
 export default function Dashboard() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -19,7 +19,7 @@ export default function Dashboard() {
       <Card className="border-0 shadow-sm mb-4 widget-card overflow-hidden mt-4">
         <Card.Header className="d-flex justify-content-between align-items-center py-3 px-4 gradient-header">
           <div className="d-flex align-items-center">
-            <FaHome className="text-white me-2 widget-icon" size={24} />
+            <FaTachometerAlt className="text-white me-2 widget-icon" size={24} />
             <h3 className="mb-0 text-white fw-bold">My Dashboard</h3>
           </div>
           <div>
