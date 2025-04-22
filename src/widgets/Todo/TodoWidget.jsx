@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 import { useAuth } from '../../context/AuthContext';
 
 export default function TodoWidget({ expandedView: propExpandedView = false }) {
-    const { userRecordId, login } = useAuth();
+    const { userRecordId, netlifyUser, login } = useAuth();
     const [tasks, setTasks] = useState([]);
     const [overdueTasks, setOverdueTasks] = useState([]);
     const [completedTasks, setCompletedTasks] = useState([]);
@@ -23,7 +23,7 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
         setIsLoading(true);
         toast.info('Fetching tasks...', {autoClose: false});
         try {
-            const data = await fetchAirtableData(userRecordId);
+            const data = await fetchAirtableData(userRecordId, netlifyUser.email);
             const today = new Date().toISOString().split('T')[0];
             const formattedTasks = data.map(record => ({
                 id: record.id,
@@ -52,7 +52,7 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
             setIsLoading(false); //~ always set loading state back false at end function
             toast.dismiss(); //~ dismiss toast loading
         }
-    }, [userRecordId]);
+    }, [userRecordId, netlifyUser]);
 
     useEffect(() => {
         if (userRecordId) {
@@ -284,6 +284,18 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
                                                                         className="px-3"
                                                                     >
                                                                         <i className="fa-regular fa-floppy-disk me-2"></i> Save
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="secondary"
+                                                                        className="px-3 ms-2"
+                                                                        onClick={() => {
+                                                                            setEditTaskId(null);
+                                                                            setEditTask('');
+                                                                            setEditDueDate('');
+                                                                        }}
+                                                                        disabled={isLoading}
+                                                                    >
+                                                                        Go Back
                                                                     </Button>
                                                                 </div>
                                                             </Form>
