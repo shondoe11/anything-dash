@@ -2,23 +2,26 @@ import { useEffect, useState } from 'react';
 import { Container, Form, Button, Card, Spinner, Row, Col, Badge } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { fetchAirtableData, editDataInAirtable, deleteDataFromAirtable } from '../services/service';
-
+import { useAuth } from '../context/AuthContext';
 
 export default function EditTasksPage() {
+  const { userRecordId, netlifyUser, login } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [editTaskId, setEditTaskId] = useState(null);
   const [editTask, setEditTask] = useState('');
   const [editDueDate, setEditDueDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    refreshTasks();
-  }, []);
+    if (userRecordId) refreshTasks();
+  }, [userRecordId]);
 
   const refreshTasks = async () => {
+    if (!userRecordId) { login(); return; }
     setIsLoading(true);
     try {
-      const data = await fetchAirtableData();
+      const data = await fetchAirtableData(userRecordId, netlifyUser.email);
       data.reverse();
       const formattedTasks = data.map(record => ({
         id: record.id,
@@ -68,17 +71,23 @@ export default function EditTasksPage() {
     }
   };
 
-  const handleDone = async (id) => {
+  //& toggle task complete status
+  const handleDone = async (id, status) => {
     setIsLoading(true);
+    toast.info(status === 'Completed'
+      ? 'Marking task as incomplete...'
+      : 'Marking task as completed...', { autoClose: false });
     try {
-      await editDataInAirtable(id, { Status: 'Completed' });
+      const newStatus = status === 'Completed' ? 'New' : 'Completed';
+      await editDataInAirtable(id, { Status: newStatus });
       refreshTasks();
-      toast.success('Task marked as completed!');
+      toast.success(`Task marked as ${newStatus === 'Completed' ? 'completed' : 'incomplete'}!`);
     } catch (error) {
-      toast.error('Failed to mark task as completed. Please try again.');
-      console.error('mark task complete FAILED:', error);
+      toast.error(`Failed to mark task as ${status === 'Completed' ? 'incomplete' : 'completed'}. Please try again.`);
+      console.error('toggle task status FAILED:', error);
     } finally {
       setIsLoading(false);
+      toast.dismiss();
     }
   };
 
@@ -147,6 +156,18 @@ export default function EditTasksPage() {
                             >
                               <i className="fa-regular fa-floppy-disk me-2"></i> Save
                             </Button>
+                            <Button
+                              variant="secondary"
+                              className="py-2 px-3 ms-2"
+                              onClick={() => {
+                                setEditTaskId(null);
+                                setEditTask('');
+                                setEditDueDate('');
+                              }}
+                              disabled={isLoading}
+                            >
+                              Go Back
+                            </Button>
                           </div>
                         </div>
                       ) : (
@@ -178,15 +199,16 @@ export default function EditTasksPage() {
                       <Col xs={3} className="p-3 d-flex align-items-center justify-content-end">
                         <div className="d-flex align-items-start gap-2">
                           <Button
-                            variant={task.Status === 'Completed' ? "success" : "outline-success"}
+                            variant={task.Status === 'Completed' ? 'outline-warning' : 'outline-success'}
                             size="sm"
-                            className="rounded-circle d-flex align-items-center justify-content-center circle-btn"
-                            onClick={() => handleDone(task.id)}
+                            className="rounded-circle d-flex align-items-center justify-content-center"
+                            style={{ width: '32px', height: '32px', padding: 0 }}
+                            onClick={() => handleDone(task.id, task.Status)}
                             disabled={isLoading}
-                            title={task.Status === 'Completed' ? "Mark as incomplete" : "Mark as complete"}
+                            title={task.Status === 'Completed' ? 'Mark as incomplete' : 'Mark as complete'}
                           >
                             {task.Status === 'Completed' ? (
-                              <i className="fa-regular fa-square-check"></i>
+                              <i className="fa-solid fa-rotate-left"></i>
                             ) : (
                               <i className="fa-regular fa-square"></i>
                             )}
@@ -194,7 +216,8 @@ export default function EditTasksPage() {
                           <Button
                             variant="outline-primary"
                             size="sm"
-                            className="rounded-circle d-flex align-items-center justify-content-center circle-btn"
+                            className="rounded-circle d-flex align-items-center justify-content-center"
+                            style={{ width: '32px', height: '32px', padding: 0 }}
                             onClick={() => {
                               setEditTaskId(task.id);
                               setEditTask(task.Tasks);
@@ -208,7 +231,8 @@ export default function EditTasksPage() {
                           <Button
                             variant="outline-danger"
                             size="sm"
-                            className="rounded-circle d-flex align-items-center justify-content-center circle-btn"
+                            className="rounded-circle d-flex align-items-center justify-content-center"
+                            style={{ width: '32px', height: '32px', padding: 0 }}
                             onClick={() => handleDelete(task.id)}
                             disabled={isLoading}
                             title="Delete task"
