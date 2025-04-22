@@ -12,8 +12,9 @@ import { fetchCryptoPreferences, saveCryptoPreferences } from '../../services/se
 export default function CryptoWidget() {
     const [cryptoData, setCryptoData] = useState([]);
     const [currency, setCurrency] = useState('sgd');
+    const [prefCurrency, setPrefCurrency] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [currentPage, setCurrentPage] = useState(0); // pagination: https://www.contentful.com/blog/react-pagination/ (0-based indexing)
+    const [currentPage, setCurrentPage] = useState(0); //? pagination: https://www.contentful.com/blog/react-pagination/ (0-based indexing)
     const [totalPages, setTotalPages] = useState(1); //~ total pgs for pagination
     const [pageInput, setPageInput] = useState('1');
     const [searchQuery, setSearchQuery] = useState('');
@@ -52,7 +53,11 @@ export default function CryptoWidget() {
         }
         fetchCryptoPreferences(userRecordId)
             .then(fields => {
-                if (fields.Currency) setCurrency(fields.Currency.toLowerCase());
+                if (fields.Currency) {
+                    const saved = fields.Currency.toLowerCase();
+                    setCurrency(saved);
+                    setPrefCurrency(saved);
+                }
             })
             .finally(() => setPrefLoaded(true));
     }, [userRecordId]);
@@ -113,13 +118,14 @@ export default function CryptoWidget() {
         try {
             await saveCryptoPreferences(userRecordId, { Currency: currency.toUpperCase() });
             toast.success('Preferences saved!');
+            setPrefCurrency(currency);
         } catch (error) {
             toast.error('Failed to save preferences. Please try again.');
             console.error(error);
         }
     };
 
-   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
+   //? https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
     const formatPrice = (price) => {
         const formatter = new Intl.NumberFormat('en-US', {
             style: 'currency',
@@ -128,13 +134,13 @@ export default function CryptoWidget() {
         return formatter.format(price);
     };
 
-    // https://www.geeksforgeeks.org/how-to-convert-long-number-into-abbreviated-string-in-javascript/ -> Approach #2
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed
+    //? https://www.geeksforgeeks.org/how-to-convert-long-number-into-abbreviated-string-in-javascript/ -> Approach #2
+    //? https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed
     const formatMarketCap = (marketCap) => {
         if (marketCap >= 1e12) {
-            return `${(marketCap / 1e12).toFixed(2)}T`; // format Trillions
+            return `${(marketCap / 1e12).toFixed(2)}T`; //~ format Trillions
         } else if (marketCap >= 1e9) {
-            return `${(marketCap / 1e9).toFixed(2)}B`; // format Billions
+            return `${(marketCap / 1e9).toFixed(2)}B`; //~ format Billions
         } else {
             return `${marketCap}`;
         }
@@ -168,8 +174,8 @@ export default function CryptoWidget() {
                     <option value='jpy'>JPY</option>
                     <option value='sgd'>SGD</option>
                 </Form.Select>
-                <Button size="sm" variant="primary" onClick={handleSaveCryptoPref} disabled={isLoading}>
-                    Save Preferences
+                <Button size="sm" variant="primary" onClick={handleSaveCryptoPref} disabled={isLoading || currency === prefCurrency}>
+                    Save Preference
                 </Button>
             </Form.Group>
 
