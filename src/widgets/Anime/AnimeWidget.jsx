@@ -6,9 +6,10 @@ import { faStar, faCalendar, faClock, faTv, faFileVideo, faChartSimple, faThumbs
 import { Card, Button, Carousel, Spinner, Row, Col, Badge } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import { FaTv } from 'react-icons/fa';
-
+import { useAuth } from '../../context/AuthContext';
 
 export default function AnimeWidget({ refreshTodoList = () => {} }) {
+    const { userRecordId, login } = useAuth();
     const [animeList, setAnimeList] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
@@ -34,23 +35,24 @@ export default function AnimeWidget({ refreshTodoList = () => {} }) {
     }, []);
 
     const handleAddToTodo = async (anime) => {
+        if (!userRecordId) { login(); return; }
         try {
-        toast.info('Adding to Todo list...', { autoClose: false });
-        const newTask = `Watch ${anime.title_english || anime.title}`;
-        await postDataToAirtable({
-            Tasks: newTask,
-            Status: "New",
-            "Due Date": null,
-        });
-        toast.success('Task added to Todo list!');
-        if (refreshTodoList) {
-        refreshTodoList();
-        }
+            toast.info('Adding to Todo list...', { autoClose: false });
+            const newTask = `Watch ${anime.title_english || anime.title}`;
+            await postDataToAirtable(userRecordId, {
+                Tasks: newTask,
+                Status: "New",
+                "Due Date": null,
+            });
+            toast.success('Task added to Todo list!');
+            if (refreshTodoList) {
+                refreshTodoList();
+            }
         } catch (error) {
-        toast.error('Failed to add task to Todo list. Please try again.');
-        console.error('Add to Todo failed: ', error);
+            toast.error('Failed to add task to Todo list. Please try again.');
+            console.error('Add to Todo failed: ', error);
         } finally {
-        toast.dismiss();
+            toast.dismiss();
         }
     };
     
