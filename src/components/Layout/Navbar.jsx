@@ -1,5 +1,5 @@
 import { Navbar, Nav, Container, Button } from 'react-bootstrap';
-import { FaTasks, FaCloudSunRain, FaCoins, FaFutbol, FaTv, FaHome, FaSun, FaMoon } from 'react-icons/fa';
+import { FaTasks, FaCloudSunRain, FaCoins, FaFutbol, FaTv, FaHome, FaTachometerAlt, FaSun, FaMoon } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import useTheme from '../../hooks/useTheme';
 import { useAuth } from '../../context/AuthContext';
@@ -47,7 +47,7 @@ export default function AppNavbar() {
             className="fw-bold shadow-sm mx-2 fs-6 dashboard-btn d-flex align-items-center justify-content-center"
             variant="primary"
           >
-            <FaHome className="me-2" /> Dashboard
+            <FaTachometerAlt className="me-2" /> Dashboard
           </Button>
         </div>
         
@@ -67,9 +67,24 @@ export default function AppNavbar() {
                 <FaTasks className="me-2" /> <span>Todo</span>
               </Nav.Link>
               <div id="custom-todo-dropdown" className="custom-dropdown-menu">
-                <Link to="/todo" className="custom-dropdown-item">All Tasks</Link>
-                <Link to="/todo/new" className="custom-dropdown-item">New Task</Link>
-                <Link to="/todo/edit" className="custom-dropdown-item">Edit Task</Link>
+                <Link
+                  to="/todo"
+                  className="custom-dropdown-item"
+                  onClick={() => {
+                    const menu = document.getElementById('custom-todo-dropdown');
+                    if (menu) menu.classList.remove('show');
+                  }}
+                >All Tasks</Link>
+                <Link
+                  to="/todo/new"
+                  className="custom-dropdown-item"
+                  onClick={() => document.getElementById('custom-todo-dropdown')?.classList.remove('show')}
+                >New Task</Link>
+                <Link
+                  to="/todo/edit"
+                  className="custom-dropdown-item"
+                  onClick={() => document.getElementById('custom-todo-dropdown')?.classList.remove('show')}
+                >Edit Task</Link>
               </div>
             </div>
             
