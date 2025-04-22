@@ -34,6 +34,7 @@ export default function FootballWidget() {
     const itemsPerPage = 10;
     const totalPages = Math.ceil(standings.length / itemsPerPage);
     const [prefLoaded, setPrefLoaded] = useState(false);
+    const [prefCompetition, setPrefCompetition] = useState('');
 
     useEffect(() => {
         if (userRecordId && !prefLoaded) return;
@@ -62,7 +63,13 @@ export default function FootballWidget() {
         }
         fetchFootballPreferences(userRecordId)
             .then(fields => {
-                if (fields.Competition) setSelectCompe(fields.Competition);
+                if (fields.Competition) {
+                    const match = competitions.find(c => c.name === fields.Competition);
+                    if (match) {
+                        setSelectCompe(match.id);
+                        setPrefCompetition(match.id);
+                    }
+                }
             })
             .finally(() => setPrefLoaded(true));
     }, [userRecordId]);
@@ -75,10 +82,13 @@ export default function FootballWidget() {
     const handleSaveFootballPref = async () => {
         if (!userRecordId) { login(); return; }
         try {
-            await saveFootballPreferences(userRecordId, { Competition: selectCompe });
-            toast.success('Preferences saved!');
+            const match = competitions.find(c => c.id === selectCompe);
+            const compName = match ? match.name : selectCompe;
+            await saveFootballPreferences(userRecordId, { Competition: compName });
+            toast.success('Preference saved!');
+            setPrefCompetition(selectCompe);
         } catch (error) {
-            toast.error('Failed to save preferences. Please try again.');
+            toast.error('Failed to save preference. Please try again.');
             console.error(error);
         }
     };
@@ -110,8 +120,8 @@ export default function FootballWidget() {
                         <option key={comp.id} value={comp.id}>{comp.name}</option>
                     ))}
                 </Form.Select>
-                <Button size="sm" variant="primary" onClick={handleSaveFootballPref} disabled={isLoading}>
-                    Save Preferences
+                <Button size="sm" variant="primary" onClick={handleSaveFootballPref} disabled={isLoading || selectCompe === prefCompetition}>
+                    Save Preference
                 </Button>
             </Form.Group>
             {isLoading ? (
