@@ -13,6 +13,8 @@ export default function WeatherWidget() {
     const [townWeather, setTownWeather] = useState('');
     const [towns, setTowns] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    //~ track Airtable record ID fr pref upsert
+    const [prefRecordId, setPrefRecordId] = useState(null);
     const { userRecordId, login } = useAuth();
 
     useEffect(() => {
@@ -103,7 +105,9 @@ export default function WeatherWidget() {
             return;
         }
         try {
-            await saveWeatherPreferences(userRecordId, { Country: countrySearch });
+            //~ patch existing / create new pref
+            const result = await saveWeatherPreferences(userRecordId, { Country: countrySearch }, prefRecordId);
+            setPrefRecordId(result.id);
             toast.success('Preferences saved!');
         } catch (error) {
             toast.error('Failed to save preferences. Please try again.');
@@ -122,7 +126,9 @@ export default function WeatherWidget() {
             return;
         }
         try {
-            await saveWeatherPreferences(userRecordId, { Town: townSearch });
+            //~ patch existing / create new pref
+            const result = await saveWeatherPreferences(userRecordId, { Town: townSearch }, prefRecordId);
+            setPrefRecordId(result.id);
             toast.success('Town preference saved!');
         } catch (error) {
             toast.error('Failed to save town preference. Please try again.');
@@ -132,33 +138,60 @@ export default function WeatherWidget() {
 
     useEffect(() => {
         if (!userRecordId) return;
-        fetchWeatherPreferences(userRecordId).then(fields => {
-            if (fields.Country) setCountrySearch(fields.Country);
-            if (fields.Town) setTownSearch(fields.Town);
-        });
+        const loadPrefs = async () => {
+            try {
+                const { fields, recordId } = await fetchWeatherPreferences(userRecordId);
+                if (fields.Country) {
+                    setCountrySearch(fields.Country);
+                    //~ load saved country weather
+                    const weather = await fetchWeatherData(fields.Country);
+                    setCurrentWeather({
+                        temp: weather.current.temp_c,
+                        condition: weather.current.condition.text,
+                        icon: weather.current.condition.icon,
+                        country: weather.location.country,
+                        city: weather.location.name
+                    });
+                }
+                if (fields.Town) setTownSearch(fields.Town);
+                setPrefRecordId(recordId);
+            } catch (error) {
+                console.error('load weather prefs failed:', error);
+            }
+        };
+        loadPrefs();
     }, [userRecordId]);
 
     return (
-        <Card className="p-3 mb-4 weather-container">
+        <Card className="p-3 mb-4 weather-container overflow-visible">
             <Row className="g-3">
 
                 <Col md={4} lg={3}>
                     <Card className="h-100 shadow-sm">
                         <Card.Body>
                             <h5 className="fs-6 fw-bold mb-3">Current Weather by Country</h5>
-                            <Form onSubmit={handleCountrySearch} className="d-flex flex-column gap-2 mb-2">
-                                <Form.Group>
-                                    <Form.Label className="small">Search Location:</Form.Label>
-                                    <Form.Control 
-                                    size="sm"
-                                    type="text" 
-                                    value={countrySearch} 
-                                    onChange={(e) => setCountrySearch(e.target.value)} 
-                                    placeholder="Enter country/city" />
+                            <Form onSubmit={handleCountrySearch} className="mb-2">
+                                <Form.Group className="mb-2">
+                                    <Form.Label className="small mb-1">Search Location:</Form.Label>
+                                    <Row className="g-2">
+                                        <Col>
+                                            <Form.Control
+                                                size="sm"
+                                                type="text"
+                                                value={countrySearch}
+                                                onChange={(e) => setCountrySearch(e.target.value)}
+                                                placeholder="Enter country/city"
+                                            />
+                                        </Col>
+                                        <Col xs="auto">
+                                            <Button type="submit" variant="success" size="sm">
+                                                Search
+                                            </Button>
+                                        </Col>
+                                    </Row>
                                 </Form.Group>
-                                <Button type="submit" variant="success" size="sm" className="align-self-end">Search</Button>
                             </Form>
-                            <Button size="sm" variant="primary" className="mt-2" onClick={handleSaveWeatherPref}>
+                            <Button size="sm" variant="primary" className="mt-2 d-block mx-auto" onClick={handleSaveWeatherPref}>
                                 Save Preferences
                             </Button>
                             {isLoading ? (
@@ -196,9 +229,9 @@ export default function WeatherWidget() {
                                         <Card className="h-100 weather-card border-0 text-center">
                                             <Card.Body className="p-2">
                                                 <h6 className="small fw-bold">{day.day} ({new Date(day.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })})</h6>
-                                                <p className="small mb-1">🔮 {day.forecast.text} ({day.forecast.summary})</p>
-                                                <p className="small mb-1">🌡️ {day.temperature.low}°C - {day.temperature.high}°C</p>
-                                                <p className="small mb-1">💧 {day.relativeHumidity.low}% - {day.relativeHumidity.high}%</p>
+                                                <p className="small mb-1"> {day.forecast.text} ({day.forecast.summary})</p>
+                                                <p className="small mb-1"> {day.temperature.low}°C - {day.temperature.high}°C</p>
+                                                <p className="small mb-1"> {day.relativeHumidity.low}% - {day.relativeHumidity.high}%</p>
                                             </Card.Body>
                                         </Card>
                                     </Col>
@@ -226,7 +259,7 @@ export default function WeatherWidget() {
                                     </Form.Select>
                                 </Form.Group>
                             </Form>
-                            <Button size="sm" variant="primary" className="mt-2" onClick={handleSaveTownPref} disabled={isLoading || !townSearch}>
+                            <Button size="sm" variant="primary" className="mt-2 d-block mx-auto" onClick={handleSaveTownPref} disabled={isLoading || !townSearch}>
                                 Save Preferences
                             </Button>
                             {townWeather && (
