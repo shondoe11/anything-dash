@@ -110,13 +110,13 @@ export default function AnimeWidget({ refreshTodoList = () => {} }) {
                                 <Carousel.Item key={`${anime.mal_id}-${index}`}>
                                     <Row className="g-0 justify-content-center">
                                         <Col xs={12} md={10} lg={8}>
-                                            <Card className="h-100 shadow-sm">
+                                            <Card className="shadow-sm">
                                                 <Row className="g-0">
                                                     <Col xs={4} md={3}>
                                                         <Card.Img 
                                                             src={anime.images?.jpg?.image_url || 'http://placehold.it/200x250.jpg'} 
                                                             alt={anime.title} 
-                                                            className="h-100 object-cover" 
+                                                            className="object-cover" 
                                                         />
                                                     </Col>
                                                     <Col xs={8} md={9}>
@@ -147,7 +147,7 @@ export default function AnimeWidget({ refreshTodoList = () => {} }) {
                                                                     <p className="mb-1 small"><FontAwesomeIcon icon={faThumbsUp} /> <strong>Score:</strong> <FontAwesomeIcon icon={faStar} className="text-warning" /> {anime.score || 'N/A'}</p>
                                                                 </Col>
                                                                 <Col xs={12}>
-                                                                    <p className="mb-1 small"><FontAwesomeIcon icon={faFileLines} /> <strong>Synopsis:</strong> {anime.synopsis ? `${anime.synopsis.substring(0, 100)}...` : 'N/A'}</p>
+                                                                    <p className="mb-1 small"><FontAwesomeIcon icon={faFileLines} /> <strong>Synopsis:</strong> {anime.synopsis || 'N/A'}</p>
                                                                 </Col>
                                                             </Row>
                                                             <div className="d-flex gap-2 mt-3 justify-content-end">
