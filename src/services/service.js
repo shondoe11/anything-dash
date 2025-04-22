@@ -207,147 +207,95 @@ export const saveLayout = async (userRecordId, layoutJSON) => {
 };
 
 //^ preference APIs
-//& fetch latest weather preferences by linked user record
+//& fetch weather prefs frm users record
 export const fetchWeatherPreferences = async (userRecordId) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
-    const table = import.meta.env.VITE_AIRTABLE_TABLE_WEATHER;
-    //! use find with arrayjoin to match linked user id in user field
-    const filterFormula = `FIND("${userRecordId}", ARRAYJOIN({User}))>0`;
-    const url = `https://api.airtable.com/v0/${baseId}/${table}?filterByFormula=${encodeURIComponent(filterFormula)}`;
+    const table = import.meta.env.VITE_AIRTABLE_TABLE_USERS;
+    const url = `https://api.airtable.com/v0/${baseId}/${table}/${userRecordId}`;
     const resp = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
     const data = await resp.json();
-    const records = data.records || [];
-    if (!records.length) return { fields: {}, recordId: null };
-    records.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
-    const latest = records[0];
-    return { fields: latest.fields || {}, recordId: latest.id };
+    return {
+        fields: {
+            Country: data.fields['Weather-Country'] || '',
+            Town: data.fields['Weather-SGtown']  || ''
+        },
+        recordId: data.id
+    };
 };
 
-//& save / update weather preferences by record ID
-export const saveWeatherPreferences = async (userRecordId, fields, prefRecordId = null) => {
-    // ensure we use existing record if one exists, to avoid duplicates
-    if (!prefRecordId) {
-        const { recordId: existingId } = await fetchWeatherPreferences(userRecordId);
-        prefRecordId = existingId;
-    }
+//& patch weather prefs fields on users record
+export const saveWeatherPreferences = async (userRecordId, fields) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
-    const table = import.meta.env.VITE_AIRTABLE_TABLE_WEATHER;
-    let resp, data;
-    if (prefRecordId) {
-        const url = `https://api.airtable.com/v0/${baseId}/${table}/${prefRecordId}`;
-        resp = await fetch(url, {
+    const table = import.meta.env.VITE_AIRTABLE_TABLE_USERS;
+    const out = {};
+    if (fields.Country != null) out['Weather-Country'] = fields.Country;
+    if (fields.Town    != null) out['Weather-SGtown']  = fields.Town;
+    const url = `https://api.airtable.com/v0/${baseId}/${table}/${userRecordId}`;
+    const resp = await fetch(url, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fields }),
-        });
-        data = await resp.json();
-        return data; //~ patched record
-    }
-    //~ create new
-    const url = `https://api.airtable.com/v0/${baseId}/${table}`;
-    resp = await fetch(url, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ records: [{ fields: { User: [userRecordId], ...fields } }] }),
+        body: JSON.stringify({ fields: out })
     });
-    data = await resp.json();
-    return data.records[0]; //~ new record
+    const data = await resp.json();
+    return { id: data.id };
 };
 
 export const fetchCryptoPreferences = async (userRecordId) => {
+  //~ fetch crypto currency prefs frm Users record
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
-    const table = import.meta.env.VITE_AIRTABLE_TABLE_CRYPTO;
-    const filter = encodeURIComponent(`{User}="${userRecordId}"`);
-    const url = `https://api.airtable.com/v0/${baseId}/${table}?filterByFormula=${filter}`;
+    const table = import.meta.env.VITE_AIRTABLE_TABLE_USERS;
+    const url = `https://api.airtable.com/v0/${baseId}/${table}/${userRecordId}`;
     const resp = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
     const data = await resp.json();
-    return data.records[0]?.fields || {};
+    return { Currency: data.fields['Crypto-Currency'] || '' };
 };
 
 export const saveCryptoPreferences = async (userRecordId, fields) => {
+  //~ patch crypto currency field on Users record
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
-    const table = import.meta.env.VITE_AIRTABLE_TABLE_CRYPTO;
-    const filter = encodeURIComponent(`{User}="${userRecordId}"`);
-    const listUrl = `https://api.airtable.com/v0/${baseId}/${table}?filterByFormula=${filter}`;
-    const listResp = await fetch(listUrl, { headers: { Authorization: `Bearer ${apiKey}` } });
-    const listData = await listResp.json();
-    if (listData.records.length) {
-        const [first, ...rest] = listData.records;
-        if (rest.length) {
-            await Promise.all(rest.map(r =>
-                fetch(`https://api.airtable.com/v0/${baseId}/${table}/${r.id}`, {
-                    method: 'DELETE',
-                    headers: { Authorization: `Bearer ${apiKey}` },
-                })
-            ));
-        }
-        const recordId = first.id;
-        const url = `https://api.airtable.com/v0/${baseId}/${table}/${recordId}`;
-        const resp = await fetch(url, {
-            method: 'PATCH',
-            headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fields }),
-        });
-        return resp.json();
-    } else {
-        const url = `https://api.airtable.com/v0/${baseId}/${table}`;
-        const resp = await fetch(url, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ records: [{ fields: { User: [userRecordId], ...fields } }] }),
-        });
-        return resp.json();
-    }
+    const table = import.meta.env.VITE_AIRTABLE_TABLE_USERS;
+    const out = {};
+    if (fields.Currency != null) out['Crypto-Currency'] = fields.Currency;
+    const url = `https://api.airtable.com/v0/${baseId}/${table}/${userRecordId}`;
+    const resp = await fetch(url, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: out }),
+    });
+    const data = await resp.json();
+    return { id: data.id };
 };
 
 export const fetchFootballPreferences = async (userRecordId) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
-    const table = import.meta.env.VITE_AIRTABLE_TABLE_FOOTBALL;
-    const filter = encodeURIComponent(`{User}="${userRecordId}"`);
-    const url = `https://api.airtable.com/v0/${baseId}/${table}?filterByFormula=${filter}`;
+    const table = import.meta.env.VITE_AIRTABLE_TABLE_USERS;
+    const url = `https://api.airtable.com/v0/${baseId}/${table}/${userRecordId}`;
     const resp = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
     const data = await resp.json();
-    return data.records[0]?.fields || {};
+    return { Competition: data.fields['Football-Compe'] || '' };
 };
 
 export const saveFootballPreferences = async (userRecordId, fields) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
-    const table = import.meta.env.VITE_AIRTABLE_TABLE_FOOTBALL;
-    const filter = encodeURIComponent(`{User}="${userRecordId}"`);
-    const listUrl = `https://api.airtable.com/v0/${baseId}/${table}?filterByFormula=${filter}`;
-    const listResp = await fetch(listUrl, { headers: { Authorization: `Bearer ${apiKey}` } });
-    const listData = await listResp.json();
-    if (listData.records.length) {
-        const [first, ...rest] = listData.records;
-        if (rest.length) {
-            await Promise.all(rest.map(r =>
-                fetch(`https://api.airtable.com/v0/${baseId}/${table}/${r.id}`, {
-                    method: 'DELETE',
-                    headers: { Authorization: `Bearer ${apiKey}` },
-                })
-            ));
-        }
-        const recordId = first.id;
-        const url = `https://api.airtable.com/v0/${baseId}/${table}/${recordId}`;
-        const resp = await fetch(url, {
-            method: 'PATCH',
-            headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fields }),
-        });
-        return resp.json();
-    } else {
-        const url = `https://api.airtable.com/v0/${baseId}/${table}`;
-        const resp = await fetch(url, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ records: [{ fields: { User: [userRecordId], ...fields } }] }),
-        });
-        return resp.json();
+    const table = import.meta.env.VITE_AIRTABLE_TABLE_USERS;
+    const out = {};
+    if (fields.Competition != null) out['Football-Compe'] = fields.Competition;
+    const url = `https://api.airtable.com/v0/${baseId}/${table}/${userRecordId}`;
+    const resp = await fetch(url, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: out }),
+    });
+    const result = await resp.json();
+    if (!resp.ok) {
+        console.error('Airtable error saving football pref:', result);
+        throw new Error(result.error?.message || 'Failed to save football preference');
     }
+    return { id: result.id };
 };
