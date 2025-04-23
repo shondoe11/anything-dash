@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from 'react';
 import { fetchWeatherData, fetchNEAWeatherData, fetchFourDayWeatherDataSG } from "../../services/service";
 import { toast } from 'react-toastify';
 import { Card, Row, Col, Form, Button, Spinner } from 'react-bootstrap';
@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { fetchWeatherPreferences, saveWeatherPreferences } from '../../services/service';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faThermometerHalf, faTint } from '@fortawesome/free-solid-svg-icons';
+import { FaCloudSunRain } from 'react-icons/fa';
 
 export default function WeatherWidget() {
     const [forecastData, setForecastData] = useState(null);
@@ -180,81 +181,104 @@ export default function WeatherWidget() {
     const capitalizeFirstLetter = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 
     return (
-        <Card className="p-3 mb-4 weather-container overflow-visible">
-            <Row className="g-3">
-
-                <Col md={4} lg={3}>
-                    <Card className="h-100 shadow-sm">
-                        <Card.Body className="h-100 d-flex flex-column justify-content-between">
-                            <h5 className="fs-6 fw-bold mb-3">Current Weather by Country</h5>
-                            <Form onSubmit={handleCountrySearch} className="mb-2">
-                                <Form.Group className="mb-2">
-                                    <Form.Label className="small mb-1">Search Location:</Form.Label>
-                                    <Row className="g-2">
-                                        <Col>
-                                            <Form.Control
-                                                size="sm"
-                                                type="text"
-                                                value={countrySearch}
-                                                onChange={(e) => {
-                                                    //~ allow letters & spaces only
-                                                    let val = e.target.value.replace(/[^A-Za-z\s]/g, '');
-                                                    //~ auto-capitalize first letter if all lowercase
-                                                    if (/^[a-z\s]+$/.test(val)) {
-                                                        val = capitalizeFirstLetter(val);
-                                                    }
-                                                    setCountrySearch(val);
-                                                }}
-                                                placeholder="Enter country/city"
-                                            />
-                                        </Col>
-                                        <Col xs="auto">
-                                            <Button type="submit" variant="success" size="sm">
-                                                Search
-                                            </Button>
-                                        </Col>
-                                    </Row>
-                                </Form.Group>
-                            </Form>
-                            <Button size="sm" variant="primary" className="d-block mx-auto" onClick={handleSaveWeatherPref} disabled={isLoading || countrySearch === prefCountry}>
-                                Save Preference
-                            </Button>
-                            {isLoading ? (
-                                <div className="d-flex justify-content-center my-2">
-                                    <Spinner animation="border" size="sm" role="status">
-                                        <span className="visually-hidden">Loading...</span>
-                                    </Spinner>
-                                </div>
-                            ) : (currentWeather && (
-                                <Card className="weather-card mt-2 custom-dark-card">
-                                    <Card.Body className="p-2">
-                                        <h6 className="mb-2">{currentWeather.country}, {currentWeather.city}:</h6>
-                                        <div className="d-flex align-items-center gap-2">
-                                            <img src={currentWeather.icon} alt="weather-condition" className="img-fluid img-40" />
-                                            <div>
-                                                <p className="mb-0">{currentWeather.temp}°C</p>
-                                                <p className="mb-0 small">{currentWeather.condition}</p>
-                                            </div>
-                                        </div>
-                                    </Card.Body>
-                                </Card>
-                                )
-                            )}
-                        </Card.Body>
-                    </Card>
-                </Col>
-
-                <Col md={8} lg={6}>
-                    <Card className="h-100 shadow-sm">
-                        <Card.Body>
-                            <h5 className="fs-6 fw-bold mb-3">4-Day Singapore Forecast</h5>
-                            <Row className="row-cols-1 row-cols-sm-2 row-cols-lg-4 g-2">
-                                {forecastData?.map((day, index) => (
-                                    <Col key={index}>
-                                        <Card className="h-100 weather-card border-0 text-center">
+        <Card className="border-0 shadow-sm mb-4 widget-card h-100 overflow-auto">
+            <Card.Header className="d-flex justify-content-between align-items-center py-3 px-4 gradient-header">
+                <div className="d-flex align-items-center">
+                    <FaCloudSunRain className="text-white me-2 widget-icon" size={24} />
+                    <h5 className="mb-0 text-white fw-bold">Weather</h5>
+                </div>
+            </Card.Header>
+            <Card.Body className="p-4 weather-widget-container">
+                <Row className="g-3">
+                    <Col xs={12} md={4} lg={3}>
+                        {/* Current Weather by Country */}
+                        <Card className="h-100 shadow-sm">
+                            <Card.Body className="h-100 d-flex flex-column justify-content-between">
+                                <h5 className="fs-6 fw-bold mb-3">Current Weather by Country</h5>
+                                <Form onSubmit={handleCountrySearch} className="mb-2">
+                                    <Form.Group className="mb-2">
+                                        <Form.Label className="small mb-1">Search Location:</Form.Label>
+                                        <Row className="g-2">
+                                            <Col>
+                                                <Form.Control
+                                                    size="sm"
+                                                    type="text"
+                                                    value={countrySearch}
+                                                    onChange={(e) => {
+                                                        //~ allow letters & spaces only
+                                                        let val = e.target.value.replace(/[^A-Za-z\s]/g, '');
+                                                        //~ auto-capitalize first letter if all lowercase
+                                                        if (/^[a-z\s]+$/.test(val)) {
+                                                            val = capitalizeFirstLetter(val);
+                                                        }
+                                                        setCountrySearch(val);
+                                                    }}
+                                                    placeholder="Enter country/city"
+                                                />
+                                            </Col>
+                                            <Col xs="auto">
+                                                <Button type="submit" variant="success" size="sm">
+                                                    Search
+                                                </Button>
+                                            </Col>
+                                        </Row>
+                                    </Form.Group>
+                                </Form>
+                                <Button
+                                    size="sm"
+                                    variant="primary"
+                                    className="d-block mx-auto"
+                                    onClick={handleSaveWeatherPref}
+                                    disabled={isLoading || countrySearch === prefCountry}
+                                >
+                                    Save Preference
+                                </Button>
+                                {isLoading ? (
+                                    <div className="d-flex justify-content-center my-2">
+                                        <Spinner animation="border" size="sm" role="status">
+                                            <span className="visually-hidden">Loading...</span>
+                                        </Spinner>
+                                    </div>
+                                ) : (
+                                    currentWeather && (
+                                        <Card className="weather-card mt-2 custom-dark-card w-100">
+                                            <Card.Body className="p-2 d-flex flex-column align-items-center justify-content-center text-center">
+                                                <h6 className="mb-2">
+                                                    {currentWeather.country}, {currentWeather.city}:
+                                                </h6>
+                                                <div className="d-flex align-items-center gap-2">
+                                                    <img
+                                                        src={currentWeather.icon}
+                                                        alt="weather-condition"
+                                                        className="img-fluid img-40"
+                                                    />
+                                                    <div>
+                                                        <p className="mb-0">{currentWeather.temp}°C</p>
+                                                        <p className="mb-0 small">{currentWeather.condition}</p>
+                                                    </div>
+                                                </div>
+                                            </Card.Body>
+                                        </Card>
+                                    )
+                                )}
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col xs={12} md={8} lg={6}>
+                        {/* 4-Day Singapore Forecast */}
+                        <Card className="h-100 shadow-sm">
+                            <Card.Body>
+                                <h5 className="fs-6 fw-bold mb-3">4-Day Singapore Forecast</h5>
+                                <div className="weather-forecast-grid">
+                                    {forecastData?.map((day, index) => (
+                                        <Card key={index} className="h-100 weather-card border-0 text-center">
                                             <Card.Body className="p-2">
-                                                <h6 className="small fw-bold">{day.day} ({new Date(day.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })})</h6>
-                                                <p className="small mb-1"> {day.forecast.text} ({day.forecast.summary})</p>
+                                                <h6 className="small fw-bold">
+                                                    {day.day} ({new Date(day.timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })})
+                                                </h6>
+                                                <p className="small mb-1">
+                                                    {day.forecast.text} ({day.forecast.summary})
+                                                </p>
                                                 <p className="small mb-1 d-flex align-items-center justify-content-center">
                                                     <FontAwesomeIcon icon={faThermometerHalf} className="me-1" />
                                                     {day.temperature.low}°C - {day.temperature.high}°C
@@ -265,46 +289,52 @@ export default function WeatherWidget() {
                                                 </p>
                                             </Card.Body>
                                         </Card>
-                                    </Col>
-                                ))}
-                            </Row>
-                        </Card.Body>
-                    </Card>
-                </Col>
-
-                <Col md={12} lg={3}>
-                    <Card className="h-100 shadow-sm">
-                        <Card.Body className="h-100 d-flex flex-column justify-content-between">
-                            <h5 className="fs-6 fw-bold mb-3">Singapore Town Weather</h5>
-                            <Form>
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="small">Search Town:</Form.Label>
-                                    <Form.Select 
+                                    ))}
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col xs={12} md={12} lg={3}>
+                        {/* Singapore Town Weather */}
+                        <Card className="h-100 shadow-sm">
+                            <Card.Body className="h-100 d-flex flex-column justify-content-between">
+                                <h5 className="fs-6 fw-bold mb-3">Singapore Town Weather</h5>
+                                <Form>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label className="small">Search Town:</Form.Label>
+                                        <Form.Select 
+                                        size="sm"
+                                        value={townSearch} 
+                                        onChange={(e) => setTownSearch(e.target.value)}>
+                                            <option value=''>Select a town</option>
+                                            {towns.map((town, index) => (
+                                                <option key={index} value={town}>{town}</option>
+                                            ))}
+                                        </Form.Select>
+                                    </Form.Group>
+                                </Form>
+                                <Button
                                     size="sm"
-                                    value={townSearch} 
-                                    onChange={(e) => setTownSearch(e.target.value)}>
-                                        <option value=''>Select a town</option>
-                                        {towns.map((town, index) => (
-                                            <option key={index} value={town}>{town}</option>
-                                        ))}
-                                    </Form.Select>
-                                </Form.Group>
-                            </Form>
-                            <Button size="sm" variant="primary" className="d-block mx-auto" onClick={handleSaveTownPref} disabled={isLoading || townSearch === prefTown}>
-                                Save Preference
-                            </Button>
-                            {townWeather && (
-                                <Card className="weather-card mt-2 custom-dark-card">
-                                    <Card.Body className="p-2">
-                                        <h6 className="mb-2">{townWeather.area}:</h6>
-                                        <p className="small mb-0">{townWeather.forecast}</p>
-                                    </Card.Body>
-                                </Card>
-                            )}
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+                                    variant="primary"
+                                    className="d-block mx-auto"
+                                    onClick={handleSaveTownPref}
+                                    disabled={isLoading || townSearch === prefTown}
+                                >
+                                    Save Preference
+                                </Button>
+                                {townWeather && (
+                                    <Card className="weather-card mt-2 custom-dark-card w-100">
+                                        <Card.Body className="p-2 d-flex flex-column align-items-center justify-content-center text-center">
+                                            <h6 className="mb-2">{townWeather.area}:</h6>
+                                            <p className="small mb-0">{townWeather.forecast}</p>
+                                        </Card.Body>
+                                    </Card>
+                                )}
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
+            </Card.Body>
         </Card>
     );
 }
