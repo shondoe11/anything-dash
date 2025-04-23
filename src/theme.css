@@ -202,6 +202,7 @@ body {
   box-shadow: var(--shadow-sm);
   transition: all 0.3s ease;
   height: 100%;
+  overflow: auto;
   background-color: var(--card-bg);
   border-color: var(--border-color);
 }
@@ -501,6 +502,39 @@ body {
   border-color: #343a40;
 }
 
+/* 4-Day Forecast Responsive Grid */
+.weather-forecast-grid {
+  display: grid;
+  gap: 0.5rem;
+  container-type: inline-size;
+  /* fallback layout */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+@container (max-width: 575.98px) {
+  .weather-forecast-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+@container (min-width: 576px) and (max-width: 767.98px) {
+  .weather-forecast-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@container (min-width: 768px) and (max-width: 991.98px) {
+  .weather-forecast-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@container (min-width: 992px) {
+  .weather-forecast-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
 /* Anime Widget Custom Carousel */
 .custom-carousel .carousel-control-prev,
 .custom-carousel .carousel-control-next {
@@ -545,11 +579,6 @@ body {
   }
 }
 
-.custom-carousel .carousel-indicators .active {
-  background-color: var(--primary);
-  opacity: 1;
-}
-
 .dark-mode .custom-carousel .carousel-indicators [data-bs-target] {
   background-color: #666;
 }
@@ -589,6 +618,7 @@ body {
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
+  pointer-events: auto;
 }
 
 .carousel-custom-control:hover {
@@ -779,8 +809,8 @@ body {
 }
 
 .pagination-dot {
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background-color: #ccc;
   border: none;
@@ -788,6 +818,7 @@ body {
   cursor: pointer;
   opacity: 0.5;
   transition: all 0.2s ease;
+  pointer-events: auto;
 }
 
 .pagination-dot.active {
@@ -797,9 +828,9 @@ body {
 
 @media (max-width: 768px) {
   .pagination-dot {
-    width: 16px;
-    height: 16px;
-    margin: 0 4px;
+    width: 20px;
+    height: 20px;
+    margin: 0 6px;
   }
 }
 
@@ -1078,4 +1109,34 @@ p, span, a, label {
 
 .border-left-danger {
   border-left: 4px solid var(--danger) !important;
+}
+
+/* override react-grid-layout placeholder highlight */
+.react-grid-layout .react-grid-placeholder {
+  background-color: rgba(40, 167, 69, 0.2) !important;
+  border: 2px dashed #28a745 !important;
+}
+
+/* Stack TodoWidget sections vertically when widget narrows */
+.todo-widget-container {
+  container-type: inline-size;
+}
+
+@container (max-width: 767.98px) {
+  .todo-widget-container .row > [class*="col-"] {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Stack WeatherWidget sections vertically when widget narrows */
+.weather-widget-container {
+  container-type: inline-size;
+}
+
+@container (max-width: 767.98px) {
+  .weather-widget-container .row > [class*="col-"] {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
 }
