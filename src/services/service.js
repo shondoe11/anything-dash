@@ -167,43 +167,27 @@ export const getOrCreateUser = async (netlifyUserId, email) => {
 export const fetchLayout = async (userRecordId) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
-    const tableLayouts = import.meta.env.VITE_AIRTABLE_TABLE_LAYOUTS;
-    const filter = encodeURIComponent(`{User}="${userRecordId}"`);
-    const url = `https://api.airtable.com/v0/${baseId}/${tableLayouts}?filterByFormula=${filter}`;
+    const tableUsers = import.meta.env.VITE_AIRTABLE_TABLE_USERS;
+    //~ fetch layout frm Users table
+    const url = `https://api.airtable.com/v0/${baseId}/${tableUsers}/${userRecordId}`;
     const resp = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
     const data = await resp.json();
-    return data.records[0]?.fields.Layout || null;
+    return data.fields.Layout || null;
 };
 
 export const saveLayout = async (userRecordId, layoutJSON) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
-    const tableLayouts = import.meta.env.VITE_AIRTABLE_TABLE_LAYOUTS;
-    const filter = encodeURIComponent(`{User}="${userRecordId}"`);
-    const listUrl = `https://api.airtable.com/v0/${baseId}/${tableLayouts}?filterByFormula=${filter}`;
-    const listResp = await fetch(listUrl, { headers: { Authorization: `Bearer ${apiKey}` } });
-    const listData = await listResp.json();
-    if (listData.records.length) {
-        const recordId = listData.records[0].id;
-        const updateUrl = `https://api.airtable.com/v0/${baseId}/${tableLayouts}/${recordId}`;
-        return fetch(updateUrl, {
+    const tableUsers = import.meta.env.VITE_AIRTABLE_TABLE_USERS;
+    //& save layout to Users table
+    const url = `https://api.airtable.com/v0/${baseId}/${tableUsers}/${userRecordId}`;
+    const resp = await fetch(url, {
         method: 'PATCH',
-        headers: {
-            Authorization: `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ fields: { Layout: layoutJSON } }),
-        }).then(res => res.json());
-    } else {
-        return fetch(`https://api.airtable.com/v0/${baseId}/${tableLayouts}`, {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ records: [{ fields: { User: [userRecordId], Layout: layoutJSON } }] }),
-        }).then(res => res.json());
-    }
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: { Layout: layoutJSON } })
+    });
+    const data = await resp.json();
+    return data;
 };
 
 //^ preference APIs
