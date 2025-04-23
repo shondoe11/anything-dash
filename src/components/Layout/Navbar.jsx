@@ -56,7 +56,7 @@ export default function AppNavbar() {
         <Navbar.Collapse id="main-nav">
           <Nav className="ms-auto text-center">
             <div className="custom-nav-item">
-              <Nav.Link className="d-flex align-items-center justify-content-center mx-1 dropdown-toggle"
+              <Nav.Link className="d-flex align-items-center justify-content-center mx-1 dropdown-toggle nav-link-hover"
                 onClick={() => {
                   const menu = document.getElementById('custom-todo-dropdown');
                   if (menu) {
@@ -105,7 +105,7 @@ export default function AppNavbar() {
             </Nav.Link>
             
             <Nav.Item>
-              <Nav.Link as={Button} variant={darkMode ? "outline-light" : "outline-dark"} onClick={netlifyUser ? logout : login} className="mx-2">
+              <Nav.Link as={Button} variant={darkMode ? "outline-light" : "outline-dark"} onClick={netlifyUser ? logout : login} className="mx-2 nav-link-hover">
                 {netlifyUser ? 'Logout' : 'Login'}
               </Nav.Link>
             </Nav.Item>
