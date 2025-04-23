@@ -57,7 +57,7 @@ export default function AnimeWidget({ refreshTodoList = () => {} }) {
     };
     
     return (
-        <Card className="border-0 shadow-sm mb-4 widget-card overflow-hidden">
+        <Card className="border-0 shadow-sm mb-4 widget-card d-flex flex-column h-100 overflow-auto">
             <Card.Header className="d-flex justify-content-between align-items-center py-3 px-4 gradient-header">
                 <div className="d-flex align-items-center">
                     <FaTv className="text-white me-2 widget-icon" size={20} />
@@ -69,7 +69,7 @@ export default function AnimeWidget({ refreshTodoList = () => {} }) {
                     </Badge>
                 </div>
             </Card.Header>
-            <Card.Body>
+            <Card.Body className="flex-grow-1 overflow-auto">
                 {isLoading ? (
                     <div className="text-center py-3">
                         <Spinner animation="border" role="status">
@@ -80,7 +80,8 @@ export default function AnimeWidget({ refreshTodoList = () => {} }) {
                     <div className="position-relative custom-carousel-container">
                         <button 
                             className="carousel-custom-control prev" 
-                            onClick={() => {
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => { e.stopPropagation();
                                 //~ go prev slide, wrap around if at first
                                 setActiveIndex(prev => prev === 0 ? animeList.length - 1 : prev - 1);
                             }}
@@ -90,7 +91,8 @@ export default function AnimeWidget({ refreshTodoList = () => {} }) {
                         </button>
                         <button 
                             className="carousel-custom-control next" 
-                            onClick={() => {
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => { e.stopPropagation();
                                 //~ go next slide, wrap around if at last
                                 setActiveIndex(prev => prev === animeList.length - 1 ? 0 : prev + 1);
                             }}
@@ -181,9 +183,8 @@ export default function AnimeWidget({ refreshTodoList = () => {} }) {
                                 <button 
                                     key={index}
                                     className={`pagination-dot ${index === activeIndex ? 'active' : ''}`}
-                                    onClick={() => {
-                                        setActiveIndex(index);
-                                    }}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onClick={(e) => { e.stopPropagation(); setActiveIndex(index); }}
                                     aria-label={`Go to slide ${index + 1}`}
                                 />
                             ))}
