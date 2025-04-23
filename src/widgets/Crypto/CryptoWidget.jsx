@@ -152,11 +152,11 @@ export default function CryptoWidget() {
 
     return (
         <>
-            <Card className="border-0 shadow-sm mb-4 widget-card overflow-hidden">
+            <Card className="border-0 shadow-sm mb-4 widget-card h-100 overflow-auto">
                 <Card.Header className="d-flex justify-content-between align-items-center py-3 px-4 gradient-header">
                     <div className="d-flex align-items-center">
                         <FaCoins className="text-white me-2 widget-icon" size={20} />
-                        <h5 className="mb-0 text-white fw-bold">Cryptocurrency Dashboard</h5>
+                        <h5 className="mb-0 text-white fw-bold">Cryptocurrency</h5>
                     </div>
                     <div>
                         <Badge bg="light" text="dark" className="px-3 py-2 rounded-pill">
@@ -164,7 +164,7 @@ export default function CryptoWidget() {
                         </Badge>
                     </div>
                 </Card.Header>
-                <Card.Body className="p-4">
+                <Card.Body className="p-4 h-100 overflow-y-auto">
             <Form.Group className="mb-3 d-flex align-items-center gap-2">
                 <Form.Label>Select Currency: </Form.Label>
                 <Form.Select value={currency} onChange={handleCurrencyChange} disabled={isLoading} className="w-auto">
@@ -240,6 +240,7 @@ export default function CryptoWidget() {
                 <Button onClick={goToPage} disabled={isLoading} size="sm" variant="primary">Go</Button>
             </Form.Group>
 
+            <div onMouseDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
             <ReactPaginate
             previousLabel={<FontAwesomeIcon icon={faAnglesLeft} />}
             nextLabel={<FontAwesomeIcon icon={faAnglesRight} />}
@@ -261,6 +262,7 @@ export default function CryptoWidget() {
             disabledClassName="disabled"
             forcePage={currentPage}
             />
+            </div>
                 </Card.Body>
             </Card>
         </>
