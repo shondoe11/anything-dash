@@ -6,7 +6,7 @@ import { FaTasks, FaCalendarAlt, FaCheckCircle, FaExclamationCircle } from 'reac
 import PropTypes from 'prop-types';
 import { useAuth } from '../../context/AuthContext';
 
-export default function TodoWidget({ expandedView: propExpandedView = false }) {
+export default function TodoWidget({ expandedView: propExpandedView = false, showExpand = true }) {
     const { userRecordId, netlifyUser, login } = useAuth();
     const [tasks, setTasks] = useState([]);
     const [overdueTasks, setOverdueTasks] = useState([]);
@@ -167,11 +167,11 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
 
     return (
         <>
-            <Card className="border-0 shadow-sm mb-4 widget-card overflow-hidden">
+            <Card className="border-0 shadow-sm mb-4 widget-card h-100 overflow-auto">
                 <Card.Header className="d-flex justify-content-between align-items-center py-3 px-4 gradient-header">
                     <div className="d-flex align-items-center">
                         <FaTasks className="text-white me-2 widget-icon" size={20} />
-                        <h5 className="mb-0 text-white fw-bold">Todo Dashboard</h5>
+                        <h5 className="mb-0 text-white fw-bold">Todo</h5>
                     </div>
                     <div>
                         <Badge bg="light" text="dark" className="px-3 py-2 rounded-pill">
@@ -180,8 +180,8 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
                         </Badge>
                     </div>
                 </Card.Header>
-                <Card.Body className="p-0">
-                    <Row className="g-0">
+                <Card.Body className="p-0 h-100 todo-widget-container">
+                    <Row className="g-0 h-100">
                         <Col md={12} lg={expandedView ? 12 : 5} className="p-4 border-end">
                             <div className="mb-4">
                                 <h6 className="fw-bold mb-3 d-flex align-items-center">
@@ -232,8 +232,8 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
                             </div>
                         </Col>
                         
-                        <Col md={12} lg={expandedView ? 12 : 7} className="p-4">
-                            <Tabs defaultActiveKey="active" className="mb-4 tabs-border-bottom">
+                        <Col md={12} lg={expandedView ? 12 : 7} className="p-4 h-100">
+                            <Tabs defaultActiveKey="active" className="mb-4 tabs-border-bottom" onMouseDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
                                 <Tab 
                                     eventKey="active" 
                                     title={
@@ -530,7 +530,7 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
                 </Card.Body>
             </Card>
             
-            { !propExpandedView && (
+            { showExpand && !propExpandedView && (
                 <div className="text-center mt-3 mb-4 d-none d-lg-block">
                     { !expandedView ? (
                         <Button 
@@ -555,6 +555,8 @@ export default function TodoWidget({ expandedView: propExpandedView = false }) {
     );
 }
 
+//& prop to show/hide the expand/collapse controls
 TodoWidget.propTypes = {
-    expandedView: PropTypes.bool
+    expandedView: PropTypes.bool,
+    showExpand: PropTypes.bool
 };
