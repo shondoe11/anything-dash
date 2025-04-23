@@ -100,7 +100,7 @@ export default function FootballWidget() {
 
     return (
         <>
-            <Card className="border-0 shadow-sm mb-4 widget-card overflow-hidden">
+            <Card className="border-0 shadow-sm mb-4 widget-card h-100 overflow-auto">
                 <Card.Header className="d-flex justify-content-between align-items-center py-3 px-4" style={{background: 'linear-gradient(45deg, var(--primary), var(--secondary))', border: 'none'}}>
                     <div className="d-flex align-items-center">
                         <FaFutbol className="text-white me-2 widget-icon" size={20} />
@@ -112,7 +112,7 @@ export default function FootballWidget() {
                         </Badge>
                     </div>
                 </Card.Header>
-                <Card.Body className="p-4">
+                <Card.Body className="p-4 h-100 overflow-y-auto">
             <Form.Group className="mb-3 d-flex align-items-center gap-2">
                 <Form.Label htmlFor="competitionSelect">Select Competition: </Form.Label>
                 <Form.Select id="competitionSelect" value={selectCompe} onChange={handleCompeChange} disabled={isLoading} className="w-auto">
@@ -159,22 +159,24 @@ export default function FootballWidget() {
                         </tbody>
                     </Table>
                     {totalPages > 1 && (
-                        <ReactPaginate
-                        previousLabel={<FontAwesomeIcon icon={faAnglesLeft} />}
-                        nextLabel={<FontAwesomeIcon icon={faAnglesRight} />}
-                        pageCount={totalPages}
-                        onPageChange={(selectedItem) => setCurrentPage(selectedItem.selected)}
-                        containerClassName="pagination justify-content-center mt-3"
-                        pageClassName="page-item"
-                        pageLinkClassName="page-link"
-                        activeClassName="active"
-                        previousClassName="page-item"
-                        nextClassName="page-item"
-                        previousLinkClassName="page-link"
-                        nextLinkClassName="page-link"
-                        disabledClassName="disabled"
-                        forcePage={currentPage}
-                        />
+                        <div onMouseDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
+                            <ReactPaginate
+                            previousLabel={<FontAwesomeIcon icon={faAnglesLeft} />}
+                            nextLabel={<FontAwesomeIcon icon={faAnglesRight} />}
+                            pageCount={totalPages}
+                            onPageChange={(selectedItem) => setCurrentPage(selectedItem.selected)}
+                            containerClassName="pagination justify-content-center mt-3"
+                            pageClassName="page-item"
+                            pageLinkClassName="page-link"
+                            activeClassName="active"
+                            previousClassName="page-item"
+                            nextClassName="page-item"
+                            previousLinkClassName="page-link"
+                            nextLinkClassName="page-link"
+                            disabledClassName="disabled"
+                            forcePage={currentPage}
+                            />
+                        </div>
                     )}
                 </>
             )}
