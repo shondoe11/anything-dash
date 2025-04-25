@@ -166,6 +166,7 @@ export default function Dashboard() {
         cols={{ lg: 12, md: 12, sm: 12, xs: 12 }}
         rowHeight={30}
         onLayoutChange={handleLayoutChange}
+        draggableHandle=".gradient-header"
         draggableCancel=".btn,button,a,input,textarea,select,.page-link,.pagination-dot,.carousel-custom-control,.nav-link,.widget-icon"
       >
         {layout.map(item => {
