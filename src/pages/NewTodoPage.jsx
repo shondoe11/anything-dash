@@ -3,6 +3,7 @@ import { Container, Form, Button, Card, Spinner } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { postDataToAirtable } from '../services/service';
 import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 
 export default function NewTaskPage() {
   const { userRecordId, login } = useAuth();
@@ -40,7 +41,10 @@ export default function NewTaskPage() {
 
   return (
     <Container className="my-4">
-      <h1>Create New Task</h1>
+      <div className="d-flex align-items-center justify-content-between mb-3">
+        <h1>Create New Task</h1>
+        <Button as={Link} to="/todo" variant="secondary" size="sm">Go Back</Button>
+      </div>
       <Card className="shadow-sm border-0 p-0">
         <Card.Body>
           <Form onSubmit={handleAdd}>
