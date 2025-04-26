@@ -3,18 +3,22 @@ import { FaTasks, FaCloudSunRain, FaCoins, FaFutbol, FaTv, FaHome, FaTachometerA
 import { Link } from 'react-router-dom';
 import useTheme from '../../hooks/useTheme';
 import { useAuth } from '../../context/AuthContext';
+import { useState } from 'react';
 
 export default function AppNavbar() {
+  const [expanded, setExpanded] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { netlifyUser, login, logout } = useAuth();
   const darkMode = theme === 'dark';
   
   return (
-    <Navbar 
-      bg={theme} 
-      variant={theme} 
-      expand="lg" 
-      collapseOnSelect 
+    <Navbar
+      expanded={expanded}
+      onToggle={setExpanded}
+      bg={theme}
+      variant={theme}
+      expand="lg"
+      collapseOnSelect
       className="py-2 navbar-modern sticky-top"
     >
       <Container>
@@ -71,41 +75,41 @@ export default function AppNavbar() {
                   to="/todo"
                   className="custom-dropdown-item"
                   onClick={() => {
-                    const menu = document.getElementById('custom-todo-dropdown');
-                    if (menu) menu.classList.remove('show');
+                    document.getElementById('custom-todo-dropdown')?.classList.remove('show');
+                    setExpanded(false);
                   }}
                 >All Tasks</Link>
                 <Link
                   to="/todo/new"
                   className="custom-dropdown-item"
-                  onClick={() => document.getElementById('custom-todo-dropdown')?.classList.remove('show')}
+                  onClick={() => { document.getElementById('custom-todo-dropdown')?.classList.remove('show'); setExpanded(false); }}
                 >New Task</Link>
-                <Link
-                  to="/todo/edit"
-                  className="custom-dropdown-item"
-                  onClick={() => document.getElementById('custom-todo-dropdown')?.classList.remove('show')}
-                >Edit Task</Link>
               </div>
             </div>
             
-            <Nav.Link as={Link} to="/weather" className="mx-1 nav-link-hover d-flex align-items-center justify-content-center">
+            <Nav.Link as={Link} to="/weather" className="mx-1 nav-link-hover d-flex align-items-center justify-content-center" onClick={() => setExpanded(false)}>
               <FaCloudSunRain className="me-2" /> <span>Weather</span>
             </Nav.Link>
             
-            <Nav.Link as={Link} to="/crypto" className="mx-1 nav-link-hover d-flex align-items-center justify-content-center">
+            <Nav.Link as={Link} to="/crypto" className="mx-1 nav-link-hover d-flex align-items-center justify-content-center" onClick={() => setExpanded(false)}>
               <FaCoins className="me-2" /> <span>Crypto</span>
             </Nav.Link>
             
-            <Nav.Link as={Link} to="/football" className="mx-1 nav-link-hover d-flex align-items-center justify-content-center">
+            <Nav.Link as={Link} to="/football" className="mx-1 nav-link-hover d-flex align-items-center justify-content-center" onClick={() => setExpanded(false)}>
               <FaFutbol className="me-2" /> <span>Football</span>
             </Nav.Link>
             
-            <Nav.Link as={Link} to="/anime" className="mx-1 nav-link-hover d-flex align-items-center justify-content-center">
+            <Nav.Link as={Link} to="/anime" className="mx-1 nav-link-hover d-flex align-items-center justify-content-center" onClick={() => setExpanded(false)}>
               <FaTv className="me-2" /> <span>Anime</span>
             </Nav.Link>
             
             <Nav.Item>
-              <Nav.Link as={Button} variant={darkMode ? "outline-light" : "outline-dark"} onClick={netlifyUser ? logout : login} className="mx-2 nav-link-hover">
+              <Nav.Link
+                as={Button}
+                variant={darkMode ? "outline-light" : "outline-dark"}
+                onClick={() => { (netlifyUser ? logout() : login()); setExpanded(false); }}
+                className="mx-2 nav-link-hover"
+              >
                 {netlifyUser ? 'Logout' : 'Login'}
               </Nav.Link>
             </Nav.Item>
