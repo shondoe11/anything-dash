@@ -77,9 +77,37 @@ export const deleteDataFromAirtable = async (recordId) => {
     return data;
 };
 
+//* Weather APIs (global + sg)
 export const fetchWeatherData = async (city) => {
     const weatherApiKey = import.meta.env.VITE_WEATHERAPI_KEY;
     const url = `https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${city}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& forecast data (3/7 day & hourly)
+export const fetchForecastWeatherData = async (city, days = 7, aqi = false, alerts = false) => {
+    const weatherApiKey = import.meta.env.VITE_WEATHERAPI_KEY;
+    const url = `https://api.weatherapi.com/v1/forecast.json?key=${weatherApiKey}&q=${city}&days=${days}&aqi=${aqi}&alerts=${alerts}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& historical data
+export const fetchHistoricalWeatherData = async (city, date) => {
+    const weatherApiKey = import.meta.env.VITE_WEATHERAPI_KEY;
+    const url = `https://api.weatherapi.com/v1/history.json?key=${weatherApiKey}&q=${city}&dt=${date}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& alerts
+export const fetchWeatherAlerts = async (city) => {
+    const weatherApiKey = import.meta.env.VITE_WEATHERAPI_KEY;
+    const url = `https://api.weatherapi.com/v1/alerts.json?key=${weatherApiKey}&q=${city}`;
     const response = await fetch(url);
     const data = await response.json();
     return data;
@@ -96,6 +124,22 @@ export const fetchFourDayWeatherDataSG = async () => {
 
 export const fetchNEAWeatherData = async () => {
     const url = `https://api.data.gov.sg/v1/environment/2-hour-weather-forecast`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& rainfall data sg
+export const fetchRainfallDataSG = async () => {
+    const url = `https://api.data.gov.sg/v1/environment/rainfall`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& uv index data sg
+export const fetchUVIndexDataSG = async () => {
+    const url = `https://api.data.gov.sg/v1/environment/uv-index`;
     const response = await fetch(url);
     const data = await response.json();
     return data;
