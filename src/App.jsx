@@ -6,11 +6,11 @@ import TodoPage from './pages/TodoPage';
 import WeatherPage from './pages/WeatherPage';
 // import WeatherDetail from './pages/WeatherDetail';
 import CryptoPage from './pages/CryptoPage';
-import CryptoDetail from './pages/CryptoDetail';
+// import CryptoDetail from './pages/CryptoDetail';
 import FootballPage from './pages/FootballPage';
-import CompetitionDetail from './pages/CompetitionDetail';
+// import CompetitionDetail from './pages/CompetitionDetail';
 import AnimePage from './pages/AnimePage';
-import AnimeDetail from './pages/AnimeDetail';
+// import AnimeDetail from './pages/AnimeDetail';
 import HomePage from './pages/HomePage';
 import NewTodoPage from './pages/NewTodoPage';
 import { ThemeProvider } from './context/ThemeContext';
@@ -47,11 +47,11 @@ function App() {
                 <Route path="/weather" element={<WeatherPage />} />
                 {/* <Route path="/weather/:country" element={<WeatherDetail />} /> */}
                 <Route path="/crypto" element={<CryptoPage />} />
-                <Route path="/crypto/:symbol" element={<CryptoDetail />} />
+                {/* <Route path="/crypto/:symbol" element={<CryptoDetail />} /> */}
                 <Route path="/football" element={<FootballPage />} />
-                <Route path="/football/competition/:id" element={<CompetitionDetail />} />
+                {/* <Route path="/football/competition/:id" element={<CompetitionDetail />} /> */}
                 <Route path="/anime" element={<AnimePage />} />
-                <Route path="/anime/:id" element={<AnimeDetail />} />
+                {/* <Route path="/anime/:id" element={<AnimeDetail />} /> */}
               </Routes>
             </Container>
           </main>
