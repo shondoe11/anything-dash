@@ -80,3 +80,25 @@ html {
 .dark-mode .react-resizable-handle {
   background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 20 L20 0' stroke='%23ffdd00' stroke-width='2'/%3E%3C/svg%3E") !important;
 }
+
+/* TodoPage button overrides */
+.incomplete-btn {
+  color: #ffc107 !important;
+  border-color: #ffc107 !important;
+}
+.incomplete-btn:hover,
+.incomplete-btn:focus {
+  color: #fff !important;
+  background-color: #ffc107 !important;
+  border-color: #ffc107 !important;
+}
+.delete-btn {
+  color: #dc3545 !important;
+  border-color: #dc3545 !important;
+}
+.delete-btn:hover,
+.delete-btn:focus {
+  color: #fff !important;
+  background-color: #dc3545 !important;
+  border-color: #dc3545 !important;
+}
