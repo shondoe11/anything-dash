@@ -80,7 +80,7 @@ export const deleteDataFromAirtable = async (recordId) => {
 //* Weather APIs (global + sg)
 export const fetchWeatherData = async (city) => {
     const weatherApiKey = import.meta.env.VITE_WEATHERAPI_KEY;
-    const url = `https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${city}`;
+    const url = `https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${city}&lang=en`;
     const response = await fetch(url);
     const data = await response.json();
     return data;
@@ -89,7 +89,7 @@ export const fetchWeatherData = async (city) => {
 //& forecast data (3/7 day & hourly)
 export const fetchForecastWeatherData = async (city, days = 7, aqi = false, alerts = false) => {
     const weatherApiKey = import.meta.env.VITE_WEATHERAPI_KEY;
-    const url = `https://api.weatherapi.com/v1/forecast.json?key=${weatherApiKey}&q=${city}&days=${days}&aqi=${aqi}&alerts=${alerts}`;
+    const url = `https://api.weatherapi.com/v1/forecast.json?key=${weatherApiKey}&q=${city}&days=${days}&aqi=${aqi}&alerts=${alerts}&lang=en`;
     const response = await fetch(url);
     const data = await response.json();
     return data;
@@ -98,7 +98,7 @@ export const fetchForecastWeatherData = async (city, days = 7, aqi = false, aler
 //& historical data
 export const fetchHistoricalWeatherData = async (city, date) => {
     const weatherApiKey = import.meta.env.VITE_WEATHERAPI_KEY;
-    const url = `https://api.weatherapi.com/v1/history.json?key=${weatherApiKey}&q=${city}&dt=${date}`;
+    const url = `https://api.weatherapi.com/v1/history.json?key=${weatherApiKey}&q=${city}&dt=${date}&lang=en`;
     const response = await fetch(url);
     const data = await response.json();
     return data;
@@ -107,7 +107,7 @@ export const fetchHistoricalWeatherData = async (city, date) => {
 //& alerts
 export const fetchWeatherAlerts = async (city) => {
     const weatherApiKey = import.meta.env.VITE_WEATHERAPI_KEY;
-    const url = `https://api.weatherapi.com/v1/alerts.json?key=${weatherApiKey}&q=${city}`;
+    const url = `https://api.weatherapi.com/v1/alerts.json?key=${weatherApiKey}&q=${city}&lang=en`;
     const response = await fetch(url);
     const data = await response.json();
     return data;
@@ -143,6 +143,23 @@ export const fetchUVIndexDataSG = async () => {
     const response = await fetch(url);
     const data = await response.json();
     return data;
+};
+
+//& hourly 24-hour forecast SG
+export const fetchHourlyForecastDataSG = async () => {
+    //~ try Netlify Func first
+    try {
+        const res = await fetch('/.netlify/functions/hourly-forecast');
+        if (!res.ok) throw new Error(`Function error: ${res.status}`);
+        return await res.json();
+        } catch (err) {
+        console.warn('Netlify func failed, falling back to CORS proxy', err);
+        const realUrl = 'https://api.data.gov.sg/v1/environment/24-hour-weather-forecast';
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(realUrl)}`;
+        const proxyRes = await fetch(proxyUrl);
+        if (!proxyRes.ok) throw new Error(`Proxy error: ${proxyRes.status}`);
+        return await proxyRes.json();
+    }
 };
 
 export const fetchCoinGeckoData = async (currency = 'sgd', page = 1, searchQuery = '') => {
