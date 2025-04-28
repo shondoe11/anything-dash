@@ -4,7 +4,7 @@ import Navbar from './components/Layout/Navbar';
 import Dashboard from './pages/Dashboard';
 import TodoPage from './pages/TodoPage';
 import WeatherPage from './pages/WeatherPage';
-// import WeatherDetail from './pages/WeatherDetail';
+import WeatherDetail from './pages/WeatherDetail';
 import CryptoPage from './pages/CryptoPage';
 // import CryptoDetail from './pages/CryptoDetail';
 import FootballPage from './pages/FootballPage';
@@ -45,7 +45,7 @@ function App() {
                 <Route path="/todo/new" element={<NewTodoPage />} />
                 <Route path="/todo/edit/:id" element={<TodoPage />} />
                 <Route path="/weather" element={<WeatherPage />} />
-                {/* <Route path="/weather/:country" element={<WeatherDetail />} /> */}
+                <Route path="/weather/:country" element={<WeatherDetail />} />
                 <Route path="/crypto" element={<CryptoPage />} />
                 {/* <Route path="/crypto/:symbol" element={<CryptoDetail />} /> */}
                 <Route path="/football" element={<FootballPage />} />
