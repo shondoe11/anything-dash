@@ -97,8 +97,7 @@ export const fetchForecastWeatherData = async (city, days = 7, aqi = false, aler
 
 //& historical data
 export const fetchHistoricalWeatherData = async (city, date) => {
-    const weatherApiKey = import.meta.env.VITE_WEATHERAPI_KEY;
-    const url = `https://api.weatherapi.com/v1/history.json?key=${weatherApiKey}&q=${city}&dt=${date}&lang=en`;
+    const url = `/.netlify/functions/weather-history?city=${encodeURIComponent(city)}&dt=${date}`;
     const response = await fetch(url);
     const data = await response.json();
     return data;
@@ -111,6 +110,57 @@ export const fetchWeatherAlerts = async (city) => {
     const response = await fetch(url);
     const data = await response.json();
     return data;
+};
+
+//& autocomplete search
+export const fetchSearchAutocomplete = async (query) => {
+    const key = import.meta.env.VITE_WEATHERAPI_KEY;
+    const url = `https://api.weatherapi.com/v1/search.json?key=${key}&q=${encodeURIComponent(query)}`;
+    const res = await fetch(url);
+    return await res.json();
+};
+
+//& astronomy data
+export const fetchAstronomyData = async (city, date) => {
+    const key = import.meta.env.VITE_WEATHERAPI_KEY;
+    const d = date || new Date().toISOString().split('T')[0];
+    const url = `https://api.weatherapi.com/v1/astronomy.json?key=${key}&q=${encodeURIComponent(city)}&dt=${d}`;
+    const res = await fetch(url);
+    return await res.json();
+};
+
+//& timezone data
+export const fetchTimezoneData = async (city) => {
+    const key = import.meta.env.VITE_WEATHERAPI_KEY;
+    const url = `https://api.weatherapi.com/v1/timezone.json?key=${key}&q=${encodeURIComponent(city)}`;
+    const res = await fetch(url);
+    return await res.json();
+};
+
+//& marine and tide data
+export const fetchMarineData = async (lat, lon, date) => {
+    const key = import.meta.env.VITE_WEATHERAPI_KEY;
+    const d = date || new Date().toISOString().split('T')[0];
+    const q = `${lat},${lon}`;
+    const url = `https://api.weatherapi.com/v1/marine.json?key=${key}&q=${q}&dt=${d}`;
+    const res = await fetch(url);
+    return await res.json();
+};
+
+//& air quality data
+export const fetchAirQualityData = async (city) => {
+    const key = import.meta.env.VITE_WEATHERAPI_KEY;
+    const url = `https://api.weatherapi.com/v1/airquality.json?key=${key}&q=${encodeURIComponent(city)}`;
+    const res = await fetch(url);
+    return await res.json();
+};
+
+//& sports data
+export const fetchSportsData = async (sport) => {
+    const key = import.meta.env.VITE_WEATHERAPI_KEY;
+    const url = `https://api.weatherapi.com/v1/sports.json?key=${key}&q=${encodeURIComponent(sport)}`;
+    const res = await fetch(url);
+    return await res.json();
 };
 
 export const fetchFourDayWeatherDataSG = async () => {
