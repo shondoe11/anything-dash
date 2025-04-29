@@ -1,43 +1,94 @@
 //* weather page: Global & SG overview
-import { useState } from 'react';
-import { Container, Form, Button, Tabs, Tab, Card, Spinner, Row, Col, Badge, Table, ProgressBar } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Container, Form, Tabs, Tab, Card, Spinner, Row, Col, Badge, Table, ProgressBar, Button } from 'react-bootstrap';
+import { Link, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faClock, faCalendarAlt, faThermometerHalf, faTint, faWind } from '@fortawesome/free-solid-svg-icons';
+import { faClock, faCalendarAlt, faThermometerHalf, faTint, faWind, faArrowUp, faArrowDown, faCloudRain, faSun, faMoon, faTemperatureHigh } from '@fortawesome/free-solid-svg-icons';
 import useGlobalWeather from '../hooks/useGlobalWeather';
 import useSGWeather from '../hooks/useSGWeather';
+import { fetchSearchAutocomplete } from '../services/service';
 
 export default function WeatherPage() {
+  const manual = sessionStorage.getItem('weatherManualQuery') || '';
+  const [searchTerm, setSearchTerm] = useState(manual);
+  const [city, setCity] = useState(manual);
   const [activeTab, setActiveTab] = useState('global');
-  const [cityInput, setCityInput] = useState('');
-  const [query, setQuery] = useState('');
-  const { current, loading: loadingG, error: errorG } = useGlobalWeather(query);
+  const [suggestions, setSuggestions] = useState([]);
+  const historyDays = 0;
+  const { current, forecast, weatherAlerts, astronomyData, marineData, loading: loadingG, error: errorG } = useGlobalWeather(city, { days: 14, aqi: true, alerts: true, historyDays, astronomy: true, marine: true });
   const { fourDay, twoHour, rainfall, uvIndex, hourly, loading: loadingSG, error: errorSG } = useSGWeather();
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setQuery(cityInput.trim());
-  };
-
   const regionColors = { west: 'primary', east: 'success', central: 'warning', south: 'info', north: 'danger' };
+
+  const forecastStart = forecast?.forecast?.forecastday?.[0]?.date || '';
+  const forecastEnd = forecast?.forecast?.forecastday?.slice(-1)[0]?.date || '';
+
+  const location = useLocation();
+
+  useEffect(() => {
+    let cancelled = false;
+    if (searchTerm.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+    const handler = setTimeout(() => {
+      fetchSearchAutocomplete(searchTerm)
+        .then(res => { if (!cancelled) setSuggestions(res || []); })
+        .catch(() => { if (!cancelled) setSuggestions([]); });
+    }, 500);
+    return () => { cancelled = true; clearTimeout(handler); };
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (city) sessionStorage.setItem('weatherManualQuery', city);
+  }, [city]);
+
+  useEffect(() => {
+    if (location.state?.clearSearch) {
+      setSearchTerm('');
+      setCity('');
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   return (
     <Container className="my-4">
       <h1 className="mb-4">Weather Forecast</h1>
       <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="mb-3">
         <Tab eventKey="global" title="Global">
-          <Form onSubmit={handleSearch} className="d-flex gap-2 mb-3">
-            <Form.Control
+          <Form.Control
+              list="search-options"
               placeholder="Enter city or country"
-              value={cityInput}
-              onChange={(e) => setCityInput(e.target.value)}
-            />
-            <Button type="submit">Search</Button>
-          </Form>
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              onInput={e => {
+                const v = e.target.value;
+                if (suggestions.some(o => o.name === v)) {
+                  setSearchTerm(v);
+                  setCity(v);
+                }
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  setCity(searchTerm);
+                }
+              }}
+              className="mb-3"
+          />
+          <datalist id="search-options">
+            {suggestions.map((opt, i) => (
+              <option key={i} value={opt.name} label={`${opt.name}, ${opt.country}`} />
+            ))}
+          </datalist>
           {loadingG && <Spinner animation="border" />}
-          {errorG && <p className="text-danger">Failed to load global weather</p>}
+          {!loadingG && !current?.location && errorG && <p className="text-danger">Failed to load global weather</p>}
           {current?.location && (
             <Card className="mb-4">
+              <Card.Header className="d-flex justify-content-between align-items-center">
+                <span>Today&apos;s Forecast</span>
+                <span className="small text-muted">{current.location.localtime} ({current.location.tz_id.replace(/_/g, ' ')})</span>
+              </Card.Header>
               <Card.Body>
                 <div className="d-flex align-items-center mb-2">
                   <img src={current.current.condition.icon} alt={current.current.condition.text} />
@@ -46,19 +97,87 @@ export default function WeatherPage() {
                     <div className="text-muted">{current.current.condition.text}</div>
                   </div>
                 </div>
-                <div className="d-flex flex-wrap gap-3 mb-2">
-                  <div>Temp: {current.current.temp_c}°C</div>
-                  <div>Feels like: {current.current.feelslike_c}°C</div>
-                  <div>Humidity: {current.current.humidity}%</div>
-                  <div>Wind: {current.current.wind_kph} kph</div>
-                  <div>Precip: {current.current.precip_mm} mm</div>
+                <div className="d-flex flex-wrap justify-content-evenly gap-3 mb-2">
+                  <div className="text-center"><FontAwesomeIcon icon={faThermometerHalf} className="me-1"/>Temp: {current.current.temp_c.toFixed(1)}°C</div>
+                  <div className="text-center"><FontAwesomeIcon icon={faTemperatureHigh} className="me-1"/>Feels like: {current.current.feelslike_c.toFixed(1)}°C</div>
+                  <div className="text-center"><FontAwesomeIcon icon={faTint} className="me-1"/>Humidity: {current.current.humidity}%</div>
+                  <div className="text-center"><FontAwesomeIcon icon={faWind} className="me-1"/>Wind: {current.current.wind_kph} kph</div>
+                  <div className="text-center"><FontAwesomeIcon icon={faCloudRain} className="me-1"/>Precip: {current.current.precip_mm} mm</div>
                 </div>
-                <Link to={`/weather/${encodeURIComponent(current.location.country)}`}>View Details →</Link>
+                <Button variant="primary" size="sm" as={Link} to={`/weather/${encodeURIComponent(current.location.country)}`}>
+                  View Details →
+                </Button>
+                {astronomyData?.astronomy?.astro && (
+                  <div className="mt-3 d-flex flex-wrap justify-content-evenly gap-3">
+                    <div><FontAwesomeIcon icon={faSun} className="me-1"/> Sunrise: {astronomyData.astronomy.astro.sunrise}</div>
+                    <div><FontAwesomeIcon icon={faSun} className="me-1"/> Sunset: {astronomyData.astronomy.astro.sunset}</div>
+                    <div><FontAwesomeIcon icon={faMoon} className="me-1"/> Moonrise: {astronomyData.astronomy.astro.moonrise}</div>
+                    <div><FontAwesomeIcon icon={faMoon} className="me-1"/> Moonset: {astronomyData.astronomy.astro.moonset}</div>
+                  </div>
+                )}
               </Card.Body>
             </Card>
           )}
-          {!loadingG && !errorG && query && !current?.location && (
-            <p className="text-muted">no results found for {query}.</p>
+          {!loadingG && !errorG && searchTerm && !current?.location && (
+            <p className="text-muted">No results found for {searchTerm}.</p>
+          )}
+          {/* 3-Day Forecast */}
+          {forecast?.forecast?.forecastday && (
+            <Card className="mb-4">
+              <Card.Header className="d-flex justify-content-between align-items-center">
+                <span>{forecast.forecast.forecastday.length}-Day Forecast</span>
+                <span className="small text-muted">{new Date(forecastStart).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})} - {new Date(forecastEnd).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</span>
+              </Card.Header>
+              <Card.Body>
+                <div className="d-flex flex-wrap justify-content-evenly gap-3">
+                  {forecast.forecast.forecastday.map((day, i) => (
+                    <Card key={i} className="text-center flex-fill" style={{ minWidth: '10rem' }}>
+                      <Card.Body className="p-2">
+                        <Card.Title className="fs-6 mb-1">{new Date(day.date).toLocaleDateString('en-GB',{weekday:'short'})}</Card.Title>
+                        <img src={day.day.condition.icon} alt={day.day.condition.text} />
+                        <div className="small mb-1">{day.day.condition.text}</div>
+                        <div><FontAwesomeIcon icon={faArrowUp} className="me-1"/>Max: {day.day.maxtemp_c.toFixed(1)}°C</div>
+                        <div><FontAwesomeIcon icon={faArrowDown} className="me-1"/>Min: {day.day.mintemp_c.toFixed(1)}°C</div>
+                        <div><FontAwesomeIcon icon={faTint} className="me-1"/>Humidity: {day.day.avghumidity}%</div>
+                        <div><FontAwesomeIcon icon={faSun} className="me-1"/>UV: {day.day.uv}</div>
+                        <div><FontAwesomeIcon icon={faCloudRain} className="me-1"/>Rain chance: {day.day.daily_chance_of_rain}%</div>
+                      </Card.Body>
+                    </Card>
+                  ))}
+                </div>
+              </Card.Body>
+            </Card>
+          )}
+          {/* Additional Data */}
+          {marineData?.forecast?.tide && (
+            <Card className="mb-4">
+              <Card.Header>Marine & Tide</Card.Header>
+              <Card.Body>
+                {marineData.forecast.tide.map((t, idx) => (
+                  <div key={idx}>{t.date} {t.time} {t.tide} ({t.type})</div>
+                ))}
+              </Card.Body>
+            </Card>
+          )}
+          {weatherAlerts?.alerts?.alert?.length > 0 && (
+            <Card className="mb-4">
+              <Card.Header className="d-flex justify-content-between align-items-center">
+                <span>Weather Alerts</span>
+                <span className="small text-muted">{weatherAlerts.alerts.alert.length}</span>
+              </Card.Header>
+              <Card.Body>
+                {weatherAlerts.alerts.alert.map((a, i) => (
+                  <Card key={i} className="mb-2">
+                    <Card.Header>{a.headline}</Card.Header>
+                    <Card.Body>{a.desc}</Card.Body>
+                    <div className="small text-muted">
+                      Effective: {a.effective ? new Date(a.effective).toLocaleString('en-GB',{ day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}) : 'Not Set'}
+                      {' '}– Expires: {a.expires ? new Date(a.expires).toLocaleString('en-GB',{ day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}) : 'Not Set'}
+                    </div>
+                  </Card>
+                ))}
+              </Card.Body>
+            </Card>
           )}
         </Tab>
         <Tab eventKey="sg" title="Singapore">
@@ -99,7 +218,7 @@ export default function WeatherPage() {
                 twoHour?.items?.[0]?.forecasts && (
                   <Card className="mb-4">
                     <Card.Header className="d-flex justify-content-between align-items-center">
-                      <span><FontAwesomeIcon icon={faClock} className="me-2" />2-Hour Forecast</span>
+                      <span><FontAwesomeIcon icon={faClock} className="me-1"/>2-Hour Forecast</span>
                       <small className="text-muted">
                         Valid: {new Date(twoHour.items[0].valid_period.start).toLocaleString('en-GB',{ day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',timeZoneName:'short'})} – {new Date(twoHour.items[0].valid_period.end).toLocaleString('en-GB',{ day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',timeZoneName:'short'})}
                       </small>
@@ -127,7 +246,7 @@ export default function WeatherPage() {
               {hourly?.items?.[0]?.periods && (
                 <Card className="mb-4">
                   <Card.Header className="d-flex justify-content-between align-items-center">
-                    <span><FontAwesomeIcon icon={faClock} className="me-2" />24-Hour Forecast</span>
+                    <span><FontAwesomeIcon icon={faClock} className="me-1"/>24-Hour Forecast</span>
                     <small className="text-muted">
                       Updated: {new Date(hourly.items[0].update_timestamp).toLocaleString('en-GB',{ day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',timeZoneName:'short'})}
                     </small>
@@ -170,7 +289,7 @@ export default function WeatherPage() {
               {fourDay?.data?.records?.[0]?.forecasts && (
                 <Card className="mb-4">
                   <Card.Header className="d-flex justify-content-between align-items-center">
-                    <span><FontAwesomeIcon icon={faCalendarAlt} className="me-2" />4-Day Forecast</span>
+                    <span><FontAwesomeIcon icon={faCalendarAlt} className="me-1"/>4-Day Forecast</span>
                     <small className="text-muted">
                       Updated: {new Date(fourDay.data.records[0].updatedTimestamp).toLocaleString('en-GB',{ day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',timeZoneName:'short'})}
                     </small>
@@ -182,9 +301,9 @@ export default function WeatherPage() {
                           <Card.Body className="p-2">
                             <Card.Title className="fs-6 mb-1">{f.day}</Card.Title>
                             <Card.Text className="small mb-1">{f.forecast.text} ({f.forecast.summary})</Card.Text>
-                            <div className="small mb-1"><FontAwesomeIcon icon={faThermometerHalf} className="me-1" />{f.temperature.low}°C–{f.temperature.high}°C</div>
-                            <div className="small mb-1"><FontAwesomeIcon icon={faTint} className="me-1 text-primary" />{f.relativeHumidity.low}%–{f.relativeHumidity.high}%</div>
-                            <div className="small"><FontAwesomeIcon icon={faWind} className="me-1" />{f.wind.direction} {f.wind.speed.low}–{f.wind.speed.high} kph</div>
+                            <div className="small mb-1"><FontAwesomeIcon icon={faThermometerHalf} className="me-1"/>{` ${f.temperature.low}°C–${f.temperature.high}°C`}</div>
+                            <div className="small mb-1"><FontAwesomeIcon icon={faTint} className="me-1"/> {f.relativeHumidity.low}%–{f.relativeHumidity.high}%</div>
+                            <div className="small"><FontAwesomeIcon icon={faWind} className="me-1"/> {f.wind.direction} {f.wind.speed.low}–{f.wind.speed.high} kph</div>
                           </Card.Body>
                         </Card>
                       ))}
@@ -218,7 +337,6 @@ export default function WeatherPage() {
                         </div>
                       ));
                     })()}
-                    <div className="small text-muted mt-2">As of: {new Date(rainfall.items[0].timestamp).toLocaleString('en-GB',{ day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',timeZoneName:'short'})}</div>
                   </Card.Body>
                 </Card>
               )}
