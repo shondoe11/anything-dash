@@ -2,19 +2,25 @@ import { Container, Spinner, Card, Button, Table } from 'react-bootstrap';
 import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
 import useGlobalWeather from '../hooks/useGlobalWeather';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faThermometerHalf, faTemperatureHigh, faTint, faWind, faTachometerAlt, faEye, faCloud, faSun, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
 
 export default function WeatherDetail() {
   const { country } = useParams();
   const [unit, setUnit] = useState('C');
-  const { current, forecast, weatherAlerts, loading, error } = useGlobalWeather(country, { days: 14, aqi: true, alerts: true });
+  const { current, forecast, weatherAlerts, history, loading, error } = useGlobalWeather(country, { days: 14, aqi: true, alerts: true, historyDays: 7 });
+
   //~ guard: only toggle if data loaded
   const toggleUnit = () => { if(current) setUnit(u => (u === 'C' ? 'F' : 'C')); };
+
+  const detailStart = forecast?.forecast?.forecastday?.[0]?.date;
+  const detailEnd = forecast?.forecast?.forecastday?.slice(-1)[0]?.date;
 
   return (
     <Container className="my-4">
       <h1 className="mb-4">Weather Details: {current?.location?.name || country}</h1>
       <Button variant="secondary" size="sm" onClick={toggleUnit} className="mb-3">
-        unit: °{unit}
+        Unit: °{unit}
       </Button>
       {loading && <Spinner animation="border" />}
       {!loading && !error && !current?.current && (
@@ -23,32 +29,27 @@ export default function WeatherDetail() {
       {error && <p className="text-danger">Failed to load weather details</p>}
       {current?.current && (
         <Card className="mb-3">
+          <Card.Header className="d-flex justify-content-between align-items-center">
+            <span>Current Weather</span>
+            <span className="small text-muted">{current.location.localtime} ({current.location.tz_id.replace(/_/g, ' ')})</span>
+          </Card.Header>
           <Card.Body>
-            <Card.Title>Current Weather</Card.Title>
-            <div className="d-flex align-items-center gap-2">
+            <div className="d-flex align-items-center gap-2 mb-3">
               <img src={current.current.condition.icon} alt={current.current.condition.text} />
               <span>{current.current.condition.text}</span>
             </div>
-            <div>Temp: {unit === 'C' ? `${current.current.temp_c}°C` : `${current.current.temp_f}°F`}</div>
-            <div>Feels like: {unit === 'C' ? `${current.current.feelslike_c}°C` : `${current.current.feelslike_f}°F`}</div>
-            <div>Humidity: {current.current.humidity}%</div>
-            <div>Wind: {unit === 'C' ? `${current.current.wind_kph} kph` : `${current.current.wind_mph} mph`}</div>
-            <div>Gust: {unit === 'C' ? `${current.current.gust_kph} kph` : `${current.current.gust_mph} mph`}</div>
-            <div>Pressure: {unit === 'C' ? `${current.current.pressure_mb} mb` : `${current.current.pressure_in} in`}</div>
-            <div>Visibility: {unit === 'C' ? `${current.current.vis_km} km` : `${current.current.vis_miles} miles`}</div>
-            <div>Cloud cover: {current.current.cloud}%</div>
-            <div>UV index: {current.current.uv}</div>
-          </Card.Body>
-        </Card>
-      )}
-      {current?.location && (
-        <Card className="mb-3">
-          <Card.Body>
-            <Card.Title>Location Info</Card.Title>
-            <div>Region: {current.location.region}</div>
-            <div>Localtime: {current.location.localtime}</div>
-            <div>Timezone: {current.location.tz_id}</div>
-            <div>Coordinates: {current.location.lat}, {current.location.lon}</div>
+            <div className="d-flex flex-wrap justify-content-evenly gap-3">
+              <div className="flex-fill text-center d-flex align-items-center justify-content-center gap-1" style={{ minWidth: '8rem' }}><FontAwesomeIcon icon={faThermometerHalf} className="me-1"/>Temp: {unit === 'C' ? `${current.current.temp_c}°C` : `${current.current.temp_f}°F`}</div>
+              <div className="flex-fill text-center d-flex align-items-center justify-content-center gap-1" style={{ minWidth: '8rem' }}><FontAwesomeIcon icon={faTemperatureHigh} className="me-1"/>Feels like: {unit === 'C' ? `${current.current.feelslike_c}°C` : `${current.current.feelslike_f}°F`}</div>
+              <div className="flex-fill text-center d-flex align-items-center justify-content-center gap-1" style={{ minWidth: '8rem' }}><FontAwesomeIcon icon={faTint} className="me-1"/>Humidity: {current.current.humidity}%</div>
+              <div className="flex-fill text-center d-flex align-items-center justify-content-center gap-1" style={{ minWidth: '8rem' }}><FontAwesomeIcon icon={faWind} className="me-1"/>Wind: {unit === 'C' ? `${current.current.wind_kph} kph` : `${current.current.wind_mph} mph`}</div>
+              <div className="flex-fill text-center d-flex align-items-center justify-content-center gap-1" style={{ minWidth: '8rem' }}><FontAwesomeIcon icon={faWind} className="me-1"/>Gust: {unit === 'C' ? `${current.current.gust_kph} kph` : `${current.current.gust_mph} mph`}</div>
+              <div className="flex-fill text-center d-flex align-items-center justify-content-center gap-1" style={{ minWidth: '8rem' }}><FontAwesomeIcon icon={faTachometerAlt} className="me-1"/>Pressure: {unit === 'C' ? `${current.current.pressure_mb} mb` : `${current.current.pressure_in} in`}</div>
+              <div className="flex-fill text-center d-flex align-items-center justify-content-center gap-1" style={{ minWidth: '8rem' }}><FontAwesomeIcon icon={faEye} className="me-1"/>Visibility: {unit === 'C' ? `${current.current.vis_km} km` : `${current.current.vis_miles} miles`}</div>
+              <div className="flex-fill text-center d-flex align-items-center justify-content-center gap-1" style={{ minWidth: '8rem' }}><FontAwesomeIcon icon={faCloud} className="me-1"/>Cloud: {current.current.cloud}%</div>
+              <div className="flex-fill text-center d-flex align-items-center justify-content-center gap-1" style={{ minWidth: '8rem' }}><FontAwesomeIcon icon={faSun} className="me-1"/>UV: {current.current.uv}</div>
+              <div className="flex-fill text-center d-flex align-items-center justify-content-center gap-1" style={{ minWidth: '8rem' }}><FontAwesomeIcon icon={faMapMarkerAlt} className="me-1"/>Coords: {current.location.lat}, {current.location.lon}</div>
+            </div>
           </Card.Body>
         </Card>
       )}
@@ -71,11 +72,14 @@ export default function WeatherDetail() {
       )}
       {forecast?.forecast?.forecastday && (
         <Card className="mb-3">
+          <Card.Header className="d-flex justify-content-between align-items-center">
+            <span>{forecast.forecast.forecastday.length}-Day Forecast</span>
+            <span className="small text-muted">{new Date(detailStart).toLocaleDateString('en-GB',{weekday:'short'})} - {new Date(detailEnd).toLocaleDateString('en-GB',{weekday:'short'})}</span>
+          </Card.Header>
           <Card.Body>
-            <Card.Title>14-Day Forecast</Card.Title>
-            <div className="d-flex flex-wrap gap-3">
+            <div className="d-flex justify-content-evenly flex-wrap gap-3">
               {forecast.forecast.forecastday.map(day => (
-                <Card key={day.date} className="p-2" style={{ width: '10rem' }}>
+                <Card key={day.date} className="text-center flex-fill p-2" style={{ minWidth: '10rem' }}>
                   <Card.Body>
                     <Card.Subtitle className="mb-2">{day.date}</Card.Subtitle>
                     <img src={day.day.condition.icon} alt={day.day.condition.text} />
@@ -97,23 +101,62 @@ export default function WeatherDetail() {
       {forecast?.forecast?.forecastday?.[0]?.hour && (
         <Card className="mb-3">
           <Card.Body>
-            <Card.Title>Hourly Forecast (Today)</Card.Title>
+            <Card.Title className="mb-4">Hourly Forecast (Today)</Card.Title>
             <div className="d-flex flex-wrap gap-2">
               {forecast.forecast.forecastday[0].hour.map((h, idx) => (
-                <div key={idx} className="text-center" style={{ width: '6rem' }}>
-                  <div>{h.time.split(' ')[1]}</div>
-                  <img src={h.condition.icon} alt={h.condition.text} />
-                  <div>{unit === 'C' ? `${h.temp_c}°C` : `${h.temp_f}°F`}</div>
-                </div>
+                <Card key={idx} className="text-center mb-2" style={{ width: '6rem' }}>
+                  <Card.Body className="p-2">
+                    <div className="small mb-1">{h.time.split(' ')[1]}</div>
+                    <img src={h.condition.icon} alt={h.condition.text} />
+                    <div>{unit === 'C' ? `${h.temp_c}°C` : `${h.temp_f}°F`}</div>
+                  </Card.Body>
+                </Card>
               ))}
             </div>
           </Card.Body>
         </Card>
       )}
+      {/* Historical Weather */}
+      {history?.length > 0 && (
+        <Card className="mb-3">
+          <Card.Header className="d-flex justify-content-between align-items-center">
+            <span>Historical Weather</span>
+            <span className="small text-muted">Last 7 Days</span>
+          </Card.Header>
+          <Card.Body>
+            <Table size="sm" bordered responsive>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Condition</th>
+                  <th className="align-middle">Max/Min °{unit}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((h, i) => {
+                  const entry = h.forecast?.forecastday?.[0];
+                  if (!entry) return null;
+                  const { date, day: dayData } = entry;
+                  return (
+                    <tr key={i}>
+                      <td className="align-middle">{date}, {new Date(date).toLocaleDateString('en-GB',{weekday:'short'})}</td>
+                      <td className="d-flex align-items-center align-middle"><img src={dayData.condition.icon} alt={dayData.condition.text} className="me-2" />{dayData.condition.text}</td>
+                      <td className="align-middle">{unit === 'C' ? `${dayData.maxtemp_c.toFixed(1)} / ${dayData.mintemp_c.toFixed(1)}` : `${(dayData.maxtemp_c*9/5+32).toFixed(1)} / ${(dayData.mintemp_c*9/5+32).toFixed(1)}`}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </Table>
+          </Card.Body>
+        </Card>
+      )}
       {weatherAlerts?.alerts?.alert?.length > 0 && (
         <Card className="mb-3">
+          <Card.Header className="d-flex justify-content-between align-items-center">
+            <span>Weather Alerts</span>
+            <span className="small text-muted">{weatherAlerts.alerts.alert.length}</span>
+          </Card.Header>
           <Card.Body>
-            <Card.Title>Weather Alerts</Card.Title>
             {weatherAlerts.alerts.alert.map((a, i) => (
               <div key={i} className="mb-2">
                 <h6>{a.event}</h6>
@@ -124,7 +167,9 @@ export default function WeatherDetail() {
           </Card.Body>
         </Card>
       )}
-      <Link to="/weather">Back to overview</Link>
+      <Button variant="secondary" size="sm" as={Link} to="/weather" state={{ clearSearch: true }} className="mt-3">
+        Back to overview
+      </Button>
     </Container>
   );
 }
