@@ -1,0 +1,16 @@
+/* coin card hover & badge highlight */
+.coin-card {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.coin-card:hover {
+  transform: scale(1.05);
+}
+/* symbol, rank, index badges hover highlight */
+.coin-card:hover .badge.mt-2,
+.coin-card:hover .badge.mt-1,
+.coin-card:hover .badge.position-absolute {
+  background-color: var(--bs-primary) !important;
+  color: var(--bs-white) !important;
+}
