@@ -1,5 +1,7 @@
 //* store ALL API requests
 
+//^ Airtable API
+
 export const fetchAirtableData = async (userRecordId, userEmail) => {
     const airtableApiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const airtableBaseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
@@ -77,7 +79,7 @@ export const deleteDataFromAirtable = async (recordId) => {
     return data;
 };
 
-//* Weather APIs (global + sg)
+//^ Weather APIs (global + SG)
 export const fetchWeatherData = async (city) => {
     const weatherApiKey = import.meta.env.VITE_WEATHERAPI_KEY;
     const url = `https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${city}&lang=en`;
@@ -212,6 +214,8 @@ export const fetchHourlyForecastDataSG = async () => {
     }
 };
 
+//^ CoinGecko API
+
 export const fetchCoinGeckoData = async (currency = 'sgd', page = 1, searchQuery = '') => {
     const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
@@ -238,6 +242,59 @@ export const fetchCoinGeckoData = async (currency = 'sgd', page = 1, searchQuery
     }
 };
 
+//& global mkt overview data
+export const getGlobalData = async () => {
+    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
+    const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
+    const url = `${coinGeckoUrl}/global`;
+    try {
+        const response = await fetch(url, {
+            headers: { "x-cg-demo-api-key": coinGeckoKey },
+        });
+        if (!response.ok) throw new Error(`status: ${response.status}`);
+        const data = await response.json();
+        return data.data;
+    } catch (error) {
+        console.error('getGlobalData fail:', error);
+        return null;
+    }
+};
+
+//& trending coins data
+export const getTrendingCoins = async () => {
+    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
+    const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
+    const url = `${coinGeckoUrl}/search/trending`;
+    try {
+        const response = await fetch(url, {
+            headers: { "x-cg-demo-api-key": coinGeckoKey },
+        });
+        if (!response.ok) throw new Error(`status: ${response.status}`);
+        const data = await response.json();
+        return data.coins.map(c => c.item);
+    } catch (error) {
+        console.error('getTrendingCoins fail:', error);
+        return [];
+    }
+};
+
+//& supported vs currencies
+export const getSupportedVsCurrencies = async () => {
+    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
+    const url = `${coinGeckoUrl}/simple/supported_vs_currencies`;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`status: ${response.status}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('getSupportedVsCurrencies fail:', error);
+        return [];
+    }
+};
+
+//^ Football API
+
 export const fetchFootballData = async (compeId = 'PL') => {
     //~ call netlify function as proxy
     const url = `/.netlify/functions/football-proxy?league=${compeId}`;
@@ -246,12 +303,16 @@ export const fetchFootballData = async (compeId = 'PL') => {
     return data;
 };
 
+//^ Anime API
+
 export const fetchAnimeData = async () => {
     const url = `https://api.jikan.moe/v4/top/anime?filter=airing`
     const response = await fetch(url);
     const data = await response.json();
     return data;
 };
+
+//^ Airtable/Netlify prefs APIs
 
 //& multi-user helper func
 export const getOrCreateUser = async (netlifyUserId, email) => {
@@ -301,7 +362,6 @@ export const saveLayout = async (userRecordId, layoutJSON) => {
     return data;
 };
 
-//^ preference APIs
 //& fetch weather prefs frm users record
 export const fetchWeatherPreferences = async (userRecordId) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
