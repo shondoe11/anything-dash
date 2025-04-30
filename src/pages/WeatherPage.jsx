@@ -197,11 +197,8 @@ export default function WeatherPage() {
                       const severity = v=>v>=11?['Extreme','dark']:v>=8?['Very High','danger']:v>=6?['High','warning']:v>=3?['Moderate','info']:['Low','success'];
                       const latest = uvIndex.items[0].index[0];
                       const [label,variant] = severity(latest.value);
-                      return <Badge bg={variant} className="me-2">{latest.value} {label}</Badge>;
+                      return <Badge bg={variant} className="me-2 fs-3">{latest.value} {label}</Badge>;
                     })()}
-                    <div className="small text-muted mt-2">
-                      As of: {new Date(uvIndex.items[0].index[0].timestamp).toLocaleString('en-GB',{ day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',timeZoneName:'short'})}
-                    </div>
                   </Card.Body>
                 </Card>
               )}
@@ -265,7 +262,6 @@ export default function WeatherPage() {
                           return (
                             <tr key={i}>
                               <td>
-                                <div>{p.timePeriod?.text || `${start}–${end}`}</div>
                                 <small className="text-muted">{`${start}–${end}`}</small>
                               </td>
                               <td><Badge bg={regionColors.west}>{p.regions.west}</Badge></td>
