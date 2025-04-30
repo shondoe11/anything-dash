@@ -1,6 +1,8 @@
 /* eslint-disable no-undef, no-unused-vars */
 //* Proxy NEA 24-hour hourly forecast: bypass CORS
-exports.handler = async function(event, context) {
+import fetch from 'node-fetch';
+
+export const handler = async function(event, context) {
   try {
     //~ fetch 24h forecast frm NEA
     const res = await fetch('https://api.data.gov.sg/v1/environment/24-hour-weather-forecast');
