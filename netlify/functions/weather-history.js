@@ -1,6 +1,8 @@
 /* eslint-env node */
-/* global module process */
-module.exports.handler = async function(event) {
+/* global process */
+import fetch from 'node-fetch';
+
+export const handler = async function(event) {
   const { city, dt } = event.queryStringParameters || {};
   const apiKey = process.env.VITE_WEATHERAPI_KEY;
   const url = `https://api.weatherapi.com/v1/history.json?key=${apiKey}&q=${encodeURIComponent(city)}&dt=${dt}&lang=en`;
