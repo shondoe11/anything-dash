@@ -296,7 +296,8 @@ export default function WeatherPage() {
                         <Card key={i} className="text-center flex-fill" style={{ minWidth: '10rem' }}>
                           <Card.Body className="p-2">
                             <Card.Title className="fs-6 mb-1">{f.day}</Card.Title>
-                            <Card.Text className="small mb-1">{f.forecast.text} ({f.forecast.summary})</Card.Text>
+                            <Card.Text className="small mb-1">{f.forecast.text}</Card.Text>
+                            <Card.Text className="small mb-1">({f.forecast.summary})</Card.Text>
                             <div className="small mb-1"><FontAwesomeIcon icon={faThermometerHalf} className="me-1"/>{` ${f.temperature.low}°C–${f.temperature.high}°C`}</div>
                             <div className="small mb-1"><FontAwesomeIcon icon={faTint} className="me-1"/> {f.relativeHumidity.low}%–{f.relativeHumidity.high}%</div>
                             <div className="small"><FontAwesomeIcon icon={faWind} className="me-1"/> {f.wind.direction} {f.wind.speed.low}–{f.wind.speed.high} kph</div>
@@ -325,8 +326,12 @@ export default function WeatherPage() {
                       const readings = rainfall.items[0].readings;
                       const stations = rainfall.metadata.stations;
                       const stationMap = Object.fromEntries(stations.map(s=>[s.id,s.name]));
-                      const maxVal = Math.max(...readings.map(r=>r.value));
-                      return readings.map((r, idx) => (
+                      const validReadings = readings.filter(r => r.value > 0);
+                      if (validReadings.length === 0) {
+                        return <div className="text-center">No rainfall in any areas at the moment ☀️</div>;
+                      }
+                      const maxVal = Math.max(...validReadings.map(r => r.value));
+                      return validReadings.map((r, idx) => (
                         <div key={idx} className="mb-2">
                           <div className="d-flex justify-content-between"><span>{stationMap[r.station_id]||r.station_id}</span><span>{r.value} mm</span></div>
                           <ProgressBar now={r.value} max={maxVal} label={`${r.value} mm`} variant="info"/>
