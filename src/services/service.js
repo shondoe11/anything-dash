@@ -219,7 +219,8 @@ export const fetchHourlyForecastDataSG = async () => {
 export const fetchCoinGeckoData = async (currency = 'sgd', page = 1, searchQuery = '') => {
     const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = `${coinGeckoUrl}/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=10&page=${page}&sparkline=false`;
+    const baseUrl = import.meta.env.DEV ? '/api' : coinGeckoUrl;
+    const url = `${baseUrl}/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=10&page=${page}&sparkline=false`;
     try {
         const response = await fetch(url, {
             headers: {
@@ -280,15 +281,181 @@ export const getTrendingCoins = async () => {
 
 //& supported vs currencies
 export const getSupportedVsCurrencies = async () => {
-    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
-    const url = `${coinGeckoUrl}/simple/supported_vs_currencies`;
+    const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
+    const url = import.meta.env.DEV
+        ? '/api/simple/supported_vs_currencies'
+        : `${import.meta.env.VITE_COINGECKO_URL}/simple/supported_vs_currencies`;
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            headers: { "x-cg-demo-api-key": coinGeckoKey },
+        });
         if (!response.ok) throw new Error(`status: ${response.status}`);
         const data = await response.json();
         return data;
     } catch (error) {
         console.error('getSupportedVsCurrencies fail:', error);
+        return [];
+    }
+};
+
+//& top gainers and losers (24h)
+export const getTopGainersLosers = async (currency = 'usd', perPage = 5) => {
+    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
+    const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
+    //& fetch larger list, then sort manually by 24h change
+    const url = `${coinGeckoUrl}/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=100&page=1&sparkline=false`;
+    try {
+        const response = await fetch(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
+        if (!response.ok) throw new Error(`status: ${response.status}`);
+        const data = await response.json();
+        const valid = data.filter(c => c.price_change_percentage_24h != null);
+        const gainers = [...valid]
+            .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
+            .slice(0, perPage);
+        const losers = [...valid]
+            .sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h)
+            .slice(0, perPage);
+        return { gainers, losers };
+    } catch (error) {
+        console.warn('getTopGainersLosers fail:', error);
+        return { gainers: [], losers: [] };
+    }
+};
+
+//& volume leaders
+export const getVolumeLeaders = async (currency = 'usd', perPage = 10) => {
+    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
+    const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
+    const url = `${coinGeckoUrl}/coins/markets?vs_currency=${currency}&order=volume_desc&per_page=${perPage}&page=1&sparkline=false`;
+    
+    try {
+        const response = await fetch(url, {
+            headers: { "x-cg-demo-api-key": coinGeckoKey }
+        });
+        
+        if (!response.ok) throw new Error(`status: ${response.status}`);
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('getVolumeLeaders fail:', error);
+        return [];
+    }
+};
+
+//& price history chart data
+export const getCoinMarketChart = async (coinId, currency = 'usd', days = 1) => {
+    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
+    const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
+    //~ valid days values: 1, 7, 14, 30, 90, 180, 365, max
+    const url = `${coinGeckoUrl}/coins/${coinId}/market_chart?vs_currency=${currency}&days=${days}`;
+    
+    try {
+        const response = await fetch(url, {
+            headers: { "x-cg-demo-api-key": coinGeckoKey }
+        });
+        
+        if (!response.ok) throw new Error(`status: ${response.status}`);
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error(`getCoinMarketChart fail for ${coinId}:`, error);
+        return { prices: [], market_caps: [], total_volumes: [] };
+    }
+};
+
+//& ohlc (candlestick) chart data
+export const getCoinOHLC = async (coinId, currency = 'usd', days = 1) => {
+    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
+    const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
+    //~ valid days values: 1, 7, 14, 30, 90, 180, 365
+    const url = `${coinGeckoUrl}/coins/${coinId}/ohlc?vs_currency=${currency}&days=${days}`;
+    
+    try {
+        const response = await fetch(url, {
+            headers: { "x-cg-demo-api-key": coinGeckoKey }
+        });
+        
+        if (!response.ok) throw new Error(`status: ${response.status}`);
+        
+        const data = await response.json();
+        return data; //~ returns arr [timestamp, open, high, low, close]
+    } catch (error) {
+        console.error(`getCoinOHLC fail for ${coinId}:`, error);
+        return [];
+    }
+};
+
+//& coin tickers & trading pairs
+export const getCoinTickers = async (coinId, page = 1) => {
+    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
+    const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
+    const url = `${coinGeckoUrl}/coins/${coinId}/tickers?page=${page}`;
+    
+    try {
+        const response = await fetch(url, {
+            headers: { "x-cg-demo-api-key": coinGeckoKey }
+        });
+        
+        if (!response.ok) throw new Error(`status: ${response.status}`);
+        
+        const data = await response.json();
+        return data.tickers || [];
+    } catch (error) {
+        console.error(`getCoinTickers fail for ${coinId}:`, error);
+        return [];
+    }
+};
+
+//& token prices by platform
+export const getTokenPrices = async (platformId = 'ethereum', tokenAddresses, currency = 'usd') => {
+    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
+    const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
+    const contractAddresses = Object.keys(tokenAddresses).join(',');
+    const url = `${coinGeckoUrl}/simple/token_price/${platformId}?contract_addresses=${contractAddresses}&vs_currencies=${currency}&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true&include_last_updated_at=true`;
+    
+    try {
+        const response = await fetch(url, {
+            headers: { "x-cg-demo-api-key": coinGeckoKey }
+        });
+        
+        if (!response.ok) throw new Error(`status: ${response.status}`);
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error(`getTokenPrices fail for ${platformId}:`, error);
+        return {};
+    }
+};
+
+//& full coin list fr dynamic selectors
+export const getAllCoins = async () => {
+    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
+    const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
+    const url = `${coinGeckoUrl}/coins/list`;
+    try {
+        const response = await fetch(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
+        if (!response.ok) throw new Error(`status: ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        console.error('getAllCoins fail:', error);
+        return [];
+    }
+};
+
+//& asset platforms fr TokenPrices
+export const getAssetPlatforms = async () => {
+    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
+    const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
+    const url = `${coinGeckoUrl}/asset_platforms`;
+    try {
+        const response = await fetch(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
+        if (!response.ok) throw new Error(`status: ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        console.error('getAssetPlatforms fail:', error);
         return [];
     }
 };
