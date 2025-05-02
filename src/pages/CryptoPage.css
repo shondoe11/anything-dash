@@ -1,0 +1,16 @@
+/* compact card styling */
+.crypto-page .card {
+  margin-bottom: 1rem !important;
+}
+.crypto-page .card .card-body {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.crypto-page .card .card-header {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+/* compact table margin */
+.crypto-page .crypto-table {
+  margin-bottom: 1rem !important;
+}
