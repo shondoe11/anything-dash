@@ -1,0 +1,17 @@
+.stat-card {
+  width: max-content;
+  flex: 0 0 auto;
+  display: block;
+}
+.stat-card .card-body {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.stat-card h6 {
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+}
+.stat-card p {
+  margin-bottom: 0;
+  font-size: 1rem;
+}
