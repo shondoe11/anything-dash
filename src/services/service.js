@@ -166,8 +166,8 @@ export const fetchSportsData = async (sport) => {
 };
 
 export const fetchFourDayWeatherDataSG = async () => {
-    const url=`https://api-open.data.gov.sg/v2/real-time/api/four-day-outlook`
-    const options = {method: 'GET'};
+    const url = `https://api-open.data.gov.sg/v2/real-time/api/four-day-outlook`
+    const options = { method: 'GET' };
     const response = await fetch(url, options);
     const data = await response.json();
     // console.log("API response: ", data);
@@ -204,7 +204,7 @@ export const fetchHourlyForecastDataSG = async () => {
         const res = await fetch('/.netlify/functions/hourly-forecast');
         if (!res.ok) throw new Error(`Function error: ${res.status}`);
         return await res.json();
-        } catch (err) {
+    } catch (err) {
         console.warn('Netlify func failed, falling back to CORS proxy', err);
         const realUrl = 'https://api.data.gov.sg/v1/environment/24-hour-weather-forecast';
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(realUrl)}`;
@@ -216,10 +216,11 @@ export const fetchHourlyForecastDataSG = async () => {
 
 //^ CoinGecko API
 
+const coinGeckoBaseUrl = import.meta.env.DEV ? '/api' : import.meta.env.VITE_COINGECKO_URL;
+
 export const fetchCoinGeckoData = async (currency = 'sgd', page = 1, searchQuery = '') => {
-    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const baseUrl = import.meta.env.DEV ? '/api' : coinGeckoUrl;
+    const baseUrl = coinGeckoBaseUrl;
     const url = `${baseUrl}/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=10&page=${page}&sparkline=false`;
     try {
         const response = await fetch(url, {
@@ -245,9 +246,8 @@ export const fetchCoinGeckoData = async (currency = 'sgd', page = 1, searchQuery
 
 //& global mkt overview data
 export const getGlobalData = async () => {
-    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = `${coinGeckoUrl}/global`;
+    const url = `${coinGeckoBaseUrl}/global`;
     try {
         const response = await fetch(url, {
             headers: { "x-cg-demo-api-key": coinGeckoKey },
@@ -263,9 +263,8 @@ export const getGlobalData = async () => {
 
 //& trending coins data
 export const getTrendingCoins = async () => {
-    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = `${coinGeckoUrl}/search/trending`;
+    const url = `${coinGeckoBaseUrl}/search/trending`;
     try {
         const response = await fetch(url, {
             headers: { "x-cg-demo-api-key": coinGeckoKey },
@@ -284,7 +283,7 @@ export const getSupportedVsCurrencies = async () => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
     const url = import.meta.env.DEV
         ? '/api/simple/supported_vs_currencies'
-        : `${import.meta.env.VITE_COINGECKO_URL}/simple/supported_vs_currencies`;
+        : `${coinGeckoBaseUrl}/simple/supported_vs_currencies`;
     try {
         const response = await fetch(url, {
             headers: { "x-cg-demo-api-key": coinGeckoKey },
@@ -300,10 +299,9 @@ export const getSupportedVsCurrencies = async () => {
 
 //& top gainers and losers (24h)
 export const getTopGainersLosers = async (currency = 'usd', perPage = 5) => {
-    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
     //& fetch larger list, then sort manually by 24h change
-    const url = `${coinGeckoUrl}/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=100&page=1&sparkline=false`;
+    const url = `${coinGeckoBaseUrl}/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=100&page=1&sparkline=false`;
     try {
         const response = await fetch(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
         if (!response.ok) throw new Error(`status: ${response.status}`);
@@ -324,17 +322,16 @@ export const getTopGainersLosers = async (currency = 'usd', perPage = 5) => {
 
 //& volume leaders
 export const getVolumeLeaders = async (currency = 'usd', perPage = 10) => {
-    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = `${coinGeckoUrl}/coins/markets?vs_currency=${currency}&order=volume_desc&per_page=${perPage}&page=1&sparkline=false`;
-    
+    const url = `${coinGeckoBaseUrl}/coins/markets?vs_currency=${currency}&order=volume_desc&per_page=${perPage}&page=1&sparkline=false`;
+
     try {
         const response = await fetch(url, {
             headers: { "x-cg-demo-api-key": coinGeckoKey }
         });
-        
+
         if (!response.ok) throw new Error(`status: ${response.status}`);
-        
+
         const data = await response.json();
         return data;
     } catch (error) {
@@ -345,18 +342,17 @@ export const getVolumeLeaders = async (currency = 'usd', perPage = 10) => {
 
 //& price history chart data
 export const getCoinMarketChart = async (coinId, currency = 'usd', days = 1) => {
-    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
     //~ valid days values: 1, 7, 14, 30, 90, 180, 365, max
-    const url = `${coinGeckoUrl}/coins/${coinId}/market_chart?vs_currency=${currency}&days=${days}`;
-    
+    const url = `${coinGeckoBaseUrl}/coins/${coinId}/market_chart?vs_currency=${currency}&days=${days}`;
+
     try {
         const response = await fetch(url, {
             headers: { "x-cg-demo-api-key": coinGeckoKey }
         });
-        
+
         if (!response.ok) throw new Error(`status: ${response.status}`);
-        
+
         const data = await response.json();
         return data;
     } catch (error) {
@@ -367,18 +363,17 @@ export const getCoinMarketChart = async (coinId, currency = 'usd', days = 1) => 
 
 //& ohlc (candlestick) chart data
 export const getCoinOHLC = async (coinId, currency = 'usd', days = 1) => {
-    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
     //~ valid days values: 1, 7, 14, 30, 90, 180, 365
-    const url = `${coinGeckoUrl}/coins/${coinId}/ohlc?vs_currency=${currency}&days=${days}`;
-    
+    const url = `${coinGeckoBaseUrl}/coins/${coinId}/ohlc?vs_currency=${currency}&days=${days}`;
+
     try {
         const response = await fetch(url, {
             headers: { "x-cg-demo-api-key": coinGeckoKey }
         });
-        
+
         if (!response.ok) throw new Error(`status: ${response.status}`);
-        
+
         const data = await response.json();
         return data; //~ returns arr [timestamp, open, high, low, close]
     } catch (error) {
@@ -389,17 +384,16 @@ export const getCoinOHLC = async (coinId, currency = 'usd', days = 1) => {
 
 //& coin tickers & trading pairs
 export const getCoinTickers = async (coinId, page = 1) => {
-    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = `${coinGeckoUrl}/coins/${coinId}/tickers?page=${page}`;
-    
+    const url = `${coinGeckoBaseUrl}/coins/${coinId}/tickers?page=${page}`;
+
     try {
         const response = await fetch(url, {
             headers: { "x-cg-demo-api-key": coinGeckoKey }
         });
-        
+
         if (!response.ok) throw new Error(`status: ${response.status}`);
-        
+
         const data = await response.json();
         return data.tickers || [];
     } catch (error) {
@@ -410,18 +404,17 @@ export const getCoinTickers = async (coinId, page = 1) => {
 
 //& token prices by platform
 export const getTokenPrices = async (platformId = 'ethereum', tokenAddresses, currency = 'usd') => {
-    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
     const contractAddresses = Object.keys(tokenAddresses).join(',');
-    const url = `${coinGeckoUrl}/simple/token_price/${platformId}?contract_addresses=${contractAddresses}&vs_currencies=${currency}&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true&include_last_updated_at=true`;
-    
+    const url = `${coinGeckoBaseUrl}/simple/token_price/${platformId}?contract_addresses=${contractAddresses}&vs_currencies=${currency}&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true&include_last_updated_at=true`;
+
     try {
         const response = await fetch(url, {
             headers: { "x-cg-demo-api-key": coinGeckoKey }
         });
-        
+
         if (!response.ok) throw new Error(`status: ${response.status}`);
-        
+
         const data = await response.json();
         return data;
     } catch (error) {
@@ -432,9 +425,8 @@ export const getTokenPrices = async (platformId = 'ethereum', tokenAddresses, cu
 
 //& full coin list fr dynamic selectors
 export const getAllCoins = async () => {
-    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = `${coinGeckoUrl}/coins/list`;
+    const url = `${coinGeckoBaseUrl}/coins/list`;
     try {
         const response = await fetch(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
         if (!response.ok) throw new Error(`status: ${response.status}`);
@@ -447,9 +439,8 @@ export const getAllCoins = async () => {
 
 //& asset platforms fr TokenPrices
 export const getAssetPlatforms = async () => {
-    const coinGeckoUrl = import.meta.env.VITE_COINGECKO_URL;
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = `${coinGeckoUrl}/asset_platforms`;
+    const url = `${coinGeckoBaseUrl}/asset_platforms`;
     try {
         const response = await fetch(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
         if (!response.ok) throw new Error(`status: ${response.status}`);
@@ -494,8 +485,8 @@ export const getOrCreateUser = async (netlifyUserId, email) => {
     const createResp = await fetch(`https://api.airtable.com/v0/${baseId}/${tableUsers}`, {
         method: 'POST',
         headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
         },
         body: JSON.stringify({ records: [{ fields: { netlify_user_id: netlifyUserId, Email: email } }] }),
     });
@@ -540,7 +531,7 @@ export const fetchWeatherPreferences = async (userRecordId) => {
     return {
         fields: {
             Country: data.fields['Weather-Country'] || '',
-            Town: data.fields['Weather-SGtown']  || ''
+            Town: data.fields['Weather-SGtown'] || ''
         },
         recordId: data.id
     };
@@ -553,7 +544,7 @@ export const saveWeatherPreferences = async (userRecordId, fields) => {
     const table = import.meta.env.VITE_AIRTABLE_TABLE_USERS;
     const out = {};
     if (fields.Country != null) out['Weather-Country'] = fields.Country;
-    if (fields.Town    != null) out['Weather-SGtown']  = fields.Town;
+    if (fields.Town != null) out['Weather-SGtown'] = fields.Town;
     const url = `https://api.airtable.com/v0/${baseId}/${table}/${userRecordId}`;
     const resp = await fetch(url, {
         method: 'PATCH',
@@ -565,7 +556,7 @@ export const saveWeatherPreferences = async (userRecordId, fields) => {
 };
 
 export const fetchCryptoPreferences = async (userRecordId) => {
-  //~ fetch crypto currency prefs frm Users record
+    //~ fetch crypto currency prefs frm Users record
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
     const table = import.meta.env.VITE_AIRTABLE_TABLE_USERS;
@@ -576,7 +567,7 @@ export const fetchCryptoPreferences = async (userRecordId) => {
 };
 
 export const saveCryptoPreferences = async (userRecordId, fields) => {
-  //~ patch crypto currency field on Users record
+    //~ patch crypto currency field on Users record
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
     const table = import.meta.env.VITE_AIRTABLE_TABLE_USERS;
