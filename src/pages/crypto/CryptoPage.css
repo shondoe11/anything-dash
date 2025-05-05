@@ -1,0 +1,71 @@
+/* CryptoPage.css - Performance optimized styles */
+
+/* prevent layout shifts w fixed heights */
+.crypto-nav {
+  min-height: 40px;
+  will-change: contents;
+}
+
+/* optimize animations & transitions */
+.tab-content {
+  contain: content;
+  will-change: contents;
+  transition: opacity 0.1s ease-out;
+}
+
+/* use GPU acceleration fr charts & complex layouts */
+.chart-container {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* prevent reflows when content changes size */
+.crypto-table-container {
+  min-height: 200px;
+  contain: layout;
+}
+
+/* prevent expensive animation calculations */
+.coin-row {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  transition: background-color 0.15s ease;
+}
+
+/* reduce layout thrashing w fixed dimensions */
+.crypto-card {
+  contain: layout style;
+}
+
+/* optimize fr browser paint cycles */
+@media (prefers-reduced-motion: no-preference) {
+  .tab-pane {
+    animation: fadeIn 0.15s ease-out forwards;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0.8; }
+    to { opacity: 1; }
+  }
+}
+
+/* reduce size of reflows whn switching tabs */
+.tab-content > .tab-pane {
+  display: block;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+.tab-content > .active {
+  height: auto;
+  visibility: visible;
+  overflow: visible;
+}
+
+/* prevent content jumping during loads */
+.crypto-page .card {
+  margin-bottom: 1.5rem !important;
+  contain: content;
+}
