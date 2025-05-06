@@ -20,9 +20,15 @@ export const handler = async (event) => {
     };
   }
 
-  //& build target url (optionally allow league as param)
-  const league = event.queryStringParameters?.league || 'PL';
-  const url = `https://api.football-data.org/v4/competitions/${league}/standings`;
+  //& build target url (handle endpoint, league, & params)
+  const params = event.queryStringParameters || {};
+  const { endpoint, league } = params;
+  let urlPath = endpoint ? endpoint : `competitions/${league || 'PL'}/standings`;
+  let url = `https://api.football-data.org/v4/${urlPath}`;
+  if (params.params) {
+    const queryString = decodeURIComponent(params.params);
+    url += `?${queryString}`;
+  }
 
   try {
     const response = await fetch(url, {
