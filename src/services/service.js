@@ -461,10 +461,178 @@ export const fetchFootballData = async (compeId = 'PL') => {
     return data;
 };
 
+//& fetch compe details
+export const fetchCompetitionDetails = async (compeId = 'PL') => {
+    const url = `/.netlify/functions/football-proxy?endpoint=competitions/${compeId}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& fetch matches fr pecific compe
+export const fetchCompetitionMatches = async (compeId = 'PL', dateFrom = null, dateTo = null, status = null) => {
+    let url = `/.netlify/functions/football-proxy?endpoint=competitions/${compeId}/matches`;
+    
+    //~ add query params if provided
+    const params = new URLSearchParams();
+    if (dateFrom) params.append('dateFrom', dateFrom);
+    if (dateTo) params.append('dateTo', dateTo);
+    if (status) params.append('status', status); //~ SCHEDULED, LIVE, IN_PLAY, PAUSED, FINISHED, POSTPONED, SUSPENDED, CANCELED
+    
+    const queryString = params.toString();
+    if (queryString) url += `&params=${encodeURIComponent(queryString)}`;
+    
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& fetch teams fr specific compe
+export const fetchCompetitionTeams = async (compeId = 'PL') => {
+    const url = `/.netlify/functions/football-proxy?endpoint=competitions/${compeId}/teams`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& fetch team details
+export const fetchTeamDetails = async (teamId) => {
+    const url = `/.netlify/functions/football-proxy?endpoint=teams/${teamId}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& fetch team matches
+export const fetchTeamMatches = async (teamId, status = null, dateFrom = null, dateTo = null) => {
+    let url = `/.netlify/functions/football-proxy?endpoint=teams/${teamId}/matches`;
+    
+    //~ add query params if provided
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    if (dateFrom) params.append('dateFrom', dateFrom);
+    if (dateTo) params.append('dateTo', dateTo);
+    
+    const queryString = params.toString();
+    if (queryString) url += `&params=${encodeURIComponent(queryString)}`;
+    
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& fetch scorers fr specific compe
+export const fetchCompetitionScorers = async (compeId = 'PL', limit = 10) => {
+    const url = `/.netlify/functions/football-proxy?endpoint=competitions/${compeId}/scorers&params=limit=${limit}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
 //^ Anime API
 
 export const fetchAnimeData = async () => {
     const url = `https://api.jikan.moe/v4/top/anime?filter=airing`
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& fetch anime details by id
+export const fetchAnimeById = async (id) => {
+    const url = `https://api.jikan.moe/v4/anime/${id}/full`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& search anime by query
+export const searchAnime = async (query, page = 1, type = null, status = null, rating = null, genres = null, orderBy = null, sort = null) => {
+    const params = new URLSearchParams();
+    params.append('q', query);
+    params.append('page', page);
+    
+    if (type) params.append('type', type); //~ tv, movie, ova, special, ona, music
+    if (status) params.append('status', status); //~ airing, complete, upcoming
+    if (rating) params.append('rating', rating); //~ g, pg, pg13, r17, r, rx
+    if (genres) params.append('genres', genres);
+    if (orderBy) params.append('order_by', orderBy); //~ title, start_date, end_date, episodes, score, etc
+    if (sort) params.append('sort', sort); //~ desc, asc
+    
+    const url = `https://api.jikan.moe/v4/anime?${params.toString()}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& fetch seasonal anime
+export const fetchSeasonalAnime = async (year = new Date().getFullYear(), season = 'spring') => {
+    //~ determine current season if nt specified
+    if (season === 'spring') {
+        const currentMonth = new Date().getMonth();
+        if (currentMonth >= 0 && currentMonth <= 2) season = 'winter';
+        else if (currentMonth >= 3 && currentMonth <= 5) season = 'spring';
+        else if (currentMonth >= 6 && currentMonth <= 8) season = 'summer';
+        else season = 'fall';
+    }
+    
+    const url = `https://api.jikan.moe/v4/seasons/${year}/${season}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& fetch anime reccos
+export const fetchAnimeRecommendations = async () => {
+    const url = `https://api.jikan.moe/v4/recommendations/anime`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& fetch anime reviews
+export const fetchAnimeReviews = async (id, page = 1) => {
+    const url = `https://api.jikan.moe/v4/anime/${id}/reviews?page=${page}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& fetch anime chars
+export const fetchAnimeCharacters = async (id) => {
+    const url = `https://api.jikan.moe/v4/anime/${id}/characters`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& fetch anime staff
+export const fetchAnimeStaff = async (id) => {
+    const url = `https://api.jikan.moe/v4/anime/${id}/staff`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& fetch anime eps
+export const fetchAnimeEpisodes = async (id) => {
+    const url = `https://api.jikan.moe/v4/anime/${id}/episodes`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& fetch anime stats
+export const fetchAnimeStats = async (id) => {
+    const url = `https://api.jikan.moe/v4/anime/${id}/statistics`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+//& fetch anime genres
+export const fetchAnimeGenres = async () => {
+    const url = `https://api.jikan.moe/v4/genres/anime`;
     const response = await fetch(url);
     const data = await response.json();
     return data;
