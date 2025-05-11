@@ -38,11 +38,8 @@ export const handler = async (event) => {
     });
     const data = await response.json();
     return {
-      statusCode: 200,
-      headers: {
-        'access-control-allow-origin': '*',
-        'content-type': 'application/json'
-      },
+      statusCode: response.ok ? 200 : 500,
+      headers: { 'access-control-allow-origin': '*' },
       body: JSON.stringify(data)
     };
   } catch (err) {
