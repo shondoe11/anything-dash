@@ -216,7 +216,8 @@ export const fetchHourlyForecastDataSG = async () => {
 
 //^ CoinGecko API
 
-const coinGeckoBaseUrl = import.meta.env.DEV ? '/api' : import.meta.env.VITE_COINGECKO_URL;
+//& local Netlify proxy in prod
+const coinGeckoBaseUrl = import.meta.env.DEV ? '/api' : '/.netlify/functions/coingecko-proxy';
 
 export const fetchCoinGeckoData = async (currency = 'sgd', page = 1, searchQuery = '') => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
@@ -247,7 +248,9 @@ export const fetchCoinGeckoData = async (currency = 'sgd', page = 1, searchQuery
 //& global mkt overview data
 export const getGlobalData = async () => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = `${coinGeckoBaseUrl}/global`;
+    const url = import.meta.env.DEV
+        ? `${coinGeckoBaseUrl}/global`
+        : `${coinGeckoBaseUrl}?endpoint=global`;
     try {
         const response = await fetch(url, {
             headers: { "x-cg-demo-api-key": coinGeckoKey },
@@ -264,7 +267,9 @@ export const getGlobalData = async () => {
 //& trending coins data
 export const getTrendingCoins = async () => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = `${coinGeckoBaseUrl}/search/trending`;
+    const url = import.meta.env.DEV
+        ? `${coinGeckoBaseUrl}/search/trending`
+        : `${coinGeckoBaseUrl}?endpoint=search/trending`;
     try {
         const response = await fetch(url, {
             headers: { "x-cg-demo-api-key": coinGeckoKey },
@@ -282,8 +287,8 @@ export const getTrendingCoins = async () => {
 export const getSupportedVsCurrencies = async () => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
     const url = import.meta.env.DEV
-        ? '/api/simple/supported_vs_currencies'
-        : `${coinGeckoBaseUrl}/simple/supported_vs_currencies`;
+        ? `${coinGeckoBaseUrl}/simple/supported_vs_currencies`
+        : `${coinGeckoBaseUrl}?endpoint=simple/supported_vs_currencies`;
     try {
         const response = await fetch(url, {
             headers: { "x-cg-demo-api-key": coinGeckoKey },
@@ -301,7 +306,9 @@ export const getSupportedVsCurrencies = async () => {
 export const getTopGainersLosers = async (currency = 'usd', perPage = 5) => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
     //& fetch larger list, then sort manually by 24h change
-    const url = `${coinGeckoBaseUrl}/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=100&page=1&sparkline=false`;
+    const url = import.meta.env.DEV
+        ? `${coinGeckoBaseUrl}/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=100&page=1&sparkline=false`
+        : `${coinGeckoBaseUrl}?endpoint=coins/markets&vs_currency=${currency}&order=market_cap_desc&per_page=100&page=1&sparkline=false`;
     try {
         const response = await fetch(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
         if (!response.ok) throw new Error(`status: ${response.status}`);
@@ -323,7 +330,9 @@ export const getTopGainersLosers = async (currency = 'usd', perPage = 5) => {
 //& volume leaders
 export const getVolumeLeaders = async (currency = 'usd', perPage = 10) => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = `${coinGeckoBaseUrl}/coins/markets?vs_currency=${currency}&order=volume_desc&per_page=${perPage}&page=1&sparkline=false`;
+    const url = import.meta.env.DEV
+        ? `${coinGeckoBaseUrl}/coins/markets?vs_currency=${currency}&order=volume_desc&per_page=${perPage}&page=1&sparkline=false`
+        : `${coinGeckoBaseUrl}?endpoint=coins/markets&vs_currency=${currency}&order=volume_desc&per_page=${perPage}&page=1&sparkline=false`;
 
     try {
         const response = await fetch(url, {
@@ -344,7 +353,9 @@ export const getVolumeLeaders = async (currency = 'usd', perPage = 10) => {
 export const getCoinMarketChart = async (coinId, currency = 'usd', days = 1) => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
     //~ valid days values: 1, 7, 14, 30, 90, 180, 365, max
-    const url = `${coinGeckoBaseUrl}/coins/${coinId}/market_chart?vs_currency=${currency}&days=${days}`;
+    const url = import.meta.env.DEV
+        ? `${coinGeckoBaseUrl}/coins/${coinId}/market_chart?vs_currency=${currency}&days=${days}`
+        : `${coinGeckoBaseUrl}?endpoint=coins/${coinId}/market_chart&vs_currency=${currency}&days=${days}`;
 
     try {
         const response = await fetch(url, {
@@ -357,7 +368,16 @@ export const getCoinMarketChart = async (coinId, currency = 'usd', days = 1) => 
         return data;
     } catch (error) {
         console.error(`getCoinMarketChart fail for ${coinId}:`, error);
-        return { prices: [], market_caps: [], total_volumes: [] };
+        // fallback to CORS proxy
+        try {
+            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+            const proxyResp = await fetch(proxyUrl);
+            if (!proxyResp.ok) throw new Error(`Proxy error: ${proxyResp.status}`);
+            return await proxyResp.json();
+        } catch (proxyErr) {
+            console.error('getCoinMarketChart via proxy fail:', proxyErr);
+            return { prices: [], market_caps: [], total_volumes: [] };
+        }
     }
 };
 
@@ -365,7 +385,9 @@ export const getCoinMarketChart = async (coinId, currency = 'usd', days = 1) => 
 export const getCoinOHLC = async (coinId, currency = 'usd', days = 1) => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
     //~ valid days values: 1, 7, 14, 30, 90, 180, 365
-    const url = `${coinGeckoBaseUrl}/coins/${coinId}/ohlc?vs_currency=${currency}&days=${days}`;
+    const url = import.meta.env.DEV
+        ? `${coinGeckoBaseUrl}/coins/${coinId}/ohlc?vs_currency=${currency}&days=${days}`
+        : `${coinGeckoBaseUrl}?endpoint=coins/${coinId}/ohlc&vs_currency=${currency}&days=${days}`;
 
     try {
         const response = await fetch(url, {
@@ -378,14 +400,25 @@ export const getCoinOHLC = async (coinId, currency = 'usd', days = 1) => {
         return data; //~ returns arr [timestamp, open, high, low, close]
     } catch (error) {
         console.error(`getCoinOHLC fail for ${coinId}:`, error);
-        return [];
+        //~ fallback CORS proxy
+        try {
+            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+            const proxyResp = await fetch(proxyUrl);
+            if (!proxyResp.ok) throw new Error(`Proxy error: ${proxyResp.status}`);
+            return await proxyResp.json();
+        } catch (proxyErr) {
+            console.error('getCoinOHLC via proxy fail:', proxyErr);
+            return [];
+        }
     }
 };
 
 //& coin tickers & trading pairs
 export const getCoinTickers = async (coinId, page = 1) => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = `${coinGeckoBaseUrl}/coins/${coinId}/tickers?page=${page}`;
+    const url = import.meta.env.DEV
+        ? `${coinGeckoBaseUrl}/coins/${coinId}/tickers?page=${page}`
+        : `${coinGeckoBaseUrl}?endpoint=coins/${coinId}/tickers&page=${page}`;
 
     try {
         const response = await fetch(url, {
@@ -406,7 +439,9 @@ export const getCoinTickers = async (coinId, page = 1) => {
 export const getTokenPrices = async (platformId = 'ethereum', tokenAddresses, currency = 'usd') => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
     const contractAddresses = Object.keys(tokenAddresses).join(',');
-    const url = `${coinGeckoBaseUrl}/simple/token_price/${platformId}?contract_addresses=${contractAddresses}&vs_currencies=${currency}&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true&include_last_updated_at=true`;
+    const url = import.meta.env.DEV
+        ? `${coinGeckoBaseUrl}/simple/token_price/${platformId}?contract_addresses=${contractAddresses}&vs_currencies=${currency}&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true&include_last_updated_at=true`
+        : `${coinGeckoBaseUrl}?endpoint=simple/token_price/${platformId}&contract_addresses=${contractAddresses}&vs_currencies=${currency}&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true&include_last_updated_at=true`;
 
     try {
         const response = await fetch(url, {
@@ -426,21 +461,35 @@ export const getTokenPrices = async (platformId = 'ethereum', tokenAddresses, cu
 //& full coin list fr dynamic selectors
 export const getAllCoins = async () => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = `${coinGeckoBaseUrl}/coins/list`;
+    const url = import.meta.env.DEV
+        ? `${coinGeckoBaseUrl}/coins/list`
+        : `${coinGeckoBaseUrl}?endpoint=coins/list`;
     try {
         const response = await fetch(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
         if (!response.ok) throw new Error(`status: ${response.status}`);
-        return await response.json();
+        const data = await response.json();
+        return data;
     } catch (error) {
         console.error('getAllCoins fail:', error);
-        return [];
+        //~ fallback CORS proxy
+        try {
+            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+            const proxyResp = await fetch(proxyUrl);
+            if (!proxyResp.ok) throw new Error(`Proxy error: ${proxyResp.status}`);
+            return await proxyResp.json();
+        } catch (proxyErr) {
+            console.error('getAllCoins via proxy fail:', proxyErr);
+            return [];
+        }
     }
 };
 
 //& asset platforms fr TokenPrices
 export const getAssetPlatforms = async () => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = `${coinGeckoBaseUrl}/asset_platforms`;
+    const url = import.meta.env.DEV
+        ? `${coinGeckoBaseUrl}/asset_platforms`
+        : `${coinGeckoBaseUrl}?endpoint=asset_platforms`;
     try {
         const response = await fetch(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
         if (!response.ok) throw new Error(`status: ${response.status}`);
@@ -454,10 +503,10 @@ export const getAssetPlatforms = async () => {
 //^ Football API
 
 export const fetchFootballData = async (compeId = 'PL') => {
-    //~ call netlify function as proxy
     const url = `/.netlify/functions/football-proxy?league=${compeId}`;
     const response = await fetch(url);
     const data = await response.json();
+    if (!response.ok || data.error) throw new Error(data.error || `status: ${response.status}`);
     return data;
 };
 
@@ -469,7 +518,7 @@ export const fetchCompetitionDetails = async (compeId = 'PL') => {
     return data;
 };
 
-//& fetch matches fr pecific compe
+//& fetch matches fr specific compe
 export const fetchCompetitionMatches = async (compeId = 'PL', dateFrom = null, dateTo = null, status = null) => {
     let url = `/.netlify/functions/football-proxy?endpoint=competitions/${compeId}/matches`;
     
@@ -484,6 +533,7 @@ export const fetchCompetitionMatches = async (compeId = 'PL', dateFrom = null, d
     
     const response = await fetch(url);
     const data = await response.json();
+    if (!response.ok || data.error) throw new Error(data.error || `status: ${response.status}`);
     return data;
 };
 
@@ -526,6 +576,7 @@ export const fetchCompetitionScorers = async (compeId = 'PL', limit = 10) => {
     const url = `/.netlify/functions/football-proxy?endpoint=competitions/${compeId}/scorers&params=limit=${limit}`;
     const response = await fetch(url);
     const data = await response.json();
+    if (!response.ok || data.error) throw new Error(data.error || `status: ${response.status}`);
     return data;
 };
 
