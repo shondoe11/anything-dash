@@ -43,10 +43,18 @@ export default function FootballWidget() {
             toast.info('Fetching football data...', {autoClose: false});
             try {
                 const data = await fetchFootballData(selectCompe);
+                if (!data.standings || data.standings.length === 0) {
+                    toast.error('no standings data available for this competition.');
+                    return;
+                }
                 setStandings(data.standings[0].table);
-                toast.success('Football data loaded successfully!');
+                toast.success('football data loaded successfully!');
             } catch (error) {
-                toast.error('Failed to fetch football data. Please try again.');
+                if (error.message.toLowerCase().includes('limit') || error.message.includes('429')) {
+                    toast.error('reached rate limits for football data. please try again in a minute.');
+                } else {
+                    toast.error('failed to fetch football data. please try again.');
+                }
                 console.error('fetch football data FAILED: ', error)
             } finally {
                 setIsLoading(false);
