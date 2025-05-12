@@ -199,7 +199,13 @@ export default function FootballPage() {
               
               <Tab.Content className="p-3">
                 <Tab.Pane eventKey="standings" className="p-0">
-                  <FootballWidget expandedView={true} />
+                  {competitionInfo?.standings ? (
+                    <FootballWidget expandedView={true} />
+                  ) : (
+                    <div className="text-center py-4">
+                      <p>No standings data available for this competition.</p>
+                    </div>
+                  )}
                 </Tab.Pane>
                 
                 <Tab.Pane eventKey="matches" className="p-3">
