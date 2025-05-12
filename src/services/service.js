@@ -216,23 +216,97 @@ export const fetchHourlyForecastDataSG = async () => {
 
 //^ CoinGecko API
 
-//& local Netlify proxy in prod
-const coinGeckoBaseUrl = import.meta.env.DEV ? '/api' : '/.netlify/functions/coingecko-proxy';
+//& in-memory cache + retry fr CG requests
+const cgCache = new Map();
+const CG_CACHE_TTL = 60 * 1000;
+const CG_STATIC_TTL = 3600 * 1000; //~ static cache TTL (1h)
+const CG_LONG_TTL = 5 * 60 * 1000; //~ long-lived endpoints (charts, ohlc etc)
+const CG_RETRY_BASE_DELAY = 500; //~ base delay ms fr exponential backoff
+const CG_MAX_RETRIES = 3; //~ max retry attempts
+const CG_MAX_CONCURRENT = 2; //~ max concurrent reqs
+const CG_MIN_INTERVAL = 2100; //~ ~28 req/min (<30)
+let cgActiveRequests = 0; //~ active CG req counter
+let cgLastRequestTime = 0; //~ last outgoing req timestamp
+const cgQueue = []; //~ CG req queue
+
+//& ensure global rate-limit (<30 req/min)
+async function ensureRateLimit() {
+    const now = Date.now();
+    const diff = now - cgLastRequestTime;
+    if (diff < CG_MIN_INTERVAL) {
+        await new Promise(res => setTimeout(res, CG_MIN_INTERVAL - diff));
+    }
+    cgLastRequestTime = Date.now();
+}
+
+async function fetchCG(url, options = {}) {
+    const now = Date.now();
+    const directFetchEndpoints = ['simple/supported_vs_currencies','asset_platforms','coins/list'];
+    const isDirect = directFetchEndpoints.some(ep => url.includes(ep));
+    const isLong = url.includes('market_chart') || url.includes('/ohlc') || url.includes('simple/token_price');
+    const ttl = isDirect ? CG_STATIC_TTL : (isLong ? CG_LONG_TTL : CG_CACHE_TTL);
+    const record = cgCache.get(url) || {};
+    if (record.data && (now - record.ts < ttl)) {
+        return record.data;
+    }
+    if (record.promise) {
+        return record.promise;
+    }
+    const executor = async () => {
+        if (isDirect) {
+            //~ direct fetch frm CoinGecko fr static endpoints
+            const params = new URLSearchParams(url.split('?')[1]);
+            const endpoint = params.get('endpoint');
+            params.delete('endpoint');
+            const realUrl = `https://api.coingecko.com/api/v3/${endpoint}?${params.toString()}`;
+            await ensureRateLimit();
+            const resp = await fetch(realUrl, options);
+            if (!resp.ok) throw new Error(`status: ${resp.status}`);
+            return resp.json();
+        } else {
+            //~ proxy fetch w concurrency control & retry logic
+            if (cgActiveRequests < CG_MAX_CONCURRENT) {
+                cgActiveRequests++;
+            } else {
+                await new Promise(res => cgQueue.push(res));
+                cgActiveRequests++;
+            }
+            try {
+                const attempt = async (retries = 0) => {
+                    const resp = await fetch(url, options);
+                    if (resp.status === 429 && retries < CG_MAX_RETRIES) {
+                        const backoff = CG_RETRY_BASE_DELAY * (2 ** retries) + Math.random() * 100;
+                        await new Promise(res => setTimeout(res, backoff));
+                        return attempt(retries + 1);
+                    }
+                    if (resp.status === 429) {
+                        throw new Error('429: Rate Limit Exceeded. Try again in a minute...');
+                    }
+                    if (!resp.ok) throw new Error(`status: ${resp.status}`);
+                    return resp.json();
+                };
+                return await attempt();
+            } finally {
+                cgActiveRequests--;
+                if (cgQueue.length > 0) cgQueue.shift()();
+            }
+        }
+    };
+    const promise = executor()
+        .then(data => { cgCache.set(url, { data, ts: now }); return data; })
+        .catch(err => { cgCache.delete(url); throw err; });
+    cgCache.set(url, { promise });
+    return promise;
+}
+
+const coinGeckoBaseUrl = '/.netlify/functions/coingecko-proxy';
 
 export const fetchCoinGeckoData = async (currency = 'sgd', page = 1, searchQuery = '') => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const baseUrl = coinGeckoBaseUrl;
-    const url = `${baseUrl}/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=10&page=${page}&sparkline=false`;
+    //~ always use endpoint param
+    const url = `${coinGeckoBaseUrl}?endpoint=coins/markets&vs_currency=${currency}&order=market_cap_desc&per_page=10&page=${page}&sparkline=false`;
     try {
-        const response = await fetch(url, {
-            headers: {
-                "x-cg-demo-api-key": coinGeckoKey,
-            },
-        });
-        if (!response.ok) {
-            throw new Error(`error! status: ${response.status}`)
-        }
-        const data = await response.json();
+        const data = await fetchCG(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
         if (searchQuery) {
             return data.filter(
                 (coin) => coin.name.toLowerCase().includes(searchQuery.toLowerCase()) || coin.symbol.toLowerCase().includes(searchQuery.toLowerCase())
@@ -241,23 +315,19 @@ export const fetchCoinGeckoData = async (currency = 'sgd', page = 1, searchQuery
         return data;
     } catch (error) {
         console.error('CoinGecko data fetch FAIL: ', error);
-        return []; //~ return empty, prevent crashs
+        //~ return empty, prevent crashs
+        return []; 
     }
 };
 
 //& global mkt overview data
 export const getGlobalData = async () => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = import.meta.env.DEV
-        ? `${coinGeckoBaseUrl}/global`
-        : `${coinGeckoBaseUrl}?endpoint=global`;
+    const url = `${coinGeckoBaseUrl}?endpoint=global`;
     try {
-        const response = await fetch(url, {
-            headers: { "x-cg-demo-api-key": coinGeckoKey },
-        });
-        if (!response.ok) throw new Error(`status: ${response.status}`);
-        const data = await response.json();
-        return data.data;
+        const result = await fetchCG(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
+        const data = result.data;
+        return data;
     } catch (error) {
         console.error('getGlobalData fail:', error);
         return null;
@@ -267,20 +337,23 @@ export const getGlobalData = async () => {
 //& trending coins data
 export const getTrendingCoins = async () => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = import.meta.env.DEV
-        ? `${coinGeckoBaseUrl}/search/trending`
-        : `${coinGeckoBaseUrl}?endpoint=search/trending`;
+    const url = `${coinGeckoBaseUrl}?endpoint=search/trending`;
     try {
-        const response = await fetch(url, {
-            headers: { "x-cg-demo-api-key": coinGeckoKey },
-        });
-        if (!response.ok) throw new Error(`status: ${response.status}`);
-        const data = await response.json();
-        return data.coins.map(c => c.item);
+        const result = await fetchCG(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
+        return result.coins.map(c => c.item);
     } catch (error) {
         console.error('getTrendingCoins fail:', error);
         return [];
     }
+};
+
+//& combined global + trending (reduce API calls)
+export const getOverviewData = async () => {
+    const [globalData, trending] = await Promise.all([
+        getGlobalData(),
+        getTrendingCoins()
+    ]);
+    return { globalData, trending };
 };
 
 //& supported vs currencies
@@ -288,13 +361,9 @@ let vsCurrenciesCache = null;
 export const getSupportedVsCurrencies = async () => {
     if (vsCurrenciesCache) return vsCurrenciesCache;
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = import.meta.env.DEV
-        ? `${coinGeckoBaseUrl}/simple/supported_vs_currencies`
-        : `${coinGeckoBaseUrl}?endpoint=simple/supported_vs_currencies`;
+    const url = `${coinGeckoBaseUrl}?endpoint=simple/supported_vs_currencies`;
     try {
-        const response = await fetch(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
-        if (!response.ok) throw new Error(`status: ${response.status}`);
-        const data = await response.json();
+        const data = await fetchCG(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
         vsCurrenciesCache = data;
         return data;
     } catch (error) {
@@ -310,13 +379,9 @@ export const getSupportedVsCurrencies = async () => {
 export const getTopGainersLosers = async (currency = 'usd', perPage = 5) => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
     //& fetch larger list, then sort manually by 24h change
-    const url = import.meta.env.DEV
-        ? `${coinGeckoBaseUrl}/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=100&page=1&sparkline=false`
-        : `${coinGeckoBaseUrl}?endpoint=coins/markets&vs_currency=${currency}&order=market_cap_desc&per_page=100&page=1&sparkline=false`;
+    const url = `${coinGeckoBaseUrl}?endpoint=coins/markets&vs_currency=${currency}&order=market_cap_desc&per_page=100&page=1&sparkline=false`;
     try {
-        const response = await fetch(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
-        if (!response.ok) throw new Error(`status: ${response.status}`);
-        const data = await response.json();
+        const data = await fetchCG(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
         const valid = data.filter(c => c.price_change_percentage_24h != null);
         const gainers = [...valid]
             .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
@@ -334,18 +399,15 @@ export const getTopGainersLosers = async (currency = 'usd', perPage = 5) => {
 //& volume leaders
 export const getVolumeLeaders = async (currency = 'usd', perPage = 10) => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = import.meta.env.DEV
-        ? `${coinGeckoBaseUrl}/coins/markets?vs_currency=${currency}&order=volume_desc&per_page=${perPage}&page=1&sparkline=false`
-        : `${coinGeckoBaseUrl}?endpoint=coins/markets&vs_currency=${currency}&order=volume_desc&per_page=${perPage}&page=1&sparkline=false`;
+    const url = `${coinGeckoBaseUrl}?endpoint=coins/markets&vs_currency=${currency}&order=volume_desc&per_page=${perPage}&page=1&sparkline=false`;
 
     try {
-        const response = await fetch(url, {
+        const data = await fetchCG(url, {
             headers: { "x-cg-demo-api-key": coinGeckoKey }
         });
 
-        if (!response.ok) throw new Error(`status: ${response.status}`);
+        if (!data) throw new Error(`status: ${data.status}`);
 
-        const data = await response.json();
         return data;
     } catch (error) {
         console.error('getVolumeLeaders fail:', error);
@@ -353,22 +415,43 @@ export const getVolumeLeaders = async (currency = 'usd', perPage = 10) => {
     }
 };
 
+//& market overview: gainers, losers, volume - composite: reduce API hits
+export const getMarketOverview = async (currency = 'usd', marketSize = 100, topCount = 10) => {
+    const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
+    const url = `${coinGeckoBaseUrl}?endpoint=coins/markets&vs_currency=${currency}&order=market_cap_desc&per_page=${marketSize}&page=1&sparkline=false`;
+    try {
+        const all = await fetchCG(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
+        const valid = all.filter(c => c.price_change_percentage_24h != null);
+        const gainers = [...valid]
+            .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
+            .slice(0, topCount);
+        const losers = [...valid]
+            .sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h)
+            .slice(0, topCount);
+        const volume = [...valid]
+            .sort((a, b) => b.total_volume - a.total_volume)
+            .slice(0, topCount);
+        return { gainers, losers, volume };
+    } catch (error) {
+        if (error.message.includes('Rate Limit Exceeded')) throw error;
+        console.error('getMarketOverview fail:', error);
+        return { gainers: [], losers: [], volume: [] };
+    }
+};
+
 //& price history chart data
 export const getCoinMarketChart = async (coinId, currency = 'usd', days = 1) => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
     //~ valid days values: 1, 7, 14, 30, 90, 180, 365, max
-    const url = import.meta.env.DEV
-        ? `${coinGeckoBaseUrl}/coins/${coinId}/market_chart?vs_currency=${currency}&days=${days}`
-        : `${coinGeckoBaseUrl}?endpoint=coins/${coinId}/market_chart&vs_currency=${currency}&days=${days}`;
+    const url = `${coinGeckoBaseUrl}?endpoint=coins/${coinId}/market_chart&vs_currency=${currency}&days=${days}`;
 
     try {
-        const response = await fetch(url, {
+        const data = await fetchCG(url, {
             headers: { "x-cg-demo-api-key": coinGeckoKey }
         });
 
-        if (!response.ok) throw new Error(`status: ${response.status}`);
+        if (!data) throw new Error(`status: ${data.status}`);
 
-        const data = await response.json();
         return data;
     } catch (error) {
         console.error(`getCoinMarketChart fail for ${coinId}:`, error);
@@ -385,22 +468,39 @@ export const getCoinMarketChart = async (coinId, currency = 'usd', days = 1) => 
     }
 };
 
+//& throttle multi-coin chart fetch: limit concurrency
+export async function getCoinMarketChartsThrottled(coinIds = [], currency = 'usd', days = 1, concurrency = 3) {
+    const results = [];
+    const queue = [...coinIds];
+    const workers = Array(Math.min(concurrency, queue.length)).fill().map(async () => {
+        while (queue.length) {
+            const id = queue.shift();
+            try {
+                const data = await getCoinMarketChart(id, currency, days);
+                results.push(data);
+            } catch (e) {
+                console.warn(`getCoinMarketChart fail for ${id}:`, e);
+                results.push(null);
+            }
+        }
+    });
+    await Promise.all(workers);
+    return results;
+}
+
 //& ohlc (candlestick) chart data
 export const getCoinOHLC = async (coinId, currency = 'usd', days = 1) => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
     //~ valid days values: 1, 7, 14, 30, 90, 180, 365
-    const url = import.meta.env.DEV
-        ? `${coinGeckoBaseUrl}/coins/${coinId}/ohlc?vs_currency=${currency}&days=${days}`
-        : `${coinGeckoBaseUrl}?endpoint=coins/${coinId}/ohlc&vs_currency=${currency}&days=${days}`;
+    const url = `${coinGeckoBaseUrl}?endpoint=coins/${coinId}/ohlc&vs_currency=${currency}&days=${days}`;
 
     try {
-        const response = await fetch(url, {
+        const data = await fetchCG(url, {
             headers: { "x-cg-demo-api-key": coinGeckoKey }
         });
 
-        if (!response.ok) throw new Error(`status: ${response.status}`);
+        if (!data) throw new Error(`status: ${data.status}`);
 
-        const data = await response.json();
         return data; //~ returns arr [timestamp, open, high, low, close]
     } catch (error) {
         console.error(`getCoinOHLC fail for ${coinId}:`, error);
@@ -420,19 +520,10 @@ export const getCoinOHLC = async (coinId, currency = 'usd', days = 1) => {
 //& coin tickers & trading pairs
 export const getCoinTickers = async (coinId, page = 1) => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = import.meta.env.DEV
-        ? `${coinGeckoBaseUrl}/coins/${coinId}/tickers?page=${page}`
-        : `${coinGeckoBaseUrl}?endpoint=coins/${coinId}/tickers&page=${page}`;
-
+    const url = `${coinGeckoBaseUrl}?endpoint=coins/${coinId}/tickers&page=${page}`;
     try {
-        const response = await fetch(url, {
-            headers: { "x-cg-demo-api-key": coinGeckoKey }
-        });
-
-        if (!response.ok) throw new Error(`status: ${response.status}`);
-
-        const data = await response.json();
-        return data.tickers || [];
+        const result = await fetchCG(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
+        return result.tickers || [];
     } catch (error) {
         console.error(`getCoinTickers fail for ${coinId}:`, error);
         return [];
@@ -442,22 +533,37 @@ export const getCoinTickers = async (coinId, page = 1) => {
 //& token prices by platform
 export const getTokenPrices = async (platformId = 'ethereum', tokenAddresses, currency = 'usd') => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const contractAddresses = Object.keys(tokenAddresses).join(',');
-    const url = import.meta.env.DEV
-        ? `${coinGeckoBaseUrl}/simple/token_price/${platformId}?contract_addresses=${contractAddresses}&vs_currencies=${currency}&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true&include_last_updated_at=true`
-        : `${coinGeckoBaseUrl}?endpoint=simple/token_price/${platformId}&contract_addresses=${contractAddresses}&vs_currencies=${currency}&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true&include_last_updated_at=true`;
-
+    const addresses = Object.keys(tokenAddresses);
+    const baseEndpoint = `${coinGeckoBaseUrl}?endpoint=simple/token_price/${platformId}`;
+    const commonParams = `&vs_currencies=${currency}&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true&include_last_updated_at=true`;
+    const multiUrl = `${baseEndpoint}&contract_addresses=${addresses.join(',')}${commonParams}`;
     try {
-        const response = await fetch(url, {
-            headers: { "x-cg-demo-api-key": coinGeckoKey }
-        });
-
-        if (!response.ok) throw new Error(`status: ${response.status}`);
-
-        const data = await response.json();
-        return data;
+        const result = await fetchCG(multiUrl, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
+        return result || {};
     } catch (error) {
         console.error(`getTokenPrices fail for ${platformId}:`, error);
+        if (error.message.includes('status: 400') || error.message.includes('status: 429')) {
+            const aggregated = {};
+            const chunkSize = CG_MAX_CONCURRENT;
+            const chunks = [];
+            for (let i = 0; i < addresses.length; i += chunkSize) {
+                chunks.push(addresses.slice(i, i + chunkSize));
+            }
+            //~ sequential batch fetch to honour rate-limit
+            for (const chunk of chunks) {
+                const restUrl = `https://api.coingecko.com/api/v3/simple/token_price/${platformId}?contract_addresses=${chunk.join(',')}${commonParams}`;
+                try {
+                    await ensureRateLimit();
+                    const resp = await fetch(restUrl, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
+                    if (!resp.ok) throw new Error(`status: ${resp.status}`);
+                    const data = await resp.json();
+                    if (data && typeof data === 'object') Object.assign(aggregated, data);
+                } catch (e) {
+                    console.error(`getTokenPrices batch fail for ${chunk.join(',')}:`, e);
+                }
+            }
+            return aggregated;
+        }
         return {};
     }
 };
@@ -465,13 +571,9 @@ export const getTokenPrices = async (platformId = 'ethereum', tokenAddresses, cu
 //& full coin list fr dynamic selectors
 export const getAllCoins = async () => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = import.meta.env.DEV
-        ? `${coinGeckoBaseUrl}/coins/list`
-        : `${coinGeckoBaseUrl}?endpoint=coins/list`;
+    const url = `${coinGeckoBaseUrl}?endpoint=coins/list`;
     try {
-        const response = await fetch(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
-        if (!response.ok) throw new Error(`status: ${response.status}`);
-        const data = await response.json();
+        const data = await fetchCG(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
         return data;
     } catch (error) {
         console.error('getAllCoins fail:', error);
@@ -491,16 +593,15 @@ export const getAllCoins = async () => {
 //& asset platforms fr TokenPrices
 export const getAssetPlatforms = async () => {
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
-    const url = import.meta.env.DEV
-        ? `${coinGeckoBaseUrl}/asset_platforms`
-        : `${coinGeckoBaseUrl}?endpoint=asset_platforms`;
+    const url = `${coinGeckoBaseUrl}?endpoint=asset_platforms`;
     try {
-        const response = await fetch(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
-        if (!response.ok) throw new Error(`status: ${response.status}`);
-        return await response.json();
+        const data = await fetchCG(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
+        return data;
     } catch (error) {
         console.error('getAssetPlatforms fail:', error);
-        return [];
+        //~ return default platform ids whn API rate-limited
+        const defaultPlatforms = ['ethereum','binance-smart-chain','polygon-pos','avalanche','solana','optimistic-ethereum','arbitrum-one','fantom'];
+        return defaultPlatforms;
     }
 };
 
