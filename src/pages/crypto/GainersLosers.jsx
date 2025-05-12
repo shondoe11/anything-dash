@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import { Card, Table, Row, Col, Spinner, Form, ToastContainer, Toast } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrophy, faArrowTrendDown } from '@fortawesome/free-solid-svg-icons';
-import { getTopGainersLosers, getSupportedVsCurrencies } from '../../services/service';
+import { getMarketOverview } from '../../services/service';
+import useSupportedVsCurrencies from '../../hooks/useSupportedVsCurrencies';
 
 //& display top gainers & losers in 24h
 export default function GainersLosers({ currency = 'usd' }) {
@@ -12,26 +13,30 @@ export default function GainersLosers({ currency = 'usd' }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [localCurrency, setLocalCurrency] = useState(currency);
-  const [supportedCurrencies, setSupportedCurrencies] = useState([]);
+  const supportedCurrencies = useSupportedVsCurrencies();
   const [toast, setToast] = useState({ show: false, message: '', variant: 'success' });
 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    
-    getTopGainersLosers(localCurrency, 10)
-      .then(result => { if (active) { setData(result); setLastUpdated(new Date()); }})
+    getMarketOverview(localCurrency, 100, 10)
+      .then(({ gainers, losers }) => {
+        if (active) {
+          setData({ gainers, losers });
+          setLastUpdated(new Date());
+        }
+      })
       .catch(err => { if (active) setError(err); })
       .finally(() => { if (active) setLoading(false); });
-      
     return () => { active = false; };
   }, [localCurrency]);
 
+  //& rate-limit err toast
   useEffect(() => {
-    getSupportedVsCurrencies()
-      .then(list => setSupportedCurrencies(list))
-      .catch(err => console.error(err));
-  }, []);
+    if (error && error.message.includes('Rate Limit Exceeded')) {
+      setToast({ show: true, message: error.message, variant: 'danger' });
+    }
+  }, [error]);
 
   //& helper function format price w currency symbol
   const formatPrice = (price) => {
