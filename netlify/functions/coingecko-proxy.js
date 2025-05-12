@@ -26,6 +26,42 @@ export const handler = async (event) => {
     url += `?${qp.toString()}`;
   }
 
+  //& server-side chunking fr simple/token_price endpoint
+  if (endpoint.startsWith('simple/token_price/') && rest.contract_addresses) {
+    try {
+      const { contract_addresses, ...otherParams } = rest;
+      const addresses = contract_addresses.split(',');
+      const chunkSize = 2; //~ chunk size avoid errors
+      const aggregated = {};
+      for (let i = 0; i < addresses.length; i += chunkSize) {
+        const chunk = addresses.slice(i, i + chunkSize);
+        const qp2 = new URLSearchParams(otherParams);
+        qp2.set('contract_addresses', chunk.join(','));
+        const chunkUrl = `${baseUrl}/${endpoint}?${qp2.toString()}`;
+        try {
+          const resp = await fetch(chunkUrl);
+          if (!resp.ok) {
+            console.warn(`Chunk fetch error for ${chunk.join(',')}: ${resp.status}`);
+            continue;
+          }
+          const data = await resp.json();
+          Object.assign(aggregated, data);
+        } catch (err) {
+          console.error(`Chunk fetch exception for ${chunk.join(',')}:`, err);
+          continue;
+        }
+      }
+      return {
+        statusCode: 200,
+        headers: { 'access-control-allow-origin': '*' },
+        body: JSON.stringify(aggregated)
+      };
+    } catch (err) {
+      console.error('coingecko-proxy chunking error:', err);
+      // fallback to default fetch
+    }
+  }
+
   try {
     const response = await fetch(url);
     const data = await response.json();
