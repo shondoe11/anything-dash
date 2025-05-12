@@ -8,6 +8,7 @@ import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
+  BarController,
   BarElement,
   Title,
   Tooltip,
@@ -17,6 +18,7 @@ import { Chart as ReactChart } from 'react-chartjs-2';
 
 //^ chart.js components
 ChartJS.register(
+  BarController,
   CategoryScale,
   LinearScale,
   BarElement,
