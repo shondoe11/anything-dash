@@ -122,19 +122,29 @@ export default function PriceHistoryChart({ currency = 'usd' }) {
     return () => { active = false; };
   }, [selectedCoins, localCurrency, selectedDays]);
 
+  //~ fetch supported vs currencies
   useEffect(() => {
     getSupportedVsCurrencies()
       .then(list => setSupportedCurrencies(list))
-      .catch(err => console.error(err));
+      .catch(err => setToast({ show: true, message: err.message, variant: 'danger' }));
   }, []);
 
   useEffect(() => {
     getAllCoins()
       .then(coins => setAllCoins(coins))
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error(err);
+        setError(err);
+      });
   }, []);
-  
-  //& filtered coins based on search query
+
+  useEffect(() => {
+    if (error) {
+      setToast({ show: true, message: error.message, variant: 'danger' });
+    }
+  }, [error]);
+
+  //~ filtered coins based on search query
   const filteredCoins = useMemo(() => {
     if (!searchQuery.trim()) return allCoins;
     const query = searchQuery.toLowerCase().trim();
@@ -145,7 +155,7 @@ export default function PriceHistoryChart({ currency = 'usd' }) {
     );
   }, [allCoins, searchQuery]);
 
-  //& chart options
+  //~ chart options
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
