@@ -284,21 +284,25 @@ export const getTrendingCoins = async () => {
 };
 
 //& supported vs currencies
+let vsCurrenciesCache = null;
 export const getSupportedVsCurrencies = async () => {
+    if (vsCurrenciesCache) return vsCurrenciesCache;
     const coinGeckoKey = import.meta.env.VITE_COINGECKO_API_KEY;
     const url = import.meta.env.DEV
         ? `${coinGeckoBaseUrl}/simple/supported_vs_currencies`
         : `${coinGeckoBaseUrl}?endpoint=simple/supported_vs_currencies`;
     try {
-        const response = await fetch(url, {
-            headers: { "x-cg-demo-api-key": coinGeckoKey },
-        });
+        const response = await fetch(url, { headers: { "x-cg-demo-api-key": coinGeckoKey } });
         if (!response.ok) throw new Error(`status: ${response.status}`);
         const data = await response.json();
+        vsCurrenciesCache = data;
         return data;
     } catch (error) {
         console.error('getSupportedVsCurrencies fail:', error);
-        return [];
+        //~ fallback common currencies
+        const defaultList = ['usd','eur','jpy','gbp','btc','eth'];
+        vsCurrenciesCache = defaultList;
+        return defaultList;
     }
 };
 
@@ -368,7 +372,7 @@ export const getCoinMarketChart = async (coinId, currency = 'usd', days = 1) => 
         return data;
     } catch (error) {
         console.error(`getCoinMarketChart fail for ${coinId}:`, error);
-        // fallback to CORS proxy
+        //~ fallback CORS proxy
         try {
             const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
             const proxyResp = await fetch(proxyUrl);
