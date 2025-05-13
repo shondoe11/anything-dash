@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import { Card, Table, Row, Col, Spinner, Form, ToastContainer, Toast } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChartLine } from '@fortawesome/free-solid-svg-icons';
-import { getVolumeLeaders, getSupportedVsCurrencies } from '../../services/service';
+import { getMarketOverview } from '../../services/service';
+import useSupportedVsCurrencies from '../../hooks/useSupportedVsCurrencies';
 
 export default function VolumeLeaders({ currency = 'usd' }) {
   const [coins, setCoins] = useState([]);
@@ -11,26 +12,29 @@ export default function VolumeLeaders({ currency = 'usd' }) {
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [localCurrency, setLocalCurrency] = useState(currency);
-  const [supportedCurrencies, setSupportedCurrencies] = useState([]);
+  const supportedCurrencies = useSupportedVsCurrencies();
   const [toast, setToast] = useState({ show: false, message: '', variant: 'success' });
 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    
-    getVolumeLeaders(localCurrency)
-      .then(data => { if (active) { setCoins(data); setLastUpdated(data.length ? new Date(data[0].last_updated) : new Date()); } })
+    getMarketOverview(localCurrency, 100, 10)
+      .then(({ volume }) => {
+        if (active) {
+          setCoins(volume);
+          setLastUpdated(volume.length ? new Date(volume[0].last_updated) : new Date());
+        }
+      })
       .catch(err => { if (active) setError(err); })
       .finally(() => { if (active) setLoading(false); });
-      
     return () => { active = false; };
   }, [localCurrency]);
 
   useEffect(() => {
-    getSupportedVsCurrencies()
-      .then(list => setSupportedCurrencies(list))
-      .catch(err => console.error(err));
-  }, []);
+    if (error && error.message.includes('Rate Limit Exceeded')) {
+      setToast({ show: true, message: error.message, variant: 'danger' });
+    }
+  }, [error]);
 
   const formatLargeNumber = num => {
     if (num >= 1e12) return `${(num/1e12).toFixed(2)}T`;
