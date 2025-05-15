@@ -15,7 +15,8 @@ import {
   Legend, 
   Filler 
 } from 'chart.js';
-import { getCoinMarketChart, getSupportedVsCurrencies, getAllCoins } from '../../services/service';
+import { getCoinMarketChartsThrottled, getAllCoins } from '../../services/service';
+import useSupportedVsCurrencies from '../../hooks/useSupportedVsCurrencies';
 
 //^ Chart.js components
 ChartJS.register(
@@ -38,7 +39,7 @@ export default function PriceHistoryChart({ currency = 'usd' }) {
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [localCurrency, setLocalCurrency] = useState(currency);
-  const [supportedCurrencies, setSupportedCurrencies] = useState([]);
+  const supportedCurrencies = useSupportedVsCurrencies();
   const [allCoins, setAllCoins] = useState([]);
   const [toast, setToast] = useState({ show: false, message: '', variant: 'success' });
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,72 +63,57 @@ export default function PriceHistoryChart({ currency = 'usd' }) {
       return;
     }
     
-    Promise.all(selectedCoins.map(coin => 
-      getCoinMarketChart(coin, localCurrency, selectedDays)
-        .catch(err => {
-          console.error(`Failed to fetch chart data for ${coin}:`, err);
-          return null;
-        })
-    ))
-    .then(results => {
-      if (!active) return;
-      
-      //~ filter null results & log warnings
-      const validResults = results.filter(result => result !== null);
-      
-      if (validResults.length === 0) {
-        setError(new Error('No valid chart data found'));
-        return;
-      }
-      
-      const chartDatasets = validResults.map((d, i) => {
-        const prices = d.prices || [];
-        if (prices.length > 0) {
-          const priceValues = prices.map(price => price[1]);
-          
-          return {
-            label: `${selectedCoins[i].charAt(0).toUpperCase() + selectedCoins[i].slice(1)} Price`,
-            data: priceValues,
-            borderColor: `rgb(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)})`,
-            backgroundColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.2)`,
-            tension: 0.1,
-            pointRadius: selectedDays === 1 ? 0 : 1,
-            borderWidth: 2,
-            fill: true
-          };
+    getCoinMarketChartsThrottled(selectedCoins, localCurrency, selectedDays)
+      .then(results => {
+        if (!active) return;
+        const validResults = results.filter(r => r != null);
+        
+        if (validResults.length === 0) {
+          setError(new Error('No valid chart data found'));
+          return;
         }
-      }).filter(Boolean);
-      
-      if (chartDatasets.length === 0) {
-        setError(new Error('Unable to process chart data'));
-        return;
-      }
-      
-      setChartData({
-        labels: validResults[0].prices.map(price => new Date(price[0]).toLocaleString()),
-        datasets: chartDatasets
+        
+        const chartDatasets = validResults.map((d, i) => {
+          const prices = d.prices || [];
+          if (prices.length > 0) {
+            const priceValues = prices.map(price => price[1]);
+            
+            return {
+              label: `${selectedCoins[i].charAt(0).toUpperCase() + selectedCoins[i].slice(1)} Price`,
+              data: priceValues,
+              borderColor: `rgb(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)})`,
+              backgroundColor: `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.2)`,
+              tension: 0.1,
+              pointRadius: selectedDays === 1 ? 0 : 1,
+              borderWidth: 2,
+              fill: true
+            };
+          }
+        }).filter(Boolean);
+        
+        if (chartDatasets.length === 0) {
+          setError(new Error('Unable to process chart data'));
+          return;
+        }
+        
+        setChartData({
+          labels: validResults[0].prices.map(price => new Date(price[0]).toLocaleString()),
+          datasets: chartDatasets
+        });
+        setLastUpdated(new Date());
+      })
+      .catch(err => {
+        if (active) {
+          console.error('Unexpected error in chart data fetching:', err);
+          setError(err);
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
       });
-      setLastUpdated(new Date());
-    })
-    .catch(err => {
-      if (active) {
-        console.error('Unexpected error in chart data fetching:', err);
-        setError(err);
-      }
-    })
-    .finally(() => {
-      if (active) setLoading(false);
-    });
     
     return () => { active = false; };
   }, [selectedCoins, localCurrency, selectedDays]);
-
-  //~ fetch supported vs currencies
-  useEffect(() => {
-    getSupportedVsCurrencies()
-      .then(list => setSupportedCurrencies(list))
-      .catch(err => setToast({ show: true, message: err.message, variant: 'danger' }));
-  }, []);
 
   useEffect(() => {
     getAllCoins()
