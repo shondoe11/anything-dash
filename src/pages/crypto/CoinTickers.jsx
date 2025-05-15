@@ -18,6 +18,13 @@ export default function CoinTickers({ currency = 'usd' }) {
   const [supportedCurrencies, setSupportedCurrencies] = useState([]);
   const [toast, setToast] = useState({ show: false, message: '', variant: 'success' });
 
+  //& toast on rate-limit err
+  useEffect(() => {
+    if (error && error.message.includes('Rate Limit Exceeded')) {
+      setToast({ show: true, message: error.message, variant: 'danger' });
+    }
+  }, [error]);
+
   //& common coins selection
   const coinOptions = [
     { value: 'bitcoin', label: 'Bitcoin (BTC)' },
