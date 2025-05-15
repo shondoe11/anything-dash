@@ -216,6 +216,8 @@ export const fetchHourlyForecastDataSG = async () => {
 
 //^ CoinGecko API
 
+import { toast } from 'react-toastify';
+
 //& in-memory cache + retry fr CG requests
 const cgCache = new Map();
 const CG_CACHE_TTL = 60 * 1000;
@@ -241,7 +243,7 @@ async function ensureRateLimit() {
 
 async function fetchCG(url, options = {}) {
     const now = Date.now();
-    const directFetchEndpoints = ['simple/supported_vs_currencies','asset_platforms','coins/list'];
+    const directFetchEndpoints = ['simple/supported_vs_currencies','asset_platforms','coins/list','ohlc'];
     const isDirect = directFetchEndpoints.some(ep => url.includes(ep));
     const isLong = url.includes('market_chart') || url.includes('/ohlc') || url.includes('simple/token_price');
     const ttl = isDirect ? CG_STATIC_TTL : (isLong ? CG_LONG_TTL : CG_CACHE_TTL);
@@ -261,6 +263,10 @@ async function fetchCG(url, options = {}) {
             const realUrl = `https://api.coingecko.com/api/v3/${endpoint}?${params.toString()}`;
             await ensureRateLimit();
             const resp = await fetch(realUrl, options);
+            if (resp.status === 429) {
+                toast.error('Reached rate limits for Crypto data. Please try again in a minute.');
+                throw new Error('429: Rate Limit Exceeded. Try again in a minute...');
+            }
             if (!resp.ok) throw new Error(`status: ${resp.status}`);
             return resp.json();
         } else {
@@ -280,6 +286,7 @@ async function fetchCG(url, options = {}) {
                         return attempt(retries + 1);
                     }
                     if (resp.status === 429) {
+                        toast.error('Reached rate limits for Crypto data. Please try again in a minute.');
                         throw new Error('429: Rate Limit Exceeded. Try again in a minute...');
                     }
                     if (!resp.ok) throw new Error(`status: ${resp.status}`);
@@ -506,7 +513,9 @@ export const getCoinOHLC = async (coinId, currency = 'usd', days = 1) => {
         console.error(`getCoinOHLC fail for ${coinId}:`, error);
         //~ fallback CORS proxy
         try {
-            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+            //~ fallback direct Coingecko API via CORS proxy
+            const directUrl = `https://api.coingecko.com/api/v3/coins/${coinId}/ohlc?vs_currency=${currency}&days=${days}`;
+            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(directUrl)}`;
             const proxyResp = await fetch(proxyUrl);
             if (!proxyResp.ok) throw new Error(`Proxy error: ${proxyResp.status}`);
             return await proxyResp.json();
@@ -703,18 +712,30 @@ export const fetchAnimeById = async (id) => {
 };
 
 //& search anime by query
-export const searchAnime = async (query, page = 1, type = null, status = null, rating = null, genres = null, orderBy = null, sort = null) => {
+export const searchAnime = async (
+    query,
+    page = 1,
+    type = null,
+    status = null,
+    rating = null,
+    genres = null,
+    orderBy = null,
+    sort = null,
+    limit = 20
+    ) => {
     const params = new URLSearchParams();
-    params.append('q', query);
+    //~ pagination & result limit
     params.append('page', page);
-    
-    if (type) params.append('type', type); //~ tv, movie, ova, special, ona, music
-    if (status) params.append('status', status); //~ airing, complete, upcoming
-    if (rating) params.append('rating', rating); //~ g, pg, pg13, r17, r, rx
+    params.append('limit', limit);
+    //~ filters
+    if (query) params.append('q', query);
+    if (type) params.append('type', type);
+    if (status) params.append('status', status);
+    if (rating) params.append('rating', rating);
     if (genres) params.append('genres', genres);
-    if (orderBy) params.append('order_by', orderBy); //~ title, start_date, end_date, episodes, score, etc
-    if (sort) params.append('sort', sort); //~ desc, asc
-    
+    if (orderBy) params.append('order_by', orderBy);
+    if (sort) params.append('sort', sort);
+
     const url = `https://api.jikan.moe/v4/anime?${params.toString()}`;
     const response = await fetch(url);
     const data = await response.json();
