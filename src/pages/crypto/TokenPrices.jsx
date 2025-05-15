@@ -18,7 +18,14 @@ export default function TokenPrices({ currency = 'usd' }) {
   const [assetPlatforms, setAssetPlatforms] = useState([]);
   const [toast, setToast] = useState({ show: false, message: '', variant: 'success' });
   
-  //& sample token addresses fr each platform - wrapped in useMemo to prevent recreation on each render
+  //& toast on rate-limit error
+  useEffect(() => {
+    if (error && error.message.includes('Rate Limit Exceeded')) {
+      setToast({ show: true, message: error.message, variant: 'danger' });
+    }
+  }, [error]);
+
+  //~ sample token addresses fr each platform - wrapped in useMemo to prevent recreation on each render
   const tokenAddressesByPlatform = useMemo(() => ({
     'ethereum': {
       '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2': 'WETH',
