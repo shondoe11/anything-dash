@@ -42,10 +42,10 @@ const candlestickPlugin = {
     ctx.lineWidth = 2;
     
     dataset.data.forEach((candle, index) => {
-      //~ ensure we have all required values
+      //~ ensure all required values avail
       if (!Array.isArray(candle) || candle.length < 5) return;
       
-      const [, open, high, low, close] = candle; //~ timestamp not used
+      const [, open, high, low, close] = candle; //~ timestamp nt used
       
       //~ skip invalid data points
       if (open == null || high == null || low == null || close == null || 
@@ -53,14 +53,14 @@ const candlestickPlugin = {
         return;
       }
       
-      //~ get pixel positions - critical for visualization
+      //~ get pixel positions - critical fr visualization
       const x = scales.x.getPixelForValue(index);
       const yOpen = scales.y.getPixelForValue(open);
       const yHigh = scales.y.getPixelForValue(high);
       const yLow = scales.y.getPixelForValue(low);
       const yClose = scales.y.getPixelForValue(close);
       
-      //~ ensure pixel values are valid (sometimes scale issues can cause this)
+      //~ ensure pixel values are valid (sometimes scale issues cn cause this)
       if (isNaN(yOpen) || isNaN(yHigh) || isNaN(yLow) || isNaN(yClose)) {
         return;
       }
@@ -74,14 +74,14 @@ const candlestickPlugin = {
       const barWidth = Math.max(6, (scales.x.getPixelForValue(1) - scales.x.getPixelForValue(0)) * 0.7);
       const halfWidth = barWidth / 2;
       
-      //~ draw the high-low line (wick)
+      //~ high-low line (wick)
       ctx.beginPath();
       ctx.moveTo(x, yHigh);
       ctx.lineTo(x, yLow);
       ctx.stroke();
       
-      //~ draw rectangle for open-close body
-      //~ ensure minimum height for visibility
+      //~ rectangle fr open-close body
+      //~ ensure minimum height fr visibility
       const heightDiff = Math.max(Math.abs(yClose - yOpen), 2);
       const yStart = Math.min(yOpen, yClose);
       
@@ -106,6 +106,13 @@ function OHLCChart({ currency = 'usd' }) {
   const [supportedCurrencies, setSupportedCurrencies] = useState([]);
   const [allCoins, setAllCoins] = useState([]);
   const [toast, setToast] = useState({ show: false, message: '', variant: 'success' });
+  //& show toast rate-limit (429) errors
+  useEffect(() => {
+    if (error && error.message.includes('Rate Limit Exceeded')) {
+      setToast({ show: true, message: error.message, variant: 'danger' });
+    }
+  }, [error]);
+
   const [searchQuery, setSearchQuery] = useState('');
   
   //& days options
@@ -133,7 +140,7 @@ function OHLCChart({ currency = 'usd' }) {
     );
   }, [allCoins, searchQuery]);
 
-  //~ fetch OHLC data for selected coin
+  //~ fetch OHLC data fr selected coin
   useEffect(() => {
     let active = true;
     setLoading(true);
@@ -185,14 +192,14 @@ function OHLCChart({ currency = 'usd' }) {
           maxValue = Math.max(maxValue, open, high, low, close);
         });
         
-        //~ ensure reasonable range for display
+        //~ ensure reasonable range fr display
         if (minValue === maxValue) {
           const buffer = Math.max(minValue * 0.1, 1);
           minValue -= buffer;
           maxValue += buffer;
         }
         
-        //~ build labels and format timestamps
+        //~ build labels & format timestamps
         const labels = processedData.map(candle =>
           new Date(candle[0]).toLocaleString(undefined, {
             month: 'short', 
@@ -319,7 +326,7 @@ function OHLCChart({ currency = 'usd' }) {
       }
     };
     
-    //~ set min and max for Y axis if available in chartData
+    //& set min & max for Y axis if avail in chartData
     if (chartData && chartData.minValue !== undefined && chartData.maxValue !== undefined) {
       const range = chartData.maxValue - chartData.minValue;
       const paddedMin = Math.max(0, chartData.minValue - range * 0.1);
