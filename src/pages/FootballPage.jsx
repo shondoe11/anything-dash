@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Nav, Tab, Spinner, Table, Badge, Button, Collapse } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import FootballWidget from '../widgets/Football/FootballWidget';
-import { fetchCompetitionDetails, fetchCompetitionMatches, fetchCompetitionScorers } from '../services/service';
+import { fetchFootballData, fetchCompetitionDetails, fetchCompetitionMatches, fetchCompetitionScorers } from '../services/service';
 import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrophy, faFutbol, faCalendarAlt, faUserPlus, faList, faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
@@ -26,6 +25,8 @@ const competitions = [
 export default function FootballPage() {
   const navigate = useNavigate();
   const [selectedCompetition, setSelectedCompetition] = useState('PL');
+  const [pageStandings, setPageStandings] = useState([]); //~ pg-lvl standings
+  const [loadingStandings, setLoadingStandings] = useState(false); //~ loading standings
   const [activeTab, setActiveTab] = useState('standings');
   const [competitionInfo, setCompetitionInfo] = useState(null);
   const [matches, setMatches] = useState([]);
@@ -105,6 +106,22 @@ export default function FootballPage() {
     
     fetchScorers();
   }, [selectedCompetition, activeTab]);
+
+  //& fetch standings whn selecting competition / navigating Standings tab
+  useEffect(() => {
+    if (activeTab !== 'standings') return;
+    setLoadingStandings(true);
+    fetchFootballData(selectedCompetition)
+      .then(data => {
+        const table = data.standings?.[0]?.table || [];
+        setPageStandings(table);
+      })
+      .catch(error => {
+        console.error('Error fetching standings:', error);
+        toast.error('Failed to load standings.');
+      })
+      .finally(() => setLoadingStandings(false));
+  }, [selectedCompetition, activeTab]);
   
   //& format match dates
   const formatMatchDate = (dateString) => {
@@ -179,155 +196,188 @@ export default function FootballPage() {
               <Button variant="light" size="sm" onClick={navigateToCompetition}>View Full Details</Button>
             </Card.Header>
             <Card.Body className="p-0">
-              <Nav variant="tabs" className="px-3 pt-2" activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
-                <Nav.Item>
-                  <Nav.Link eventKey="standings">Standings</Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link eventKey="matches">
-                    <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
-                    Upcoming Matches
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link eventKey="scorers">
-                    <FontAwesomeIcon icon={faUserPlus} className="me-2" />
-                    Top Scorers
-                  </Nav.Link>
-                </Nav.Item>
-              </Nav>
-              
-              <Tab.Content className="p-3">
-                <Tab.Pane eventKey="standings" className="p-0">
-                  {competitionInfo?.standings ? (
-                    <FootballWidget expandedView={true} />
-                  ) : (
-                    <div className="text-center py-4">
-                      <p>No standings data available for this competition.</p>
-                    </div>
-                  )}
-                </Tab.Pane>
+              <Tab.Container activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
+                <Nav variant="tabs" className="px-3 pt-2">
+                  <Nav.Item>
+                    <Nav.Link eventKey="standings">Standings</Nav.Link>
+                  </Nav.Item>
+                  <Nav.Item>
+                    <Nav.Link eventKey="matches">
+                      <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
+                      Upcoming Matches
+                    </Nav.Link>
+                  </Nav.Item>
+                  <Nav.Item>
+                    <Nav.Link eventKey="scorers">
+                      <FontAwesomeIcon icon={faUserPlus} className="me-2" />
+                      Top Scorers
+                    </Nav.Link>
+                  </Nav.Item>
+                </Nav>
                 
-                <Tab.Pane eventKey="matches" className="p-3">
-                  {loading.matches ? (
-                    <div className="text-center py-4">
-                      <Spinner animation="border" role="status">
-                        <span className="visually-hidden">Loading matches...</span>
-                      </Spinner>
-                    </div>
-                  ) : matches.length > 0 ? (
-                    <Table responsive hover>
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Home</th>
-                          <th></th>
-                          <th>Away</th>
-                          <th>Matchday</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {matches.map(match => (
-                          <tr key={match.id}>
-                            <td>{formatMatchDate(match.utcDate)}</td>
-                            <td>
-                              <div className="d-flex align-items-center" 
-                                    onClick={() => handleTeamClick(match.homeTeam.id)} 
-                                    style={{cursor: 'pointer'}}>
-                                {match.homeTeam.crest && (
-                                  <img 
-                                    src={match.homeTeam.crest} 
-                                    alt={match.homeTeam.shortName} 
-                                    height="20" 
-                                    className="me-2" 
-                                  />
-                                )}
-                                {match.homeTeam.name}
-                              </div>
-                            </td>
-                            <td className="text-center">vs</td>
-                            <td>
-                              <div className="d-flex align-items-center"
-                                    onClick={() => handleTeamClick(match.awayTeam.id)}
-                                    style={{cursor: 'pointer'}}>
-                                {match.awayTeam.crest && (
-                                  <img 
-                                    src={match.awayTeam.crest} 
-                                    alt={match.awayTeam.shortName} 
-                                    height="20" 
-                                    className="me-2" 
-                                  />
-                                )}
-                                {match.awayTeam.name}
-                              </div>
-                            </td>
-                            <td>
-                              <Badge bg="secondary">
-                                Matchday {match.matchday}
-                              </Badge>
-                            </td>
+                <Tab.Content className="p-3">
+                  <Tab.Pane eventKey="standings" className="p-3">
+                    {loadingStandings ? (
+                      <div className="text-center py-4">
+                        <Spinner animation="border" role="status">
+                          <span className="visually-hidden">Loading standings...</span>
+                        </Spinner>
+                      </div>
+                    ) : pageStandings.length > 0 ? (
+                      <Table hover responsive className="mb-3 football-table">
+                        <thead>
+                          <tr>
+                            <th>Position</th>
+                            <th>Team</th>
+                            <th>Played</th>
+                            <th>Wins</th>
+                            <th>Draws</th>
+                            <th>Losses</th>
+                            <th>Points</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </Table>
-                  ) : (
-                    <div className="text-center py-4">
-                      <p>No upcoming matches found for this competition.</p>
-                    </div>
-                  )}
-                </Tab.Pane>
-                
-                <Tab.Pane eventKey="scorers" className="p-3">
-                  {loading.scorers ? (
-                    <div className="text-center py-4">
-                      <Spinner animation="border" role="status">
-                        <span className="visually-hidden">Loading scorers...</span>
-                      </Spinner>
-                    </div>
-                  ) : topScorers.length > 0 ? (
-                    <Table responsive hover>
-                      <thead>
-                        <tr>
-                          <th>Rank</th>
-                          <th>Player</th>
-                          <th>Team</th>
-                          <th>Goals</th>
-                          <th>Assists</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {topScorers.map((scorer, index) => (
-                          <tr key={index}>
-                            <td>{index + 1}</td>
-                            <td>{scorer.player.name}</td>
-                            <td>
-                              <div className="d-flex align-items-center"
-                                    onClick={() => handleTeamClick(scorer.team.id)}
-                                    style={{cursor: 'pointer'}}>
-                                {scorer.team.crest && (
-                                  <img 
-                                    src={scorer.team.crest} 
-                                    alt={scorer.team.shortName} 
-                                    height="20" 
-                                    className="me-2" 
-                                  />
-                                )}
-                                {scorer.team.name}
-                              </div>
-                            </td>
-                            <td>{scorer.goals}</td>
-                            <td>{scorer.assists || '-'}</td>
+                        </thead>
+                        <tbody>
+                          {pageStandings.map(team => (
+                            <tr key={team.team.id}>
+                              <td>{team.position}</td>
+                              <td>{team.team.name}</td>
+                              <td>{team.playedGames}</td>
+                              <td>{team.won}</td>
+                              <td>{team.draw}</td>
+                              <td>{team.lost}</td>
+                              <td>{team.points}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p>No standings data available for this competition.</p>
+                      </div>
+                    )}
+                  </Tab.Pane>
+                  
+                  <Tab.Pane eventKey="matches" className="p-3">
+                    {loading.matches ? (
+                      <div className="text-center py-4">
+                        <Spinner animation="border" role="status">
+                          <span className="visually-hidden">Loading matches...</span>
+                        </Spinner>
+                      </div>
+                    ) : matches.length > 0 ? (
+                      <Table responsive hover>
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Home</th>
+                            <th></th>
+                            <th>Away</th>
+                            <th>Matchday</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </Table>
-                  ) : (
-                    <div className="text-center py-4">
-                      <p>No top scorer information available for this competition.</p>
-                    </div>
-                  )}
-                </Tab.Pane>
-              </Tab.Content>
+                        </thead>
+                        <tbody>
+                          {matches.map(match => (
+                            <tr key={match.id}>
+                              <td>{formatMatchDate(match.utcDate)}</td>
+                              <td>
+                                <div className="d-flex align-items-center" 
+                                      onClick={() => handleTeamClick(match.homeTeam.id)} 
+                                      style={{cursor: 'pointer'}}>
+                                  {match.homeTeam.crest && (
+                                    <img 
+                                      src={match.homeTeam.crest} 
+                                      alt={match.homeTeam.shortName} 
+                                      height="20" 
+                                      className="me-2" 
+                                    />
+                                  )}
+                                  {match.homeTeam.name}
+                                </div>
+                              </td>
+                              <td className="text-center">vs</td>
+                              <td>
+                                <div className="d-flex align-items-center"
+                                      onClick={() => handleTeamClick(match.awayTeam.id)}
+                                      style={{cursor: 'pointer'}}>
+                                  {match.awayTeam.crest && (
+                                    <img 
+                                      src={match.awayTeam.crest} 
+                                      alt={match.awayTeam.shortName} 
+                                      height="20" 
+                                      className="me-2" 
+                                    />
+                                  )}
+                                  {match.awayTeam.name}
+                                </div>
+                              </td>
+                              <td>
+                                <Badge bg="secondary">
+                                  Matchday {match.matchday}
+                                </Badge>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p>No upcoming matches found for this competition.</p>
+                      </div>
+                    )}
+                  </Tab.Pane>
+                  
+                  <Tab.Pane eventKey="scorers" className="p-3">
+                    {loading.scorers ? (
+                      <div className="text-center py-4">
+                        <Spinner animation="border" role="status">
+                          <span className="visually-hidden">Loading scorers...</span>
+                        </Spinner>
+                      </div>
+                    ) : topScorers.length > 0 ? (
+                      <Table responsive hover>
+                        <thead>
+                          <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Team</th>
+                            <th>Goals</th>
+                            <th>Assists</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {topScorers.map((scorer, index) => (
+                            <tr key={index}>
+                              <td>{index + 1}</td>
+                              <td>{scorer.player.name}</td>
+                              <td>
+                                <div className="d-flex align-items-center"
+                                      onClick={() => handleTeamClick(scorer.team.id)}
+                                      style={{cursor: 'pointer'}}>
+                                  {scorer.team.crest && (
+                                    <img 
+                                      src={scorer.team.crest} 
+                                      alt={scorer.team.shortName} 
+                                      height="20" 
+                                      className="me-2" 
+                                    />
+                                  )}
+                                  {scorer.team.name}
+                                </div>
+                              </td>
+                              <td>{scorer.goals}</td>
+                              <td>{scorer.assists || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p>No top scorer information available for this competition.</p>
+                      </div>
+                    )}
+                  </Tab.Pane>
+                </Tab.Content>
+              </Tab.Container>
             </Card.Body>
           </Card>
         </Col>
