@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from 'react';
 import { toast } from "react-toastify";
 import { fetchAnimeData, postDataToAirtable } from "../../services/service";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -196,7 +196,6 @@ export default function AnimeWidget({ refreshTodoList = () => {} }) {
     );
 }
 
-//~ def prop types fr AnimeWidget
 AnimeWidget.propTypes = {
     refreshTodoList: PropTypes.func
 };
