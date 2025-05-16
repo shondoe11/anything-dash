@@ -30,10 +30,9 @@ ChartJS.register(
   Filler
 );
 
-//& price history chart
 export default function PriceHistoryChart({ currency = 'usd' }) {
-  const [selectedCoins, setSelectedCoins] = useState([]);
-  const [selectedDays, setSelectedDays] = useState(1);
+  const [selectedCoins, setSelectedCoins] = useState(['bitcoin', 'ethereum', 'tether']);
+  const [selectedDays, setSelectedDays] = useState(7);
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
