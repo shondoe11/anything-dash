@@ -1,5 +1,6 @@
 import { Container, Row, Col, Card, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import FeedbackCard from '../components/FeedbackCard';
 
 export default function HomePage() {
   return (
@@ -87,6 +88,12 @@ export default function HomePage() {
               </Button>
             </Card.Body>
           </Card>
+        </Col>
+      </Row>
+
+      <Row className="mb-4">
+        <Col>
+          <FeedbackCard />
         </Col>
       </Row>
 
