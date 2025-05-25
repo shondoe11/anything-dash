@@ -13,6 +13,7 @@ import AnimePage from './pages/AnimePage';
 import AnimeDetail from './pages/AnimeDetail';
 import HomePage from './pages/HomePage';
 import NewTodoPage from './pages/NewTodoPage';
+import FeedbackPage from './pages/FeedbackPage';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { ToastContainer } from 'react-toastify';
@@ -52,6 +53,7 @@ function App() {
                 <Route path="/football/competition/:id" element={<CompetitionDetail />} />
                 <Route path="/anime" element={<AnimePage />} />
                 <Route path="/anime/:id" element={<AnimeDetail />} />
+                <Route path="/feedback" element={<FeedbackPage />} />
               </Routes>
             </Container>
           </main>
