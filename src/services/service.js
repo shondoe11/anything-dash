@@ -1,13 +1,24 @@
 //* store ALL API requests
+import { toast } from 'react-toastify';
 
 //^ Airtable API
+
+//& throw on non-2xx airtable res so callers' catch blocks (+ error toasts) actually fire
+const parseAirtableResponse = async (response) => {
+    const data = await response.json();
+    if (!response.ok) throw new Error(data?.error?.message || `airtable status: ${response.status}`);
+    return data;
+};
+
+//& escape backslashes & dbl quotes bef interpolating val into filterByFormula string
+const escapeFormulaValue = (value) => String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 
 export const fetchAirtableData = async (userRecordId, userEmail) => {
     const airtableApiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const airtableBaseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
     const airtableTableTodo = import.meta.env.VITE_AIRTABLE_TABLE_TODO;
     //& server-side filter by lookup email field fr user link
-    const filterFormula = `{Email (from User)} = "${userEmail}"`;
+    const filterFormula = `{Email (from User)} = "${escapeFormulaValue(userEmail)}"`;
     const url = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableTodo}?filterByFormula=${encodeURIComponent(filterFormula)}`;
     const response = await fetch(url, { headers: { Authorization: `Bearer ${airtableApiKey}` } });
     let records = [];
@@ -20,8 +31,8 @@ export const fetchAirtableData = async (userRecordId, userEmail) => {
     if (!records.length) {
         const allUrl = `https://api.airtable.com/v0/${airtableBaseId}/${airtableTableTodo}`;
         const allResp = await fetch(allUrl, { headers: { Authorization: `Bearer ${airtableApiKey}` } });
-        const allData = await allResp.json();
-        records = allData.records.filter(r => Array.isArray(r.fields.User) && r.fields.User.includes(userRecordId));
+        const allData = await parseAirtableResponse(allResp);
+        records = (allData.records || []).filter(r => Array.isArray(r.fields.User) && r.fields.User.includes(userRecordId));
     }
     return records;
 };
@@ -41,7 +52,7 @@ export const postDataToAirtable = async (userRecordId, newRecord) => {
             records: [{ fields: { ...newRecord, User: [userRecordId] } }],
         }),
     });
-    const data = await response.json();
+    const data = await parseAirtableResponse(response);
     return data;
 };
 
@@ -60,7 +71,7 @@ export const editDataInAirtable = async (recordId, updatedFields) => {
             fields: updatedFields,
         }),
     });
-    const data = await response.json();
+    const data = await parseAirtableResponse(response);
     return data;
 };
 
@@ -75,14 +86,14 @@ export const deleteDataFromAirtable = async (recordId) => {
             Authorization: `Bearer ${airtableApiKey}`,
         },
     });
-    const data = await response.json();
+    const data = await parseAirtableResponse(response);
     return data;
 };
 
 //^ Weather APIs (global + SG)
 export const fetchWeatherData = async (city) => {
     const weatherApiKey = import.meta.env.VITE_WEATHERAPI_KEY;
-    const url = `https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${city}&lang=en`;
+    const url = `https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${encodeURIComponent(city)}&lang=en`;
     const response = await fetch(url);
     const data = await response.json();
     return data;
@@ -91,7 +102,7 @@ export const fetchWeatherData = async (city) => {
 //& forecast data (3/7 day & hourly)
 export const fetchForecastWeatherData = async (city, days = 7, aqi = false, alerts = false) => {
     const weatherApiKey = import.meta.env.VITE_WEATHERAPI_KEY;
-    const url = `https://api.weatherapi.com/v1/forecast.json?key=${weatherApiKey}&q=${city}&days=${days}&aqi=${aqi}&alerts=${alerts}&lang=en`;
+    const url = `https://api.weatherapi.com/v1/forecast.json?key=${weatherApiKey}&q=${encodeURIComponent(city)}&days=${days}&aqi=${aqi}&alerts=${alerts}&lang=en`;
     const response = await fetch(url);
     const data = await response.json();
     return data;
@@ -108,7 +119,7 @@ export const fetchHistoricalWeatherData = async (city, date) => {
 //& alerts
 export const fetchWeatherAlerts = async (city) => {
     const weatherApiKey = import.meta.env.VITE_WEATHERAPI_KEY;
-    const url = `https://api.weatherapi.com/v1/alerts.json?key=${weatherApiKey}&q=${city}&lang=en`;
+    const url = `https://api.weatherapi.com/v1/alerts.json?key=${weatherApiKey}&q=${encodeURIComponent(city)}&lang=en`;
     const response = await fetch(url);
     const data = await response.json();
     return data;
@@ -215,8 +226,6 @@ export const fetchHourlyForecastDataSG = async () => {
 };
 
 //^ CoinGecko API
-
-import { toast } from 'react-toastify';
 
 //& in-memory cache + retry fr CG requests
 const cgCache = new Map();
@@ -413,7 +422,7 @@ export const getVolumeLeaders = async (currency = 'usd', perPage = 10) => {
             headers: { "x-cg-demo-api-key": coinGeckoKey }
         });
 
-        if (!data) throw new Error(`status: ${data.status}`);
+        if (!data) throw new Error('empty response');
 
         return data;
     } catch (error) {
@@ -457,14 +466,16 @@ export const getCoinMarketChart = async (coinId, currency = 'usd', days = 1) => 
             headers: { "x-cg-demo-api-key": coinGeckoKey }
         });
 
-        if (!data) throw new Error(`status: ${data.status}`);
+        if (!data) throw new Error('empty response');
 
         return data;
     } catch (error) {
         console.error(`getCoinMarketChart fail for ${coinId}:`, error);
         //~ fallback CORS proxy
         try {
-            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+            //~ allorigins needs absolute url: it cannot fetch relative netlify function path
+            const directUrl = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=${currency}&days=${days}`;
+            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(directUrl)}`;
             const proxyResp = await fetch(proxyUrl);
             if (!proxyResp.ok) throw new Error(`Proxy error: ${proxyResp.status}`);
             return await proxyResp.json();
@@ -477,17 +488,16 @@ export const getCoinMarketChart = async (coinId, currency = 'usd', days = 1) => 
 
 //& throttle multi-coin chart fetch: limit concurrency
 export async function getCoinMarketChartsThrottled(coinIds = [], currency = 'usd', days = 1, concurrency = 3) {
-    const results = [];
-    const queue = [...coinIds];
+    //~ write results by input index (not completion order) so results[i] always belongs to coinIds[i]
+    const results = new Array(coinIds.length).fill(null);
+    const queue = coinIds.map((id, index) => ({ id, index }));
     const workers = Array(Math.min(concurrency, queue.length)).fill().map(async () => {
         while (queue.length) {
-            const id = queue.shift();
+            const { id, index } = queue.shift();
             try {
-                const data = await getCoinMarketChart(id, currency, days);
-                results.push(data);
+                results[index] = await getCoinMarketChart(id, currency, days);
             } catch (e) {
                 console.warn(`getCoinMarketChart fail for ${id}:`, e);
-                results.push(null);
             }
         }
     });
@@ -506,7 +516,7 @@ export const getCoinOHLC = async (coinId, currency = 'usd', days = 1) => {
             headers: { "x-cg-demo-api-key": coinGeckoKey }
         });
 
-        if (!data) throw new Error(`status: ${data.status}`);
+        if (!data) throw new Error('empty response');
 
         return data; //~ returns arr [timestamp, open, high, low, close]
     } catch (error) {
@@ -588,7 +598,9 @@ export const getAllCoins = async () => {
         console.error('getAllCoins fail:', error);
         //~ fallback CORS proxy
         try {
-            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+            //~ allorigins needs absolute url: it cannot fetch relative netlify function path
+            const directUrl = 'https://api.coingecko.com/api/v3/coins/list';
+            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(directUrl)}`;
             const proxyResp = await fetch(proxyUrl);
             if (!proxyResp.ok) throw new Error(`Proxy error: ${proxyResp.status}`);
             return await proxyResp.json();
@@ -629,6 +641,7 @@ export const fetchCompetitionDetails = async (compeId = 'PL') => {
     const url = `/.netlify/functions/football-proxy?endpoint=competitions/${compeId}`;
     const response = await fetch(url);
     const data = await response.json();
+    if (!response.ok || data.error) throw new Error(data.error || `status: ${response.status}`);
     return data;
 };
 
@@ -656,6 +669,7 @@ export const fetchCompetitionTeams = async (compeId = 'PL') => {
     const url = `/.netlify/functions/football-proxy?endpoint=competitions/${compeId}/teams`;
     const response = await fetch(url);
     const data = await response.json();
+    if (!response.ok || data.error) throw new Error(data.error || `status: ${response.status}`);
     return data;
 };
 
@@ -664,6 +678,7 @@ export const fetchTeamDetails = async (teamId) => {
     const url = `/.netlify/functions/football-proxy?endpoint=teams/${teamId}`;
     const response = await fetch(url);
     const data = await response.json();
+    if (!response.ok || data.error) throw new Error(data.error || `status: ${response.status}`);
     return data;
 };
 
@@ -682,6 +697,7 @@ export const fetchTeamMatches = async (teamId, status = null, dateFrom = null, d
     
     const response = await fetch(url);
     const data = await response.json();
+    if (!response.ok || data.error) throw new Error(data.error || `status: ${response.status}`);
     return data;
 };
 
@@ -743,9 +759,9 @@ export const searchAnime = async (
 };
 
 //& fetch seasonal anime
-export const fetchSeasonalAnime = async (year = new Date().getFullYear(), season = 'spring') => {
+export const fetchSeasonalAnime = async (year = new Date().getFullYear(), season = null) => {
     //~ determine current season if nt specified
-    if (season === 'spring') {
+    if (!season) {
         const currentMonth = new Date().getMonth();
         if (currentMonth >= 0 && currentMonth <= 2) season = 'winter';
         else if (currentMonth >= 3 && currentMonth <= 5) season = 'spring';
@@ -822,10 +838,10 @@ export const getOrCreateUser = async (netlifyUserId, email) => {
     const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
     const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
     const tableUsers = import.meta.env.VITE_AIRTABLE_TABLE_USERS;
-    const filter = encodeURIComponent(`{netlify_user_id}="${netlifyUserId}"`);
+    const filter = encodeURIComponent(`{netlify_user_id}="${escapeFormulaValue(netlifyUserId)}"`);
     const url = `https://api.airtable.com/v0/${baseId}/${tableUsers}?filterByFormula=${filter}`;
     const resp = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
-    const data = await resp.json();
+    const data = await parseAirtableResponse(resp);
     if (data.records.length) return data.records[0].id;
     const createResp = await fetch(`https://api.airtable.com/v0/${baseId}/${tableUsers}`, {
         method: 'POST',
@@ -835,7 +851,7 @@ export const getOrCreateUser = async (netlifyUserId, email) => {
         },
         body: JSON.stringify({ records: [{ fields: { netlify_user_id: netlifyUserId, Email: email } }] }),
     });
-    const createData = await createResp.json();
+    const createData = await parseAirtableResponse(createResp);
     return createData.records[0].id;
 };
 
@@ -846,7 +862,7 @@ export const fetchLayout = async (userRecordId) => {
     //~ fetch layout frm Users table
     const url = `https://api.airtable.com/v0/${baseId}/${tableUsers}/${userRecordId}`;
     const resp = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
-    const data = await resp.json();
+    const data = await parseAirtableResponse(resp);
     return data.fields.Layout || null;
 };
 
@@ -861,7 +877,7 @@ export const saveLayout = async (userRecordId, layoutJSON) => {
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields: { Layout: layoutJSON } })
     });
-    const data = await resp.json();
+    const data = await parseAirtableResponse(resp);
     return data;
 };
 
@@ -872,7 +888,7 @@ export const fetchWeatherPreferences = async (userRecordId) => {
     const table = import.meta.env.VITE_AIRTABLE_TABLE_USERS;
     const url = `https://api.airtable.com/v0/${baseId}/${table}/${userRecordId}`;
     const resp = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
-    const data = await resp.json();
+    const data = await parseAirtableResponse(resp);
     return {
         fields: {
             Country: data.fields['Weather-Country'] || '',
@@ -896,7 +912,7 @@ export const saveWeatherPreferences = async (userRecordId, fields) => {
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields: out })
     });
-    const data = await resp.json();
+    const data = await parseAirtableResponse(resp);
     return { id: data.id };
 };
 
@@ -907,7 +923,7 @@ export const fetchCryptoPreferences = async (userRecordId) => {
     const table = import.meta.env.VITE_AIRTABLE_TABLE_USERS;
     const url = `https://api.airtable.com/v0/${baseId}/${table}/${userRecordId}`;
     const resp = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
-    const data = await resp.json();
+    const data = await parseAirtableResponse(resp);
     return { Currency: data.fields['Crypto-Currency'] || '' };
 };
 
@@ -924,7 +940,7 @@ export const saveCryptoPreferences = async (userRecordId, fields) => {
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields: out }),
     });
-    const data = await resp.json();
+    const data = await parseAirtableResponse(resp);
     return { id: data.id };
 };
 
@@ -934,7 +950,7 @@ export const fetchFootballPreferences = async (userRecordId) => {
     const table = import.meta.env.VITE_AIRTABLE_TABLE_USERS;
     const url = `https://api.airtable.com/v0/${baseId}/${table}/${userRecordId}`;
     const resp = await fetch(url, { headers: { Authorization: `Bearer ${apiKey}` } });
-    const data = await resp.json();
+    const data = await parseAirtableResponse(resp);
     return { Competition: data.fields['Football-Compe'] || '' };
 };
 
