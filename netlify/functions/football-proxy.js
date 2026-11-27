@@ -37,8 +37,9 @@ export const handler = async (event) => {
       }
     });
     const data = await response.json();
+    //~ pass upstream status thru (429 rate limit, 403 restricted tier, 404) so client can tell them apart
     return {
-      statusCode: response.ok ? 200 : 500,
+      statusCode: response.status,
       headers: { 'access-control-allow-origin': '*' },
       body: JSON.stringify(data)
     };
