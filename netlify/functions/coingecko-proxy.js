@@ -14,6 +14,14 @@ export const handler = async (event) => {
   //& build target URL frm endpoint & query params
   const params = event.queryStringParameters || {};
   const { endpoint, ...rest } = params;
+  //~ w/o any endpoint, startsWith check threw & function crashed w 502
+  if (!endpoint) {
+    return {
+      statusCode: 400,
+      headers: { 'access-control-allow-origin': '*' },
+      body: JSON.stringify({ error: 'Missing endpoint parameter' })
+    };
+  }
   const baseUrl = 'https://api.coingecko.com/api/v3';
   let url = endpoint ? `${baseUrl}/${endpoint}` : baseUrl;
 
