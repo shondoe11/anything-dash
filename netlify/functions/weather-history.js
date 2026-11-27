@@ -4,6 +4,13 @@ import fetch from 'node-fetch';
 
 export const handler = async function(event) {
   const { city, dt } = event.queryStringParameters || {};
+  //~ reject incomplete reqs instead of querying weatherapi fr literal string "undefined"
+  if (!city || !dt) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'city and dt query parameters are required' }),
+    };
+  }
   const apiKey = process.env.VITE_WEATHERAPI_KEY;
   const url = `https://api.weatherapi.com/v1/history.json?key=${apiKey}&q=${encodeURIComponent(city)}&dt=${dt}&lang=en`;
   try {
